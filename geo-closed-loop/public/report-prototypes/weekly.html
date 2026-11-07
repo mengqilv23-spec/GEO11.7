@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F4F6FA" />
+    <meta name="description" content="GEO 可见性监测周期报告" />
+    <title>GEO 可见性监测 · 周报</title>
+    <style>
+      :root {
+        --canvas: #F4F6FA;
+        --surface: #FFFFFF;
+        --surface-soft: #F8FAFC;
+        --surface-blue: #EFF6FF;
+        --ink: #172033;
+        --ink-2: #39475A;
+        --ink-3: #5F6E82;
+        --ink-4: #7C8999;
+        --line: #DDE5EE;
+        --line-soft: #EAF0F5;
+        --blue: #2563EB;
+        --blue-dark: #1D4ED8;
+        --blue-soft: #DBEAFE;
+        --green: #047857;
+        --green-soft: #D1FAE5;
+        --amber: #B45309;
+        --amber-soft: #FEF3C7;
+        --red: #B91C1C;
+        --red-soft: #FEE2E2;
+        --purple: #6D28D9;
+        --purple-soft: #EDE9FE;
+        --cyan: #0E7490;
+        --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+        font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--canvas);
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      html, body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--canvas);
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      body { overflow-x: hidden; }
+
+      button, input { font: inherit; }
+      button { border: 0; cursor: pointer; }
+      a { color: var(--blue-dark); text-decoration: none; }
+      a:hover { color: var(--blue); text-decoration: underline; }
+      button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+      .report-toolbar {
+        position: sticky;
+        z-index: 20;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 56px;
+        padding: 0 28px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.97);
+        box-shadow: var(--shadow-xs);
+        backdrop-filter: blur(8px);
+      }
+
+      .toolbar-brand, .toolbar-actions { display: flex; align-items: center; gap: 10px; }
+      .toolbar-brand { min-width: 0; }
+      .toolbar-mark {
+        display: inline-grid;
+        flex: 0 0 auto;
+        width: 26px;
+        height: 26px;
+        place-items: center;
+        border-radius: 7px;
+        background: var(--blue);
+        color: #FFFFFF;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .toolbar-brand strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+      .toolbar-link, .toolbar-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--surface);
+        color: var(--ink-2);
+        font-size: 12px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+      .toolbar-link:hover, .toolbar-button:hover { border-color: #93C5FD; color: var(--blue-dark); text-decoration: none; }
+      .toolbar-button.is-primary { border-color: var(--blue); background: var(--blue); color: #FFFFFF; }
+      .toolbar-button.is-primary:hover { border-color: var(--blue-dark); background: var(--blue-dark); color: #FFFFFF; }
+
+      .export-wrap { position: relative; }
+      .export-panel {
+        position: absolute;
+        z-index: 30;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 292px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      }
+      .export-panel[hidden] { display: none; }
+      .export-panel-title { margin: 0; font-size: 13px; }
+      .export-panel-note { margin: 3px 0 12px; color: var(--ink-4); font-size: 11px; }
+      .export-options { display: grid; gap: 7px; padding-bottom: 12px; border-bottom: 1px solid var(--line-soft); }
+      .export-option { display: flex; align-items: center; gap: 8px; min-height: 25px; color: var(--ink-2); font-size: 12px; }
+      .export-option input { width: 14px; height: 14px; accent-color: var(--blue); }
+      .export-actions { display: flex; gap: 8px; padding-top: 12px; }
+      .export-actions .toolbar-button { flex: 1 1 0; min-width: 0; padding: 0 8px; font-size: 11px; }
+
+      .report-layout {
+        display: grid;
+        grid-template-columns: 172px minmax(0, 760px);
+        gap: 32px;
+        width: min(calc(100% - 48px), 1020px);
+        margin: 0 auto;
+        padding: 32px 0 56px;
+        align-items: start;
+      }
+      .report-toc { position: sticky; top: 88px; display: grid; gap: 2px; padding: 10px 0; }
+      .report-toc-title { margin: 0 10px 8px; color: var(--ink-4); font-size: 11px; font-weight: 700; }
+      .report-toc a { display: block; padding: 7px 10px; border-left: 2px solid transparent; border-radius: 0 6px 6px 0; color: var(--ink-3); font-size: 12px; line-height: 1.4; }
+      .report-toc a:hover { background: var(--surface-blue); color: var(--blue-dark); text-decoration: none; }
+      .report-toc a.is-active { border-left-color: var(--blue); background: var(--surface-blue); color: var(--blue-dark); font-weight: 700; }
+      .report-main { min-width: 0; }
+
+      .report-header { padding: 0 0 22px; border-bottom: 1px solid var(--line); }
+      .report-eyebrow { margin: 0 0 6px; color: var(--blue-dark); font-size: 12px; font-weight: 700; }
+      .report-header h1 { margin: 0; font-size: 28px; line-height: 1.25; letter-spacing: 0; }
+      .report-header-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; color: var(--ink-3); font-size: 12px; }
+      .report-header-meta span { display: inline-flex; align-items: center; gap: 6px; }
+      .report-header-meta span::before { width: 4px; height: 4px; border-radius: 50%; background: #94A3B8; content: ""; }
+      .report-scope { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+      .report-scope span, .section-label, .metric-delta, .status-label, .source-flag, .strategy-priority, .platform-group, .trend-mark {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 7px;
+        border-radius: 5px;
+        font-size: 11px;
+        font-weight: 650;
+      }
+      .report-scope span { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); }
+
+      .report-section {
+        margin-top: 18px;
+        padding: 20px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+        scroll-margin-top: 80px;
+      }
+      .report-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+      #evidence, #evidence-content { min-width: 0; max-width: 100%; }
+      .report-section-heading h2 { margin: 0; font-size: 16px; line-height: 1.35; }
+      .report-section-heading p { margin: 3px 0 0; color: var(--ink-3); font-size: 12px; line-height: 1.5; }
+      .section-label { flex: 0 0 auto; background: var(--surface-soft); color: var(--ink-3); white-space: nowrap; }
+      .section-label.is-fact { background: var(--green-soft); color: var(--green); }
+      .section-label.is-pending { background: var(--amber-soft); color: var(--amber); }
+
+      .summary-band { padding: 2px 0 2px 14px; border-left: 3px solid #93C5FD; }
+      .summary-lead { margin: 0; font-size: 18px; font-weight: 700; line-height: 1.45; }
+      .summary-copy { margin: 8px 0 0; color: var(--ink-2); font-size: 13px; line-height: 1.7; }
+      .summary-copy strong { color: var(--ink); }
+      .summary-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-soft); color: var(--ink-4); font-size: 11px; }
+
+      .metric-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+      .metric-cell { min-width: 0; padding: 14px 13px; background: var(--surface); }
+      .metric-cell + .metric-cell { border-left: 1px solid var(--line); }
+      .metric-cell-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+      .metric-name { color: var(--ink-2); font-size: 12px; font-weight: 700; line-height: 1.4; }
+      .metric-value { margin-top: 9px; color: var(--ink); font-size: 25px; font-weight: 750; line-height: 1.1; }
+      .metric-delta { background: var(--green-soft); color: var(--green); white-space: nowrap; }
+      .metric-compare { display: grid; gap: 2px; margin-top: 8px; color: var(--ink-3); font-size: 11px; line-height: 1.45; }
+      .metric-compare strong { color: var(--ink-2); }
+      .metric-note { margin: 8px 0 0; color: var(--ink-4); font-size: 10px; line-height: 1.45; }
+      .report-note { margin: 12px 0 0; padding: 9px 11px; border-left: 3px solid #93C5FD; background: var(--surface-blue); color: var(--ink-2); font-size: 11px; line-height: 1.55; }
+
+      .aux-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+      .aux-item { min-width: 0; padding: 12px 13px; border-top: 1px solid var(--line); background: var(--surface-soft); }
+      .aux-item-label { display: flex; align-items: center; gap: 6px; color: var(--ink-3); font-size: 11px; font-weight: 650; }
+      .aux-item strong { display: block; margin-top: 7px; color: var(--ink); font-size: 17px; line-height: 1.3; }
+      .aux-item small { display: block; margin-top: 4px; color: var(--ink-4); font-size: 10px; line-height: 1.45; }
+
+      .table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 9px; }
+      table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 11px; }
+      th, td { padding: 9px 10px; border-bottom: 1px solid var(--line-soft); vertical-align: top; text-align: left; }
+      thead th { background: var(--surface-soft); color: var(--ink-3); font-size: 10px; font-weight: 700; white-space: nowrap; }
+      tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+      tbody td, tbody th { color: var(--ink-2); line-height: 1.5; }
+      tbody td strong, tbody th strong { color: var(--ink); }
+      .platform-name { min-width: 140px; color: var(--ink); font-weight: 700; }
+      .platform-name small, .question-cell small { display: block; margin-top: 3px; color: var(--ink-4); font-size: 10px; font-weight: 500; }
+      .platform-group { margin-left: 5px; background: var(--amber-soft); color: var(--amber); font-size: 10px; }
+      .source-flag.is-yes { background: var(--green-soft); color: var(--green); }
+      .source-flag.is-no { background: var(--surface-soft); color: var(--ink-3); }
+      .source-flag.is-pending { background: var(--amber-soft); color: var(--amber); }
+      .question-cell { min-width: 250px; color: var(--ink); font-weight: 650; }
+      .rank-list { display: flex; flex-wrap: wrap; gap: 4px; min-width: 190px; }
+      .rank-list span { display: inline-flex; align-items: center; min-height: 21px; padding: 0 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-soft); color: var(--ink-2); font-size: 10px; white-space: nowrap; }
+      .trend-mark.is-up { background: var(--green-soft); color: var(--green); }
+      .trend-mark.is-flat { background: var(--surface-soft); color: var(--ink-3); }
+      .trend-mark.is-down { background: var(--red-soft); color: var(--red); }
+
+      .chart-shell { padding-top: 2px; }
+      .chart-toolbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+      .chart-toolbar strong { display: block; font-size: 13px; }
+      .chart-toolbar small { display: block; margin-top: 3px; color: var(--ink-4); font-size: 11px; }
+      .chart-legend { display: flex; flex-wrap: wrap; gap: 7px 12px; margin-bottom: 7px; }
+      .legend-button { display: inline-flex; align-items: center; gap: 5px; padding: 2px 0; color: var(--ink-3); font-size: 10px; }
+      .legend-button.is-muted { opacity: 0.35; }
+      .legend-button i { width: 8px; height: 8px; border-radius: 50%; }
+      .chart-stage { position: relative; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+      .chart-stage svg { display: block; width: 100%; height: 230px; overflow: visible; }
+      .chart-grid-line { stroke: #E8EEF5; stroke-width: 1; }
+      .chart-axis-label { fill: #8290A0; font-size: 10px; }
+      .chart-band { fill: rgba(37, 99, 235, 0.1); }
+      .chart-line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+      .chart-point { cursor: crosshair; stroke: #FFFFFF; stroke-width: 2; }
+      .chart-end-label { font-size: 10px; font-weight: 700; }
+      .chart-tooltip { position: absolute; z-index: 3; display: none; min-width: 144px; padding: 8px 9px; border: 1px solid var(--line); border-radius: 7px; background: #172033; color: #FFFFFF; box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18); font-size: 10px; line-height: 1.5; pointer-events: none; }
+      .chart-tooltip.is-visible { display: block; }
+      .chart-x-axis { display: flex; justify-content: space-between; gap: 5px; margin-top: 7px; color: var(--ink-4); font-size: 10px; }
+      .chart-annotation { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 10px; color: var(--ink-3); font-size: 10px; }
+      .chart-annotation span::before { display: inline-block; width: 5px; height: 5px; margin: 0 5px 1px 0; border-radius: 50%; background: var(--blue); content: ""; }
+
+      .platform-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+      .platform-summary-item { padding: 11px 12px; border-left: 3px solid var(--line-strong, #CBD5E1); background: var(--surface-soft); }
+      .platform-summary-item strong { display: block; font-size: 17px; }
+      .platform-summary-item span { display: block; margin-top: 3px; color: var(--ink-3); font-size: 10px; }
+
+      .dimension-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .dimension-panel { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+      .dimension-panel h3 { margin: 0 0 9px; font-size: 12px; }
+      .dimension-panel p { margin: -4px 0 9px; color: var(--ink-4); font-size: 10px; }
+      .heatmap-wrap { overflow-x: auto; }
+      .heatmap-table { min-width: 520px; font-size: 10px; }
+      .heatmap-table th, .heatmap-table td { padding: 7px 8px; text-align: center; }
+      .heatmap-table th:first-child { min-width: 132px; text-align: left; }
+      .heatmap-cell { border-radius: 4px; font-weight: 700; }
+      .heat-4 { background: #C7F2DE; color: #086C4C; }
+      .heat-3 { background: #DDF5ED; color: #14745A; }
+      .heat-2 { background: #FEF3C7; color: #9A6700; }
+      .heat-1 { background: #FEE2E2; color: #A33B3B; }
+      .dimension-list { display: grid; gap: 8px; }
+      .dimension-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding-bottom: 7px; border-bottom: 1px solid var(--line-soft); font-size: 11px; }
+      .dimension-row:last-child { padding-bottom: 0; border-bottom: 0; }
+      .dimension-row strong { color: var(--ink); }
+      .dimension-row small { color: var(--ink-4); font-size: 10px; }
+
+      .source-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+      .source-summary-item { padding: 11px 12px; background: var(--surface-soft); }
+      .source-summary-item span { display: block; color: var(--ink-3); font-size: 10px; }
+      .source-summary-item strong { display: block; margin-top: 4px; font-size: 18px; }
+      .source-summary-item small { display: block; margin-top: 3px; color: var(--ink-4); font-size: 10px; }
+      .page-table { margin-top: 12px; }
+      .page-title { min-width: 210px; color: var(--ink); font-weight: 650; }
+      .page-title small { display: block; margin-top: 3px; color: var(--ink-4); font-size: 10px; font-weight: 500; }
+      .platform-text { color: var(--ink-3); font-size: 10px; line-height: 1.6; }
+
+      .credibility-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+      .credibility-cell { min-width: 0; padding: 12px; background: var(--surface); }
+      .credibility-cell + .credibility-cell { border-left: 1px solid var(--line); }
+      .credibility-cell span { display: block; color: var(--ink-3); font-size: 10px; }
+      .credibility-cell strong { display: block; margin-top: 5px; color: var(--ink); font-size: 17px; }
+      .credibility-cell small { display: block; margin-top: 4px; color: var(--ink-4); font-size: 10px; line-height: 1.45; }
+
+      .strategy-list { display: grid; gap: 8px; }
+      .strategy-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 11px 12px; border-top: 1px solid var(--line); }
+      .strategy-priority { align-self: start; background: var(--red-soft); color: var(--red); }
+      .strategy-priority.is-p1 { background: var(--amber-soft); color: var(--amber); }
+      .strategy-item h3 { margin: 0; font-size: 12px; line-height: 1.45; }
+      .strategy-item p { margin: 4px 0 0; color: var(--ink-2); font-size: 11px; line-height: 1.6; }
+      .strategy-item small { display: block; margin-top: 5px; color: var(--ink-4); font-size: 10px; }
+
+      .analysis-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .analysis-card { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-soft); }
+      .analysis-card.is-primary { border-color: #BFDBFE; background: var(--surface-blue); }
+      .analysis-card h3 { margin: 0; font-size: 12px; line-height: 1.45; }
+      .analysis-card p { margin: 6px 0 0; color: var(--ink-2); font-size: 11px; line-height: 1.65; }
+      .analysis-card p strong { color: var(--ink); }
+      .analysis-card small { display: block; margin-top: 7px; color: var(--ink-4); font-size: 10px; line-height: 1.45; }
+      .analysis-card .source-flag { margin-top: 8px; }
+      .analysis-scope { margin-top: 10px; padding: 9px 11px; border-left: 2px solid #93C5FD; background: var(--surface-blue); color: var(--ink-2); font-size: 10px; line-height: 1.6; }
+      .analysis-scope strong { color: var(--ink); }
+      .detail-module + .detail-module { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+      .detail-module-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+      .detail-module-heading h3 { margin: 0; font-size: 13px; }
+      .detail-module-heading span { color: var(--ink-4); font-size: 10px; }
+      .evidence-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+      .evidence-item { padding: 11px 12px; border-left: 3px solid #93C5FD; background: var(--surface-blue); }
+      .evidence-item strong { display: block; font-size: 12px; }
+      .evidence-item p { margin: 4px 0 0; color: var(--ink-2); font-size: 11px; line-height: 1.55; }
+
+      .exec-ribbon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+      .exec-ribbon-item { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); }
+      .exec-ribbon-item span { display: block; color: var(--ink-3); font-size: 10px; }
+      .exec-ribbon-item strong { display: block; margin-top: 3px; font-size: 15px; }
+      .exec-ribbon-item small { display: block; margin-top: 3px; color: var(--ink-4); font-size: 10px; }
+      .finding-stack { display: grid; gap: 10px; }
+      .finding-card { padding: 14px 15px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+      .finding-card.is-risk { border-left: 3px solid #F59E0B; }
+      .finding-card.is-positive { border-left: 3px solid #10B981; }
+      .finding-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+      .finding-head h3 { margin: 0; font-size: 13px; }
+      .finding-card p { margin: 6px 0 0; color: var(--ink-2); font-size: 11px; line-height: 1.65; }
+      .finding-card small { display: block; margin-top: 7px; color: var(--ink-4); font-size: 10px; line-height: 1.55; }
+      .finding-tag { flex: 0 0 auto; padding: 3px 7px; border-radius: 99px; background: var(--amber-soft); color: var(--amber); font-size: 10px; font-weight: 700; }
+      .finding-tag.is-good { background: var(--green-soft); color: var(--green); }
+      .question-proof { margin-top: 8px; padding: 9px 10px; border-radius: 7px; background: var(--surface-soft); color: var(--ink-2); font-size: 10px; line-height: 1.6; }
+      .question-proof strong { color: var(--ink); }
+      .evidence-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .evidence-box { padding: 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-soft); }
+      .evidence-box h3 { margin: 0; font-size: 12px; }
+      .evidence-box p { margin: 6px 0 0; color: var(--ink-2); font-size: 11px; line-height: 1.65; }
+      .evidence-box strong { color: var(--ink); }
+      .evidence-box.is-gap { border-color: #FCD34D; background: #FFFBEB; }
+      .strategy-item { display: block; padding: 18px 19px; border: 1.5px solid #A8B0FF; border-radius: 16px; background: var(--surface); }
+      .strategy-title-row { display: flex; align-items: center; gap: 9px; }
+      .strategy-title-row h3 { margin: 0; color: #30394A; font-size: 16px; line-height: 1.45; }
+      .strategy-priority { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-height: 27px; padding: 0 9px; border-radius: 8px; background: #EEF0FF; color: #4F46E5; font-size: 12px; font-weight: 700; }
+      .strategy-priority.is-p1 { background: #FFF3E8; color: #C45A05; }
+      .strategy-item p { margin: 8px 0 0; color: #707D91; font-size: 13px; line-height: 1.65; }
+      .strategy-meta { margin-top: 12px; color: #8994A7; font-size: 12px; }
+      .strategy-meta span { display: inline-flex; gap: 5px; }
+      .strategy-meta strong { color: #6B7689; font-weight: 650; }
+      @media (max-width: 620px) { .exec-ribbon, .evidence-split { grid-template-columns: 1fr; } }
+
+      .competitor-performance { display: grid; gap: 10px; }
+      .competitor-performance-card { padding: 14px 15px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-soft); }
+      .competitor-performance-card h3 { margin: 0; font-size: 13px; }
+      .competitor-performance-card p { margin: 6px 0 0; color: var(--ink-2); font-size: 11px; line-height: 1.65; }
+      .competitor-performance-card strong { color: var(--ink); }
+      .competitor-platforms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+      .comp-overview { display: grid; gap: 14px; min-width: 0; max-width: 100%; }
+      .comp-block, .gap-breakdown, .gap-panel { min-width: 0; max-width: 100%; }
+      .comp-table-wrap { min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+      .comp-leaderboard, .comp-table { width: 100%; min-width: 680px; }
+      .comp-insight, .gap-takeaway, .competitor-total-summary { min-width: 0; overflow-wrap: anywhere; }
+      .comp-block-head > span, .gap-panel-head > span { min-width: 0; text-align: right; }
+      .comp-note { padding: 13px 15px; border: 1px solid #F6D58A; border-radius: 9px; background: #FFFBEB; color: #73520C; font-size: 11px; line-height: 1.65; }
+      .comp-note strong { color: #543B06; }
+      .comp-block { padding: 14px 15px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+      .comp-block-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+      .comp-block-head h3 { margin: 0; font-size: 13px; }
+      .comp-block-head span { color: var(--ink-4); font-size: 10px; }
+      .comp-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+      .comp-table th, .comp-table td { padding: 9px 10px; border-bottom: 1px solid var(--line-soft); text-align: left; white-space: nowrap; }
+      .comp-table th { background: var(--surface-soft); color: var(--ink-3); font-size: 10px; font-weight: 650; }
+      .comp-table td:first-child { color: var(--ink); font-weight: 650; }
+      .comp-table td:not(:first-child) { color: var(--ink-4); }
+      .comp-pending { display: inline-flex; padding: 3px 7px; border-radius: 99px; background: #F1F5F9; color: #64748B; font-size: 10px; }
+      .comp-explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+      .comp-explain article { padding: 11px 12px; border-radius: 8px; background: var(--surface-soft); }
+      .comp-explain strong { display: block; font-size: 11px; }
+      .comp-explain p { margin: 5px 0 0; color: var(--ink-3); font-size: 10px; line-height: 1.55; }
+      .comp-analysis-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+      .comp-analysis-card { padding: 12px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-soft); }
+      .comp-analysis-card.is-risk { border-top: 3px solid #F59E0B; }
+      .comp-analysis-card.is-opportunity { border-top: 3px solid #60A5FA; }
+      .comp-analysis-card h4 { margin: 0; font-size: 12px; line-height: 1.5; }
+      .comp-analysis-card p { margin: 7px 0 0; color: var(--ink-2); font-size: 10px; line-height: 1.65; }
+      .comp-analysis-card strong { color: var(--ink); }
+      .comp-leaderboard { width: 100%; border-collapse: collapse; font-size: 11px; }
+      .comp-leaderboard th, .comp-leaderboard td { padding: 10px 12px; border-bottom: 1px solid var(--line-soft); text-align: left; white-space: nowrap; }
+      .comp-leaderboard th { color: var(--ink-3); background: var(--surface-soft); font-size: 10px; }
+      .comp-leaderboard tr.is-own { background: #F0FDFA; }
+      .comp-leaderboard .rank { color: var(--ink-3); font-weight: 700; }
+      .comp-leaderboard .num { color: var(--ink); font-weight: 700; }
+      .comp-insight { padding: 13px 15px; border-left: 3px solid #60A5FA; background: var(--surface-blue); color: var(--ink-2); font-size: 11px; line-height: 1.7; }
+      .comp-insight strong { color: var(--ink); }
+      .gap-breakdown { display: grid; gap: 12px; }
+      .brand-compare-legend { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 9px; }
+      .brand-compare-legend span { display:inline-flex; align-items:center; gap:5px; padding:3px 7px; border-radius:6px; background:var(--surface-soft); color:var(--ink-2); font-size:10px; }
+      .brand-compare-legend i { width:7px; height:7px; border-radius:50%; background:#0F766E; }
+      .brand-compare-legend span:nth-child(2) i { background:#2563EB; }
+      .brand-compare-legend span:nth-child(3) i { background:#7C3AED; }
+      .brand-compare-legend span:nth-child(4) i { background:#D97706; }
+      .brand-bars { display:grid; gap:7px; }
+      .brand-bar-row { display:grid; grid-template-columns:115px minmax(0,1fr) 42px; gap:9px; align-items:center; font-size:10px; color:var(--ink-2); }
+      .brand-bar-track { display:flex; height:8px; overflow:hidden; border-radius:99px; background:var(--surface-soft); }
+      .brand-bar-track i { height:100%; display:block; }
+      .brand-bar-track i:nth-child(1) { background:#0F766E; }
+      .brand-bar-track i:nth-child(2) { background:#2563EB; }
+      .brand-bar-track i:nth-child(3) { background:#7C3AED; }
+      .brand-bar-track i:nth-child(4) { background:#D97706; }
+      .gap-panel { padding: 14px 15px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+      .gap-panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 9px; }
+      .gap-panel-head h4 { margin: 0; font-size: 13px; }
+      .gap-panel-head span { color: var(--ink-4); font-size: 10px; }
+      .gap-takeaway { margin: 9px 0 0; padding: 9px 11px; border-radius: 7px; background: var(--surface-blue); color: var(--ink-2); font-size: 10px; line-height: 1.6; }
+      .gap-takeaway strong { color: var(--ink); }
+      .competitor-total-summary { padding: 15px 16px; border: 1px solid #B8D4FF; border-radius: 10px; background: linear-gradient(135deg,#F2F7FF 0%,#FFFFFF 100%); }
+      .competitor-total-summary h4 { margin: 0 0 8px; color: var(--ink); font-size: 14px; }
+      .competitor-total-summary p { margin: 0; color: var(--ink-2); font-size: 11px; line-height: 1.75; }
+      .competitor-total-summary ul { display:grid; gap:5px; margin:8px 0 0; padding-left:17px; color:var(--ink-2); font-size:11px; line-height:1.65; }
+      .gap-matrix td { text-align: center; }
+      .gap-matrix td:first-child { text-align: left; white-space: nowrap; }
+      .gap-matrix .is-low { color: #B45309 !important; font-weight: 700; }
+      .gap-matrix .is-high { color: #047857 !important; font-weight: 700; }
+      .gap-source-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+      .gap-source-item { padding: 10px 11px; border-radius: 8px; background: var(--surface-soft); }
+      .gap-source-item strong { display: block; font-size: 11px; }
+      .gap-source-item span { display: block; margin-top: 4px; color: var(--ink-3); font-size: 10px; line-height: 1.5; }
+      @media (max-width: 700px) { .gap-source-list { grid-template-columns: 1fr; } }
+      @media (max-width: 700px) { .comp-analysis-grid { grid-template-columns: 1fr; } }
+      @media (max-width: 700px) { .comp-table-wrap { overflow-x: auto; } .comp-explain { grid-template-columns: 1fr; } }
+      .competitor-platforms span { padding: 3px 7px; border-radius: 6px; background: #FFFFFF; color: var(--ink-2); font-size: 10px; }
+      .report-footer { margin-top: 18px; padding: 16px 2px 0; border-top: 1px solid var(--line); color: var(--ink-4); font-size: 11px; line-height: 1.6; }
+      [data-print-hidden="true"] { display: none !important; }
+
+      @media (max-width: 840px) {
+        .report-toolbar { padding: 0 18px; }
+        .report-layout { grid-template-columns: 1fr; width: min(calc(100% - 32px), 760px); gap: 12px; padding-top: 20px; }
+        .report-toc { position: static; display: flex; gap: 4px; overflow-x: auto; padding: 0 0 4px; border-bottom: 1px solid var(--line); scrollbar-width: none; }
+        .report-toc::-webkit-scrollbar { display: none; }
+        .report-toc-title { display: none; }
+        .report-toc a { flex: 0 0 auto; padding: 6px 8px; border: 1px solid transparent; border-radius: 6px; white-space: nowrap; }
+        .report-toc a.is-active { border-color: #BFDBFE; }
+      }
+
+      @media (max-width: 620px) {
+        .report-toolbar { align-items: flex-start; padding: 10px 14px; }
+        .toolbar-brand strong { max-width: 142px; }
+        .toolbar-actions { gap: 6px; }
+        .toolbar-link, .toolbar-button { min-height: 30px; padding: 0 9px; font-size: 11px; }
+        .export-panel { position: fixed; top: 54px; right: 12px; left: 12px; width: auto; }
+        .report-layout { width: min(calc(100% - 24px), 760px); padding-bottom: 32px; }
+        .report-header h1 { font-size: 23px; }
+        .report-section { padding: 16px; }
+        .report-section-heading { flex-direction: column; gap: 8px; }
+        .metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .metric-cell:nth-child(3) { border-left: 0; border-top: 1px solid var(--line); }
+        .metric-cell:nth-child(4) { border-top: 1px solid var(--line); }
+        .aux-grid, .platform-summary, .source-summary, .dimension-grid, .analysis-grid, .evidence-grid { grid-template-columns: 1fr; }
+        .credibility-grid { grid-template-columns: 1fr; }
+        .credibility-cell + .credibility-cell { border-left: 0; border-top: 1px solid var(--line); }
+        .chart-stage svg { height: 195px; }
+        .strategy-item { grid-template-columns: 1fr; gap: 6px; }
+      }
+
+      @media print {
+        @page { size: A4; margin: 14mm 13mm; }
+        html, body { background: #FFFFFF; color: #000000; }
+        .report-toolbar, .report-toc, [data-export-only] { display: none !important; }
+        .report-layout { display: block; width: 100%; max-width: none; margin: 0; padding: 0; }
+        .report-header { padding-bottom: 14px; }
+        .report-section { margin-top: 14px; border-color: #CBD5E1; break-inside: avoid; }
+        .report-section[data-report-section="details"], .report-section[data-report-section="evidence"] { break-inside: auto; }
+        a { color: #000000; text-decoration: none; }
+      }
+    </style>
+  </head>
+  <body data-report-type="weekly">
+    <div class="report-shell">
+      <header class="report-toolbar" data-export-only>
+        <div class="toolbar-brand"><span class="toolbar-mark" aria-hidden="true">G</span><strong>GEO Agent · 报告中心</strong></div>
+        <div class="toolbar-actions">
+          <a class="toolbar-link" href="../report-center" target="_top">返回报告中心</a>
+          <div class="export-wrap">
+            <button class="toolbar-button is-primary" id="export-toggle" type="button" aria-expanded="false" aria-controls="export-panel">导出</button>
+            <div class="export-panel" id="export-panel" hidden>
+              <h2 class="export-panel-title">选择导出内容</h2>
+              <p class="export-panel-note">未勾选的章节不会出现在 PDF 或下载的 HTML 中。</p>
+              <div class="export-options">
+                <label class="export-option"><input type="checkbox" value="summary" checked /><span data-export-label="summary">一、管理层结论</span></label>
+                <label class="export-option"><input type="checkbox" value="analysis" checked /><span data-export-label="analysis">二、本期关键发现</span></label>
+                <label class="export-option"><input type="checkbox" value="evidence" checked /><span data-export-label="evidence">三、竞品表现</span></label>
+                <label class="export-option"><input type="checkbox" value="details" checked /><span data-export-label="details">四、监测明细</span></label>
+                <label class="export-option"><input type="checkbox" value="strategy" checked /><span data-export-label="strategy">五、优化建议</span></label>
+              </div>
+              <div class="export-actions"><button class="toolbar-button" id="export-pdf" type="button">导出 PDF</button><button class="toolbar-button is-primary" id="download-html" type="button">下载 HTML</button></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="report-layout">
+        <aside class="report-toc" aria-label="报告目录">
+          <p class="report-toc-title">报告目录</p>
+          <a href="#summary" data-toc="summary" class="is-active" aria-current="true">一、管理层结论</a>
+          <a href="#analysis" data-toc="analysis">二、本期关键发现</a>
+          <a href="#evidence" data-toc="evidence">三、竞品表现</a>
+          <a href="#details" data-toc="details">四、监测明细</a>
+          <a href="#strategy" data-toc="strategy">五、优化建议</a>
+        </aside>
+
+        <main class="report-main">
+          <header class="report-header">
+            <p class="report-eyebrow" id="report-eyebrow">GEO 可见性监测 · 管理层周报</p>
+            <h1 id="report-title">本周 GEO 表现与优化简报</h1>
+            <div class="report-header-meta"><span id="report-date">报告日期：2026-09-15</span><span id="report-cycle">统计周期：2026-09-08–09-14</span><span id="report-audience">范围：德国 / 德语</span></div>
+            <div class="report-scope" aria-label="本报告监测口径"><span>德国 / 德语</span><span id="scope-cadence">每周按固定计划采集</span><span>6 类人设</span><span>4 类意图</span><span>5 个关键词</span><span>67 个监测问题</span><span>5 个 AI 平台</span></div>
+          </header>
+
+          <section class="report-section" id="summary" data-report-section="summary" aria-labelledby="summary-title">
+            <div class="report-section-heading"><div><h2 id="summary-title">一、管理层结论</h2></div></div>
+            <div id="summary-content"></div>
+          </section>
+
+          <section class="report-section" id="analysis" data-report-section="analysis" aria-labelledby="analysis-title">
+            <div class="report-section-heading"><div><h2 id="analysis-title">二、本期关键发现</h2></div></div>
+            <div id="analysis-content"></div>
+          </section>
+
+
+
+          <section class="report-section" id="evidence" data-report-section="evidence" aria-labelledby="evidence-title">
+            <div class="report-section-heading"><div><h2 id="evidence-title">三、综合竞品表现</h2></div></div>
+            <div id="evidence-content"></div>
+          </section>
+
+          <section class="report-section" id="details" data-report-section="details" aria-labelledby="details-title">
+            <div class="report-section-heading"><div><h2 id="details-title">四、监测明细</h2></div></div>
+            <div class="detail-module" id="metrics" aria-labelledby="metrics-title"><div class="detail-module-heading"><h3 id="metrics-title">4.1 主指标与辅助指标</h3><span>四项主指标 · 辅助指标</span></div><div id="metrics-content"></div></div>
+            <div class="detail-module" id="platforms" aria-labelledby="platforms-title"><div class="detail-module-heading"><h3 id="platforms-title">4.2 平台表现</h3><span>平台提及 · 官网引用</span></div><div id="platforms-content"></div></div>
+            <div class="detail-module" id="trends" aria-labelledby="trends-title"><div class="detail-module-heading"><h3 id="trends-title">4.3 人设、关键词与意图</h3><span>趋势 · 人设 · 关键词 · 意图</span></div><div id="trends-content"></div></div>
+            <div class="detail-module" id="questions" aria-labelledby="questions-title"><div class="detail-module-heading"><h3 id="questions-title">4.4 问题命中明细</h3><span>67 个监测问题</span></div><div id="questions-content"></div></div>
+            <div class="detail-module" id="sources" aria-labelledby="sources-title"><div class="detail-module-heading"><h3 id="sources-title">4.5 来源域名与被引页面</h3><span>引用 · 我方提及 · 页面竞品</span></div><div id="sources-content"></div></div>
+            <div class="detail-module" id="sample-method" aria-labelledby="sample-method-title"><div class="detail-module-heading"><h3 id="sample-method-title">4.6 采集与样本情况</h3><span>采集口径 · 样本稳定性</span></div><div id="credibility-content"></div></div>
+          </section>
+
+          <section class="report-section" id="strategy" data-report-section="strategy" aria-labelledby="strategy-title">
+            <div class="report-section-heading"><div><h2 id="strategy-title">五、优化建议</h2></div></div>
+            <div id="strategy-content"></div>
+          </section>
+
+          <footer class="report-footer">GEO 可见性监测 · 管理层周报 · 2026-09-15</footer>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const type = 'weekly';
+        const config = { label: '周报', title: '本周 GEO 表现与优化简报', date: '2026-09-15', cycle: '2026-09-08–09-14', cadence: '每周按固定计划采集', compare: '较上周 09/01–09/07', compareShort: '上周', eyebrow: 'GEO 可见性监测 · 管理层周报', summaryLabel: '管理层结论', focus: '本周整体露出回升，但采购决策问题仍有缺口。', range: '统计周期：2026-09-08–09-14', filename: '20260915_weekly-report.html' };
+
+        const metrics = [
+          { name: '品牌提及率（SOA）', value: '42%', compare: '38%', delta: '+4pp', ci: 'Wilson 95% 置信区间：±2.8pp', color: '#2563EB' },
+          { name: '品牌推荐率', value: '28%', compare: '24%', delta: '+4pp', ci: '二项分母待补齐', color: '#059669' },
+          { name: '官网引用率', value: '17%', compare: '15%', delta: '+2pp', ci: '二项分母待补齐', color: '#0891B2' },
+          { name: '声量份额（SOV）', value: '27%', compare: '23%', delta: '+4pp', ci: '二项分母待补齐', color: '#7C3AED' }
+        ];
+
+        const platforms = [
+          { name: 'Google AI Overviews', group: 'Google 系', mention: '46%', cite: '18%', sample: 'n=240', delta: '+5pp' },
+          { name: 'Gemini', group: 'Google 系', mention: '39%', cite: '16%', sample: 'n=240', delta: '+3pp' },
+          { name: 'ChatGPT', group: '', mention: '42%', cite: '17%', sample: 'n=240', delta: '+4pp' },
+          { name: 'Perplexity', group: '', mention: '31%', cite: '14%', sample: 'n=240', delta: '+2pp' },
+          { name: 'Claude', group: '', mention: '—', cite: '—', sample: '已纳入当前口径', delta: '分项待补齐' }
+        ];
+
+        const questions = [
+          ['Welches 5-Achs-Wasserstrahlsystem eignet sich für CFRP ohne Delamination?', '复材技术主管', 'ChatGPT：第 1 位 · Perplexity：第 3 位 · Google AI：第 1 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=52/54 · ±7.4pp'],
+          ['Wasserstrahl oder Laser für Kohlefaser — welche Anbieter empfehlen Ingenieure?', '复材技术主管', 'ChatGPT：第 1 位 · Perplexity：第 1 位 · Google AI：第 3 位', '是 · APW 对比页', '第 1 位 / 3', '↑ 上升', 'n=53/54 · ±7.1pp'],
+          ['Welche Wasserstrahlanlage eignet sich für die Bearbeitung von Titanbauteilen?', '航空部件采购经理', 'ChatGPT：第 3 位 · Perplexity：第 2 位 · Google AI：第 1 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=45/48 · ±9.6pp'],
+          ['Welche 5-Achs-Wasserstrahlmaschine ist für komplexe Geometrien geeignet?', '精密加工车间主管', 'ChatGPT：未提及 · Perplexity：第 3 位 · Google AI：第 2 位', '否', '第 2 位 / 3', '→ 持平', 'n=31/36 · ±11.4pp'],
+          ['Wie unterscheiden sich Wasserstrahlpumpen mit 60.000 PSI im industriellen Einsatz?', '复材加工技术主管', 'ChatGPT：第 2 位 · Perplexity：第 2 位 · Google AI：第 3 位', '是 · APW 页面', '第 2 位 / 3', '↑ 上升', 'n=57/60 · ±6.8pp'],
+          ['Was kostet das präzise Wasserstrahlschneiden von CFRP für kleine Serien?', '航空部件采购经理', 'ChatGPT：第 4 位 · Perplexity：未提及 · Google AI：第 2 位', '否', '第 2 位 / 3', '↓ 下降', 'n=40/45 · ±10.2pp'],
+          ['Welche Wasserstrahlanlagen empfehlen sich für Anwendungen in der Luftfahrt?', '航空部件采购经理', 'ChatGPT：第 1 位 · Perplexity：第 2 位 · Google AI：第 2 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=58/60 · ±6.6pp'],
+          ['Wie lassen sich Ausfransungen beim Schneiden von Verbundwerkstoffen vermeiden?', '精密加工车间主管', 'ChatGPT：第 2 位 · Perplexity：第 4 位 · Google AI：未提及', '否', '第 2 位 / 3', '→ 持平', 'n=36/42 · ±10.8pp'],
+          ['Welche Wasserstrahlmaschine bietet eine zuverlässige Taper-Kompensation?', '复材加工技术主管', 'ChatGPT：第 2 位 · Perplexity：第 1 位 · Google AI：第 3 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=64/66 · ±6.0pp'],
+          ['Welche Anbieter sind für das Nassschneiden von Faserverbundwerkstoffen bekannt?', '商社设备采购担当', 'ChatGPT：第 3 位 · Perplexity：未提及 · Google AI：第 4 位', '否', '第 3 位 / 4', '→ 持平', 'n=29/33 · ±12.6pp']
+        ];
+
+        const sourceDomains = [
+          ['compositesworld.com', '14', '30', 'ChatGPT / Perplexity / Google AI', '否'],
+          ['reddit.com', '8', '18', 'ChatGPT / Perplexity', '否'],
+          ['apw.com', '11', '17', 'ChatGPT / Perplexity / Google AI', '是'],
+          ['thefabricator.com', '6', '14', 'ChatGPT / Google AI', '是'],
+          ['youtube.com', '5', '11', 'Google AI', '否']
+        ];
+
+        const sourcePages = [
+          ['CFRP 切割：水刀与激光方案对比', 'https://compositesworld.com/articles/cf-cutting', 'compositesworld.com', '7', '12', 'ChatGPT / Perplexity / Google AI', '否', 'Flow Intl、OMAX、Bystronic'],
+          ['5 轴水刀系统与复材加工', 'https://compositesworld.com/articles/5-axis-waterjet', 'compositesworld.com', '4', '10', 'ChatGPT / Perplexity / Google AI', '否', 'Flow Intl、OMAX、Bystronic'],
+          ['APW Waterjet · Carbon Fiber Solutions', 'https://apw.com/en/solutions/carbon-fiber', 'apw.com', '6', '9', 'ChatGPT / Perplexity / Google AI', '是', 'Flow Intl、OMAX、Bystronic'],
+          ['APW Waterjet · Waterjet vs Laser', 'https://apw.com/en/compare/waterjet-laser', 'apw.com', '3', '5', 'ChatGPT / Perplexity / Google AI', '是', 'Flow Intl、Bystronic'],
+          ['Waterjet Cutting for CFRP Applications', 'https://thefabricator.com/article/waterjet-cfrp', 'thefabricator.com', '3', '8', 'ChatGPT / Google AI', '是', 'Flow Intl、Bystronic'],
+          ['CFRP Waterjet Cutting Demonstration', 'https://youtube.com/watch?v=cfrp-waterjet', 'youtube.com', '3', '7', 'Google AI', '否', 'Flow Intl']
+        ];
+
+        const personas = [
+          ['复材加工技术主管', '62%', '±8.2pp'],
+          ['航空部件采购经理', '55%', '±8.8pp'],
+          ['精密加工车间主管', '48%', '±9.4pp'],
+          ['商社设备采购担当', '29%', '±10.1pp'],
+          ['汽车 Tier-1 工艺工程师', '—', '当前样本不足'],
+          ['航空复材项目负责人', '—', '当前样本不足']
+        ];
+
+        const chartSeries = [
+          { key: 'soa', label: '品牌提及率（SOA）', color: '#2563EB', values: [38, 42] },
+          { key: 'recommend', label: '品牌推荐率', color: '#059669', values: [24, 28] },
+          { key: 'cite', label: '官网引用率', color: '#0891B2', values: [15, 17] },
+          { key: 'sov', label: '声量份额（SOV）', color: '#7C3AED', values: [23, 27] }
+        ];
+
+        function esc(value) {
+          return String(value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+        }
+
+        function metricStrip() {
+          return `<div class="metric-strip">${metrics.map((metric) => `<article class="metric-cell"><div class="metric-cell-head"><span class="metric-name">${metric.name}</span><span class="metric-delta">${metric.delta}</span></div><div class="metric-value">${metric.value}</div><div class="metric-compare"><span>${config.compare}：<strong>${metric.compare}</strong></span><span>较首次：<strong>${metric.delta}</strong></span></div><p class="metric-note">${metric.ci}</p></article>`).join('')}</div>`;
+        }
+
+        function auxMetrics() {
+          return `<div class="aux-grid"><article class="aux-item"><div class="aux-item-label">平均位次（Rank）</div><strong>2.3 位</strong><small>较首次监测 3.1 位提升</small></article><article class="aux-item"><div class="aux-item-label">情绪分布</div><strong>正向 71% · 中性 24%</strong><small>负向 5% · 按回答判定</small></article><article class="aux-item"><div class="aux-item-label">讲对了吗</div><strong>事实准确率 93%</strong><small>事实错误率 7% · 需回看样本</small></article></div>`;
+        }
+
+        function renderSummary() {
+          const lead = '整体可见性上升，但关键采购问题仍未形成稳定优势。';
+          const copy = '本周品牌提及率升至 <strong>42%</strong>（上周 38%），推荐率升至 <strong>28%</strong>（24%）；但商社设备采购担当提及率只有 <strong>29%</strong>，官网引用率为 <strong>17%</strong>。因此，本周最值得汇报的不是总分上涨，而是采购场景仍有明显的覆盖与证据缺口。';
+          const ribbon = `<div class="exec-ribbon"><div class="exec-ribbon-item"><span>品牌相对声量（SOV）</span><strong>27%</strong><small>较上周 +4pp</small></div><div class="exec-ribbon-item"><span>与头部竞品 Flow 的差距</span><strong>SOA −14pp · 推荐率 −16pp</strong><small>本周排名第 2</small></div><div class="exec-ribbon-item"><span>主要短板（人设 × 关键词）</span><strong>商社设备采购担当 × 钛合金加工</strong><small>组合 SOA：5% · 下周优先复核</small></div></div>`;
+          document.getElementById('summary-content').innerHTML = `<div class="summary-band"><p class="summary-lead">${lead}</p><p class="summary-copy">${copy}</p><div class="summary-meta"><span>${config.compare}</span><span>${config.range}</span><span>德国 / 德语 · 67 个监测问题 · 5 个 AI 平台</span></div></div>${ribbon}`;
+        }
+
+        function renderAnalysis() {
+          const cards = [
+            `<article class="analysis-card is-primary"><h3>本周变化</h3><p><strong>品牌提及率（SOA）</strong>从 38% 上升至 42%，官网引用率从 15% 上升至 17%；四项核心指标均高于上周。</p></article>`,
+            `<article class="analysis-card"><h3>平台拆解</h3><p><strong>Google AI Overviews 为 46%，Gemini 为 39%</strong>，高于 Perplexity 的 31%；</p></article>`,
+            `<article class="analysis-card"><h3>人设与意图拆解</h3><p><strong>认知 61%、评估 52%、决策 43%</strong>；商社设备采购担当为 29%，低于技术主管等人设。</p></article>`,
+            `<article class="analysis-card"><h3>来源关联</h3><p><strong>compositesworld.com 被引用 30 次</strong>，当前来源记录中 APW 未被提及。</p></article>`
+          ];
+          document.getElementById('analysis-content').innerHTML = `<div class="analysis-grid">${cards.join('')}</div>`;
+        }
+
+        function renderMetrics() {
+          document.getElementById('metrics-content').innerHTML = metricStrip() + auxMetrics();
+        }
+
+        function renderPlatforms() {
+          const summary = `<div class="platform-summary"><div class="platform-summary-item" style="border-left-color:#D97706"><strong>Google 系</strong><span>Google AI Overviews、Gemini · 46% / 39%</span></div><div class="platform-summary-item" style="border-left-color:#2563EB"><strong>ChatGPT</strong><span>品牌提及率 42% · 官网引用率 17%</span></div><div class="platform-summary-item" style="border-left-color:#7C3AED"><strong>Perplexity</strong><span>品牌提及率 31% · 官网引用率 14%</span></div></div>`;
+          const rows = platforms.map((platform) => `<tr><td class="platform-name">${platform.name}${platform.group ? `<span class="platform-group">${platform.group}</span>` : ''}<small>${platform.sample} · ${platform.delta}</small></td><td><strong>${platform.mention}</strong></td><td><strong>${platform.cite}</strong></td><td>${platform.mention === '—' ? '<span class="source-flag is-pending">平台已纳入，分项待补齐</span>' : '<span class="source-flag is-yes">已展示</span>'}</td></tr>`).join('');
+          document.getElementById('platforms-content').innerHTML = `${summary}<div class="table-wrap"><table><caption hidden>AI 平台表现</caption><thead><tr><th>AI 平台</th><th>品牌提及率（SOA）</th><th>官网引用率</th><th>当前状态</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        }
+
+        function chartMarkup() {
+          const width = 720;
+          const height = 230;
+          const pad = { top: 20, right: 58, bottom: 22, left: 32 };
+          const max = 60;
+          const min = 0;
+          const labels = ['上周', '本周'];
+          const x = (index) => pad.left + (index * (width - pad.left - pad.right)) / (labels.length - 1);
+          const y = (value) => pad.top + ((max - value) * (height - pad.top - pad.bottom)) / (max - min);
+          const points = (values) => values.map((value, index) => `${x(index).toFixed(1)},${y(value).toFixed(1)}`).join(' ');
+          const soa = chartSeries[0].values;
+          const bandTop = soa.map((value, index) => `${x(index).toFixed(1)},${y(value + 2.8).toFixed(1)}`).join(' ');
+          const bandBottom = soa.slice().reverse().map((value, reverseIndex) => { const index = soa.length - 1 - reverseIndex; return `${x(index).toFixed(1)},${y(value - 2.8).toFixed(1)}`; }).join(' ');
+          const grid = [0, 20, 40, 60].map((value) => `<line x1="${pad.left}" y1="${y(value)}" x2="${width - pad.right}" y2="${y(value)}" class="chart-grid-line"/><text x="4" y="${y(value) + 3}" class="chart-axis-label">${value}%</text>`).join('');
+          const lines = chartSeries.map((series) => `<polyline data-series="${series.key}" points="${points(series.values)}" class="chart-line" stroke="${series.color}"/>`).join('');
+          const dots = chartSeries.map((series) => series.values.map((value, index) => `<circle data-series="${series.key}" data-label="${labels[index]}" data-value="${series.label} ${value}%" cx="${x(index)}" cy="${y(value)}" r="3.5" fill="${series.color}" class="chart-point"/>`).join('')).join('');
+          const labelOffsets = { soa: 0, recommend: -7, cite: 0, sov: 7 };
+          const endLabels = chartSeries.map((series) => `<text data-series="${series.key}" x="${width - pad.right + 7}" y="${y(series.values[series.values.length - 1]) + 3 + (labelOffsets[series.key] || 0)}" fill="${series.color}" class="chart-end-label">${series.values[series.values.length - 1]}%</text>`).join('');
+          const legend = chartSeries.map((series) => `<button class="legend-button" type="button" data-chart-series="${series.key}"><i style="background:${series.color}"></i>${series.label}</button>`).join('');
+          return `<div class="chart-shell"><div class="chart-toolbar"><div><strong>核心指标表现</strong></div></div><div class="chart-legend">${legend}<span class="legend-button"><i style="background:#93C5FD"></i>SOA 95% 置信区间</span></div><div class="chart-stage"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="四项主指标趋势图">${grid}<polygon points="${bandTop} ${bandBottom}" class="chart-band"/>${lines}${dots}${endLabels}</svg><div class="chart-tooltip" id="chart-tooltip"></div></div><div class="chart-x-axis">${labels.map((label) => `<span>${label}</span>`).join('')}</div></div>`;
+        }
+
+        function dimensionMarkup() {
+          const heatmapRows = [
+            ['复材加工技术主管', [78, 72, 65, 40]],
+            ['航空部件采购经理', [52, 60, 48, 74]],
+            ['精密加工车间主管', [38, 55, 62, 30]],
+            ['商社设备采购担当', [12, 8, 15, 5]]
+          ];
+          const level = (value) => value >= 75 ? 'heat-4' : value >= 50 ? 'heat-3' : value >= 25 ? 'heat-2' : 'heat-1';
+          const topicRows = heatmapRows.map((row) => `<tr><th>${row[0]}</th>${row[1].map((value) => `<td class="heatmap-cell ${level(value)}">${value}%</td>`).join('')}</tr>`).join('');
+          const intentRows = [
+            ['信息查询（认知）', '61%', '6 类人设'],
+            ['方案比较（评估）', '52%', '6 类人设'],
+            ['设备选型（决策）', '43%', '6 类人设'],
+            ['售后评价（背书）', '17%', '样本较少']
+          ].map((row) => `<div class="dimension-row"><strong>${row[0]}</strong><span>${row[1]}</span><small>${row[2]}</small></div>`).join('');
+
+          return `<div class="dimension-grid"><div class="dimension-panel"><h3>买家人设 × 关键词</h3><p>颜色越深表示品牌提及率（SOA）越高；单格只作为维度观察。</p><div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th>人设画像</th><th>碳纤维切割</th><th>五轴水刀选型</th><th>水刀 vs 激光</th><th>钛合金加工</th></tr></thead><tbody>${topicRows}</tbody></table></div></div><div class="dimension-panel"><h3>买家人设 × 意图阶段</h3><p>展示不同采购决策阶段的品牌提及率（SOA），观察 AI 主动推荐我方的表现。</p><div class="dimension-list">${intentRows}</div></div></div>`;
+        }
+
+        function renderTrends() {
+          document.getElementById('trends-content').innerHTML = `${chartMarkup()}<div style="height:14px"></div>${dimensionMarkup()}`;
+        }
+
+        function rankClass(value) { return value.includes('↑') ? 'is-up' : value.includes('↓') ? 'is-down' : 'is-flat'; }
+        function renderQuestions() {
+          const rows = questions.map((row) => `<tr><td class="question-cell">${row[0]}<small>${row[1]}</small></td><td><div class="rank-list">${row[2].split(' · ').map((item) => `<span>${item}</span>`).join('')}</div></td><td><span class="source-flag ${row[3].startsWith('是') ? 'is-yes' : 'is-no'}">${row[3]}</span></td><td><strong>${row[4]}</strong></td><td><span class="trend-mark ${rankClass(row[5])}">${row[5]}</span></td><td><small>${row[6]}</small></td></tr>`).join('');
+          document.getElementById('questions-content').innerHTML = `<div class="table-wrap"><table><caption hidden>问题命中明细</caption><thead><tr><th>监测问题 / 人设</th><th>平台提及与位置</th><th>是否引用官网</th><th>当前位置 / 分母</th><th>较上期</th><th>问题级采样</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        }
+
+        function renderSources() {
+          const domainRows = sourceDomains.map((row) => `<tr><td><a href="https://${row[0]}" target="_blank" rel="noopener noreferrer">${row[0]}</a></td><td><strong>${row[1]}</strong></td><td><strong>${row[2]}</strong></td><td class="platform-text">${row[3]}</td><td><span class="source-flag ${row[4] === '是' ? 'is-yes' : 'is-no'}">${row[4]}</span></td></tr>`).join('');
+          const pageRows = sourcePages.map((row) => `<tr><td class="page-title"><a href="${row[1]}" target="_blank" rel="noopener noreferrer">${row[0]}</a><small>${row[2]}</small></td><td>${row[3]}</td><td>${row[4]}</td><td class="platform-text">${row[5]}</td><td><span class="source-flag ${row[6] === '是' ? 'is-yes' : 'is-no'}">${row[6]}</span></td><td class="platform-text">${row[7]}</td></tr>`).join('');
+          document.getElementById('sources-content').innerHTML = `<div class="source-summary"><div class="source-summary-item"><span>第三方引用占比</span><strong>82.9%</strong><small>当前来源域名聚合</small></div><div class="source-summary-item"><span>最高引用域名</span><strong>30 次</strong><small>compositesworld.com</small></div><div class="source-summary-item"><span>我方被引页面</span><strong>3 个</strong><small>当前页面追踪明细</small></div></div><div class="table-wrap"><table><caption hidden>来源域名追踪</caption><thead><tr><th>来源域名</th><th>命中问题数</th><th>引用次数</th><th>引用平台</th><th>我方是否提及</th></tr></thead><tbody>${domainRows}</tbody></table></div><div class="table-wrap page-table"><table><caption hidden>被引页面追踪</caption><thead><tr><th>被引页面</th><th>命中问题数</th><th>引用次数</th><th>引用平台</th><th>我方是否提及</th><th>页面竞品提及</th></tr></thead><tbody>${pageRows}</tbody></table></div>`;
+        }
+
+        function renderCredibility() {
+          const credibility = `<div class="credibility-grid"><div class="credibility-cell"><span>采集频率</span><strong>${config.cadence}</strong></div><div class="credibility-cell"><span>累计采样数</span><strong>1,200</strong><small>1,169 条有效回答 · 当前口径累计</small></div><div class="credibility-cell"><span>整体 95% 置信区间</span><strong>±2.8pp</strong><small>整体品牌提及率（SOA）</small></div></div>`;
+          document.getElementById('credibility-content').innerHTML = credibility;
+        }
+
+        function renderEvidence() {
+          const comparison = [
+            { rank: 1, name: 'Flow', mention: 56, recommend: 44 },
+            { rank: 2, name: 'APW Waterjet', mention: 42, recommend: 28, citation: '17%', own: true },
+            { rank: 3, name: 'OMAX', mention: 38, recommend: 27 },
+            { rank: 4, name: 'KMT', mention: 29, recommend: 20 }
+          ];
+          const rows = comparison.map((brand) => `<tr class="${brand.own ? 'is-own' : ''}"><td class="rank">${brand.rank}</td><td>${brand.name}${brand.own ? '（我方）' : ''}</td><td class="num">${brand.mention}%</td><td class="num">${brand.recommend}%</td><td>${brand.citation || '—'}</td></tr>`).join('');
+          document.getElementById('evidence-content').innerHTML = `<div class="comp-overview">
+            <section class="comp-block"><div class="comp-block-head"><h3>本期总结排名</h3><span>全部监测问题汇总 · 同口径比较</span></div><div class="comp-table-wrap"><table class="comp-leaderboard"><thead><tr><th>排名</th><th>品牌</th><th>提及率</th><th>推荐率</th><th>官网引用率</th></tr></thead><tbody>${rows}</tbody></table></div><div class="comp-insight"><strong>模块总结：</strong>提及率、推荐率按全部有效回答统计；官网引用率统计回答引用该品牌官网的比例。APW 综合排名第 2：与排名第一的 Flow 相比，提及率低 <strong>14 个百分点</strong>、推荐率低 <strong>16 个百分点</strong>；与 OMAX 相比，APW 提及率高 4 个百分点、推荐率高 1 个百分点。差距主要集中在 Flow，并非所有竞品都领先。</div></section>
+            <section class="comp-block"><div class="comp-block-head"><h3>差距拆解：本品与竞品同维对照</h3><span>逐题回答中的品牌记录聚合；细分样例共 10 个问题</span></div><div class="gap-breakdown">
+              <article class="gap-panel"><div class="gap-panel-head"><h4>1. AI 平台 × 品牌提及</h4><span>样例回答命中数 / 20 条回答</span></div><div class="comp-table-wrap"><table class="comp-table"><thead><tr><th>平台</th><th>APW Waterjet</th><th>Flow</th><th>OMAX</th><th>KMT</th></tr></thead><tbody>${[['ChatGPT',[20,16,0,0]],['Perplexity',[19,18,1,0]],['Google AI',[19,17,0,0]]].map(([name,v])=>`<tr><td>${name}</td>${v.map((n,i)=>`<td class="${i===0?'num':''}">${n}/20 · ${Math.round(n/20*100)}%</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="gap-takeaway"><strong>模块总结：</strong>10 条代表问题中，APW 在 ChatGPT、Perplexity 和 Google AI 的品牌提及覆盖均高于 Flow；OMAX、KMT 覆盖较低。</p></article>
+              <article class="gap-panel"><div class="gap-panel-head"><h4>2. 买家人设 × 意图 × 品牌提及</h4><span>同一组问题与回答样例，按品牌出现次数计算</span></div><div class="comp-table-wrap"><table class="comp-table gap-matrix"><thead><tr><th>人设 × 意图</th><th>APW</th><th>Flow</th><th>OMAX</th><th>KMT</th></tr></thead><tbody>${[['复材加工技术主管 × 信息查询',[17,15,1,0,18]],['复材加工技术主管 × 方案比较',[5,0,0,0,6]],['航空部件采购经理 × 设备决策',[12,12,0,0,12]],['精密加工车间主管 × 推荐',[12,12,0,0,12]],['航空部件采购经理 × 方案比较',[6,6,0,0,6]],['商社设备采购担当 × 方案比较',[6,6,0,0,6]]].map(([name,v])=>`<tr><td>${name}</td>${v.slice(0,4).map((n,i)=>`<td class="${i===0?'num':''}">${Math.round(n/v[4]*100)}%</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="gap-takeaway"><strong>模块总结：</strong>样例里 APW 在复材信息查询高于 Flow（17/18 对 15/18），在航空采购、精密加工和商社场景与 Flow 接近；样例覆盖有限，暂不能将这些差异外推到全部人设与意图。</p></article>
+              <article class="gap-panel"><div class="gap-panel-head"><h4>3. 引用来源 × 品牌共现</h4><span>来源页被引用次数；同时列出页面记录中的品牌</span></div><div class="comp-table-wrap"><table class="comp-table"><thead><tr><th>被引页面</th><th>引用次数</th><th>平台</th><th>APW</th><th>竞品出现在该页面</th></tr></thead><tbody>${sourcePages.map((row)=>`<tr><td>${row[0]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td><td>${row[7]}</td></tr>`).join('')}</tbody></table></div><p class="gap-takeaway"><strong>模块总结：</strong>compositesworld.com 与 reddit.com 的引用次数合计高于 APW 官网，且样例页面列有多个竞品；说明当前 AI 答案的外部信源覆盖更广。引用次数衡量页面被采纳频次，不等于品牌推荐，需结合逐条回答里的品牌提及与推荐共同判断。</p></article>
+            </div></section>
+            <section class="competitor-total-summary"><h4>竞品格局总总结</h4><p>APW 本期综合排名第 2，领先 OMAX、KMT，落后于 Flow。</p><ul><li><strong>总体竞争：</strong>Flow 当前领先 APW，提及率高 14 个百分点、推荐率高 16 个百分点；APW 则高于 OMAX（提及率高 4 个百分点、推荐率高 1 个百分点）。</li><li><strong>差距分布：</strong>10 条代表问题中，平台与人设表现存在差异；APW 在复材信息查询中占优，商社及采购评估场景偏弱。</li><li><strong>信源表现：</strong>第三方来源被引用次数高于 APW 官网。后续应同时追踪竞品在同一问题中的提及、推荐与引用，确认 Flow 的领先主要出现在哪些平台和采购场景。</li></ul></section>
+          </div>`;
+        }
+
+        function renderStrategy() {
+          const items = [
+            ['补齐采购场景的官网答案', '优先检查“小批量成本”和“供应商选择”两类问题。将报价影响因素、产品适用范围、交付与服务能力整理成经业务确认、可被引用的页面内容。下期复测品牌提及、推荐、官网引用及 Perplexity 覆盖。', 'P0', '监测问题 Q6 / Q10'],
+            ['强化碳纤维与水刀 / 激光对比页', '核对 APW 碳纤维方案页和水刀 / 激光对比页，补齐公开可验证的技术依据、适用边界和选择条件。下期检查官网引用是否出现在对应问题，并确认引用内容是否支持答案。', 'P1', '官网页面与引用来源'],
+            ['缩小与领先竞品的推荐差距', '围绕 Flow 与 APW 的提及率、推荐率差距，优先复盘差距最大的 AI 平台和买家意图；结合对应问题的回答与引用来源，补强官网证据，下期按同一批问题复测。', 'P1', '竞品综合表现与逐题证据']
+          ];
+          document.getElementById('strategy-content').innerHTML = `<div class="strategy-list">${items.map((item) => `<article class="strategy-item"><div class="strategy-title-row"><span class="strategy-priority ${item[2] === 'P1' ? 'is-p1' : ''}">${item[2]}</span><h3>${item[0]}</h3></div><p>${item[1]}</p><div class="strategy-meta"><span>策略依据：${item[3]}</span></div></article>`).join('')}</div>`;
+        }
+
+        function setModeCopy() {
+          document.title = `GEO 可见性监测 · 周报 · ${config.date}`;
+          document.getElementById('report-eyebrow').textContent = config.eyebrow;
+          document.getElementById('report-title').textContent = config.title;
+          document.getElementById('report-date').textContent = `报告日期：${config.date}`;
+          document.getElementById('report-cycle').textContent = `统计周期：${config.cycle}`;
+          document.getElementById('report-audience').textContent = `范围：德国 / 德语`;
+          document.getElementById('scope-cadence').textContent = config.cadence;
+          document.getElementById('summary-title').textContent = '一、管理层结论';
+          document.getElementById('analysis-title').textContent = '二、本期关键发现';
+          document.getElementById('details-title').textContent = '四、监测明细';
+          document.getElementById('evidence-title').textContent = '三、综合竞品表现';
+          const labels = { summary: '一、管理层结论', analysis: '二、本期关键发现', evidence: '三、综合竞品表现', details: '四、监测明细', strategy: '五、优化建议' };
+          Object.entries(labels).forEach(([key, label]) => { document.querySelector(`[data-toc="${key}"]`).textContent = label; document.querySelector(`[data-export-label="${key}"]`).textContent = label; });
+        }
+
+        function renderAll() {
+          setModeCopy();
+          renderSummary(); renderAnalysis(); renderMetrics(); renderPlatforms(); renderTrends(); renderQuestions(); renderSources(); renderEvidence(); renderCredibility(); renderStrategy();
+          bindChartInteractions();
+        }
+
+        function bindChartInteractions() {
+          const tooltip = document.getElementById('chart-tooltip');
+          const stage = document.querySelector('.chart-stage');
+          if (!tooltip || !stage) return;
+          stage.querySelectorAll('.chart-point').forEach((point) => {
+            point.addEventListener('mouseenter', () => { tooltip.innerHTML = `${point.dataset.label}<br><strong>${point.dataset.value}</strong>`; tooltip.classList.add('is-visible'); });
+            point.addEventListener('mousemove', (event) => { const box = stage.getBoundingClientRect(); tooltip.style.left = `${Math.min(Math.max(event.clientX - box.left + 10, 8), box.width - 155)}px`; tooltip.style.top = `${Math.max(event.clientY - box.top - 48, 8)}px`; });
+            point.addEventListener('mouseleave', () => tooltip.classList.remove('is-visible'));
+          });
+          document.querySelectorAll('[data-chart-series]').forEach((button) => button.addEventListener('click', () => {
+            const key = button.dataset.chartSeries;
+            const muted = button.classList.toggle('is-muted');
+            document.querySelectorAll(`[data-series="${key}"]`).forEach((element) => { element.style.opacity = muted ? '0.12' : '1'; });
+          }));
+        }
+
+        const exportToggle = document.getElementById('export-toggle');
+        const exportPanel = document.getElementById('export-panel');
+        const exportPdf = document.getElementById('export-pdf');
+        const downloadHtml = document.getElementById('download-html');
+        const reportSections = [...document.querySelectorAll('[data-report-section]')];
+        const tocLinks = [...document.querySelectorAll('[data-toc]')];
+        function selectedSections() { return new Set([...exportPanel.querySelectorAll('input[type="checkbox"]:checked')].map((input) => input.value)); }
+        function closeExportPanel() { exportPanel.hidden = true; exportToggle.setAttribute('aria-expanded', 'false'); }
+        function setPrintSelection() { const selected = selectedSections(); reportSections.forEach((section) => { section.dataset.printHidden = selected.has(section.dataset.reportSection) ? 'false' : 'true'; }); }
+        function clearPrintSelection() { reportSections.forEach((section) => delete section.dataset.printHidden); }
+        function downloadSelectedHtml() {
+          const selected = selectedSections();
+          const clone = document.documentElement.cloneNode(true);
+          clone.querySelectorAll('[data-export-only]').forEach((element) => element.remove());
+          clone.querySelectorAll('[data-report-section]').forEach((section) => { if (!selected.has(section.dataset.reportSection)) section.remove(); });
+          clone.querySelector('.report-toc')?.remove();
+          clone.querySelectorAll('script').forEach((script) => script.remove());
+          clone.querySelectorAll('[data-print-hidden]').forEach((element) => delete element.dataset.printHidden);
+          const html = '<!doctype html>\n' + clone.outerHTML;
+          const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url; link.download = config.filename; document.body.appendChild(link); link.click(); link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(url), 1000); closeExportPanel();
+        }
+        exportToggle.addEventListener('click', (event) => { event.stopPropagation(); exportPanel.hidden = !exportPanel.hidden; exportToggle.setAttribute('aria-expanded', String(!exportPanel.hidden)); });
+        exportPanel.addEventListener('click', (event) => event.stopPropagation());
+        document.addEventListener('click', closeExportPanel);
+        exportPdf.addEventListener('click', () => { setPrintSelection(); closeExportPanel(); window.setTimeout(() => window.print(), 0); window.setTimeout(clearPrintSelection, 1000); });
+        downloadHtml.addEventListener('click', downloadSelectedHtml);
+        function activateToc(sectionId) { if (!sectionId || !reportSections.some((section) => section.dataset.reportSection === sectionId)) return; tocLinks.forEach((link) => { const current = link.dataset.toc === sectionId; link.classList.toggle('is-active', current); if (current) link.setAttribute('aria-current', 'true'); else link.removeAttribute('aria-current'); }); }
+        let hashTocLock = Boolean(window.location.hash);
+        function syncHashToc() { const sectionId = window.location.hash.slice(1); if (sectionId) { hashTocLock = true; activateToc(sectionId); window.setTimeout(() => { activateToc(sectionId); hashTocLock = false; }, 700); } }
+        window.addEventListener('hashchange', syncHashToc); syncHashToc();
+        if ('IntersectionObserver' in window) { const observer = new IntersectionObserver((entries) => { if (hashTocLock) return; const visibleEntry = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]; if (visibleEntry) activateToc(visibleEntry.target.dataset.reportSection); }, { rootMargin: '-12% 0px -68% 0px', threshold: [0, 0.2, 0.5] }); reportSections.forEach((section) => observer.observe(section)); }
+        renderAll();
+      })();
+    </script>
+</body>
+</html>
+

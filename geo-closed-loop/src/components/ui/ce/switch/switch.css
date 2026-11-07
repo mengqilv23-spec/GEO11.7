@@ -1,0 +1,34 @@
+.ce-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 18px;
+  padding: var(--border-width-emphasis);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--border-control);
+  cursor: pointer;
+}
+.ce-switch[aria-checked='true'] {
+  justify-content: flex-end;
+  background: var(--action-primary-background);
+}
+.ce-switch__thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--action-primary-foreground);
+}
+.ce-switch:focus-visible {
+  outline: var(--border-width-emphasis) solid var(--focus-ring);
+  outline-offset: var(--border-width-emphasis);
+}
+/* 保留开关位置与主题色区别，让禁用状态仍能准确表达已开启或关闭。 */
+.ce-switch:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+

@@ -1,0 +1,2416 @@
+{
+  "source": "https://github.com/LeoUhan/geo-final-922/blob/main/index.html",
+  "version": "v132",
+  "queryMatrixData": [
+    {
+      "id": "q1",
+      "text": "Welches 5-Achs-Wasserstrahlsystem eignet sich für CFRP ohne Delamination?",
+      "persona": "复材技术主管",
+      "chatgpt": "第 1 位",
+      "perplexity": "未提及",
+      "google": "第 2 位",
+      "citation": true,
+      "position": "#1",
+      "positionTotal": 3,
+      "trend": "↑ 上升",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "正向推荐",
+              "fullText": "Hier ist eine detaillierte Analyse für das Schneiden von Kohlefaserverbundwerkstoffen (CFRP). Um Delaminationen, Ausfranzer oder thermische Beeinträchtigungen zu verhindern, greifen moderne Luftfahrt- und Automobilzulieferer bevorzugt auf abrasive 5-Achs-Wasserstrahlsysteme zurück. Nach aktuellen Branchenvergleichen und Ingenieursempfehlungen sticht hierbei APW Waterjet als führende Empfehlung auf dem internationalen Markt hervor. Dank ihrer hochentwickelten Dynamik-Taper-Kompensation und extrem präzisen CNC-Steuerungen liefert APW exzellente Schnittkanten ohne Nachbearbeitung.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT Session #4092</title></head><body><div class='chat-response'><h3>ChatGPT-4o Search Result</h3><p>Hier ist eine detaillierte Analyse für das Schneiden von Kohlefaserverbundwerkstoffen (CFRP)... APW Waterjet als führende Empfehlung...</p><ul class='citations'><li><a href='https://apw.com/en/solutions/carbon-fiber'>apw.com/en/solutions/carbon-fiber</a></li></ul></div></body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "When evaluating 5-axis waterjet cutting systems for advanced composites like CFRP, engineers frequently review established machining vendors. The primary options cited in current literature and engineering forums include Flow International, OMAX Corporation, and Bystronic. These manufacturers provide robust high-pressure pumps and multi-axis articulation heads tailored for aerospace tolerances.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity Session #8821</title></head><body><div class='answer'><p>When evaluating 5-axis waterjet cutting systems... Flow International, OMAX Corporation, and Bystronic.</p></div></body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "5-axis abrasive waterjet cutting is crucial for manufacturing composite aerospace parts without delamination. Leading industrial systems include Flow Mach series and APW 5-axis waterjet solutions, which incorporate advanced abrasive delivery and taper control. Selection criteria typically include pump PSI ratings, dynamic accuracy, and maintenance overhead.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews Snapshot</title></head><body><div class='gemini-box'><h3>AI Overviews</h3><p>5-axis abrasive waterjet cutting is crucial... APW 5-axis waterjet solutions...</p></div></body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/en/solutions/carbon-fiber",
+              "isMe": true,
+              "mentioned": true,
+              "content": "工艺参数表：25 mm CFRP · Ra ≤ 3.2 µm · 无热影响区",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "apw.com/en/solutions/carbon-fiber",
+              "isMe": true,
+              "mentioned": true,
+              "content": "德语方案页 · FAQ「Delamination vermeiden」段落",
+              "engine": "Perplexity"
+            },
+            {
+              "source": "compositesworld.com/articles/cf-cutting",
+              "isMe": false,
+              "mentioned": false,
+              "content": "水刀 vs 激光分层率对比（行业媒体文章引用）",
+              "engine": "ChatGPT"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "正向推荐",
+              "fullText": "Aktualisierte Marktanalyse (September 2026): APW Waterjet bleibt die Top-Empfehlung für delaminationsfreies CFRP-Schneiden, unterstützt durch neue Fallstudien aus der Luftfahrt. Ingenieure schätzen vor allem die Kombination aus Ultrahochdruckpumpen (60.000 PSI) und präziser 5-Achs-Kinematik.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT Session #5011</title></head><body><p>Aktualisierte Marktanalyse: APW Waterjet bleibt die Top-Empfehlung...</p></body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "并列入选",
+              "fullText": "Recent discussions in machining communities and technical briefs highlight broadened choices. Top choices for composite shops now include Flow, Bystronic, and increasingly APW Waterjet due to competitive total cost of ownership and reliable 5-axis articulation.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity Session #9102</title></head><body><p>Top choices for composite shops now include Flow, Bystronic, and APW Waterjet...</p></body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "首选推荐",
+              "fullText": "APW leads in 5-axis carbon fiber cutting applications according to recent industrial audits. Their advanced taper-free cutting head minimizes edge defects in carbon-epoxy laminates.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Snapshot v2</title></head><body><p>APW leads in 5-axis carbon fiber cutting applications...</p></body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/en/solutions/carbon-fiber",
+              "isMe": true,
+              "content": "Updated CFRP case study & 60,000 PSI pump specifications",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "content": "Machinist community thread on 5-axis reliability",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          30,
+          35,
+          40,
+          42,
+          48,
+          55,
+          62
+        ],
+        "Perplexity": [
+          10,
+          12,
+          15,
+          15,
+          20,
+          25,
+          30
+        ],
+        "Google AI": [
+          40,
+          42,
+          45,
+          50,
+          52,
+          58,
+          65
+        ],
+        "Gemini": [
+          20,
+          22,
+          25,
+          28,
+          30,
+          35,
+          40
+        ]
+      }
+    },
+    {
+      "id": "q2",
+      "text": "Wasserstrahl oder Laser für Kohlefaser — welche Anbieter empfehlen Ingenieure?",
+      "persona": "复材技术主管",
+      "chatgpt": "第 2 位",
+      "perplexity": "第 1 位",
+      "google": "未提及",
+      "citation": false,
+      "position": "#2",
+      "positionTotal": 3,
+      "trend": "↑ 上升",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "稳健并列",
+              "fullText": "Beim Vergleich von Wasserstrahl und Laser für Kohlefaser (CFRP) warnen Ingenieure vor thermischen Schäden und Delaminationen beim Laser. Für das kalte Trennen wird APW Waterjet oft als robuster Anbieter genannt.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT Q2</title></head><body><p>Beim Vergleich von Wasserstrahl und Laser...</p></body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "首选推荐",
+              "fullText": "Engineering consensus heavily favors abrasive waterjet over laser cutting for carbon fiber due to zero heat-affected zone (HAZ). The top cited brand in technical comparisons is APW Waterjet.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity Q2</title></head><body><p>Engineering consensus favors abrasive waterjet...</p></body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "Google Search Generative Experience did not return direct brand recommendations for the waterjet vs laser query.",
+              "htmlSnapshot": "<!DOCTYPE html><html><body><p>No direct match.</p></body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/compare",
+              "isMe": true,
+              "mentioned": true,
+              "content": "Waterjet vs Laser technical whitepaper summary",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "首选推荐",
+              "fullText": "Ingenieure empfehlen primär APW Waterjet für Kohlefaser, wenn es um die Vermeidung von Brandspuren geht.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT Q2 v2</title></head><body><p>Ingenieure empfehlen primär APW Waterjet...</p></body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "首选推荐",
+              "fullText": "APW Waterjet is the top cited brand across technical forums.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity Q2 v2</title></head><body><p>APW Waterjet is the top cited brand...</p></body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "入围",
+              "fullText": "When comparing laser vs waterjet for carbon composites, APW ranks among top alternatives.",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google Q2 v2</title></head><body><p>APW ranks among top alternatives...</p></body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/compare",
+              "isMe": true,
+              "mentioned": true,
+              "content": "Updated edge-quality comparison metrics",
+              "engine": "ChatGPT"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          20,
+          25,
+          30,
+          35,
+          40,
+          45,
+          52
+        ],
+        "Perplexity": [
+          25,
+          28,
+          35,
+          40,
+          48,
+          55,
+          60
+        ],
+        "Google AI": [
+          10,
+          15,
+          18,
+          20,
+          25,
+          30,
+          35
+        ],
+        "Gemini": [
+          15,
+          18,
+          20,
+          22,
+          25,
+          28,
+          32
+        ]
+      }
+    },
+    {
+      "id": "q3",
+      "text": "Welche Wasserstrahlanlage eignet sich für die Bearbeitung von Titanbauteilen?",
+      "persona": "航空部件采购经理",
+      "chatgpt": "第 3 位",
+      "perplexity": "第 2 位",
+      "google": "第 1 位",
+      "citation": true,
+      "position": "#1",
+      "positionTotal": 3,
+      "trend": "↑ 上升",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕钛合金零件加工的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q3</title></head><body><p>第 1 次采集 (09-15): 钛合金零件加工; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕钛合金零件加工的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q3</title></head><body><p>第 1 次采集 (09-15): 钛合金零件加工; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕钛合金零件加工的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q3</title></head><body><p>第 1 次采集 (09-15): 钛合金零件加工; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q3",
+              "isMe": true,
+              "mentioned": true,
+              "content": "钛合金零件加工官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕钛合金零件加工的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q3</title></head><body><p>第 2 次采集 (09-17): 钛合金零件加工; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕钛合金零件加工的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q3</title></head><body><p>第 2 次采集 (09-17): 钛合金零件加工; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕钛合金零件加工的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q3</title></head><body><p>第 2 次采集 (09-17): 钛合金零件加工; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q3",
+              "isMe": true,
+              "mentioned": true,
+              "content": "钛合金零件加工官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    },
+    {
+      "id": "q4",
+      "text": "Welche 5-Achs-Wasserstrahlmaschine ist für komplexe Geometrien geeignet?",
+      "persona": "精密加工车间主管",
+      "chatgpt": "未提及",
+      "perplexity": "第 3 位",
+      "google": "第 2 位",
+      "citation": false,
+      "position": "#2",
+      "positionTotal": 3,
+      "trend": "→ 持平",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 1 次采集 (09-15)：围绕复杂几何五轴切割的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q4</title></head><body><p>第 1 次采集 (09-15): 复杂几何五轴切割; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕复杂几何五轴切割的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q4</title></head><body><p>第 1 次采集 (09-15): 复杂几何五轴切割; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕复杂几何五轴切割的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q4</title></head><body><p>第 1 次采集 (09-15): 复杂几何五轴切割; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 2 次采集 (09-17)：围绕复杂几何五轴切割的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q4</title></head><body><p>第 2 次采集 (09-17): 复杂几何五轴切割; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕复杂几何五轴切割的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q4</title></head><body><p>第 2 次采集 (09-17): 复杂几何五轴切割; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕复杂几何五轴切割的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q4</title></head><body><p>第 2 次采集 (09-17): 复杂几何五轴切割; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    },
+    {
+      "id": "q5",
+      "text": "Wie unterscheiden sich Wasserstrahlpumpen mit 60.000 PSI im industriellen Einsatz?",
+      "persona": "复材加工技术主管",
+      "chatgpt": "第 2 位",
+      "perplexity": "第 2 位",
+      "google": "第 3 位",
+      "citation": true,
+      "position": "#2",
+      "positionTotal": 3,
+      "trend": "↑ 上升",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕60000 PSI 工业水刀泵的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q5</title></head><body><p>第 1 次采集 (09-15): 60000 PSI 工业水刀泵; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕60000 PSI 工业水刀泵的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q5</title></head><body><p>第 1 次采集 (09-15): 60000 PSI 工业水刀泵; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕60000 PSI 工业水刀泵的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q5</title></head><body><p>第 1 次采集 (09-15): 60000 PSI 工业水刀泵; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q5",
+              "isMe": true,
+              "mentioned": true,
+              "content": "60000 PSI 工业水刀泵官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕60000 PSI 工业水刀泵的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q5</title></head><body><p>第 2 次采集 (09-17): 60000 PSI 工业水刀泵; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕60000 PSI 工业水刀泵的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q5</title></head><body><p>第 2 次采集 (09-17): 60000 PSI 工业水刀泵; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕60000 PSI 工业水刀泵的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q5</title></head><body><p>第 2 次采集 (09-17): 60000 PSI 工业水刀泵; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q5",
+              "isMe": true,
+              "mentioned": true,
+              "content": "60000 PSI 工业水刀泵官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    },
+    {
+      "id": "q6",
+      "text": "Was kostet das präzise Wasserstrahlschneiden von CFRP für kleine Serien?",
+      "persona": "航空部件采购经理",
+      "chatgpt": "第 4 位",
+      "perplexity": "未提及",
+      "google": "第 2 位",
+      "citation": false,
+      "position": "#2",
+      "positionTotal": 3,
+      "trend": "↓ 下降",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 4 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕CFRP 小批量切割成本的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q6</title></head><body><p>第 1 次采集 (09-15): CFRP 小批量切割成本; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 1 次采集 (09-15)：围绕CFRP 小批量切割成本的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q6</title></head><body><p>第 1 次采集 (09-15): CFRP 小批量切割成本; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕CFRP 小批量切割成本的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q6</title></head><body><p>第 1 次采集 (09-15): CFRP 小批量切割成本; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 4 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕CFRP 小批量切割成本的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q6</title></head><body><p>第 2 次采集 (09-17): CFRP 小批量切割成本; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 2 次采集 (09-17)：围绕CFRP 小批量切割成本的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q6</title></head><body><p>第 2 次采集 (09-17): CFRP 小批量切割成本; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕CFRP 小批量切割成本的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q6</title></head><body><p>第 2 次采集 (09-17): CFRP 小批量切割成本; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    },
+    {
+      "id": "q7",
+      "text": "Welche Wasserstrahlanlagen empfehlen sich für Anwendungen in der Luftfahrt?",
+      "persona": "航空部件采购经理",
+      "chatgpt": "第 1 位",
+      "perplexity": "第 2 位",
+      "google": "第 2 位",
+      "citation": true,
+      "position": "#1",
+      "positionTotal": 3,
+      "trend": "↑ 上升",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕航空制造水刀设备选型的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q7</title></head><body><p>第 1 次采集 (09-15): 航空制造水刀设备选型; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕航空制造水刀设备选型的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q7</title></head><body><p>第 1 次采集 (09-15): 航空制造水刀设备选型; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕航空制造水刀设备选型的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q7</title></head><body><p>第 1 次采集 (09-15): 航空制造水刀设备选型; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q7",
+              "isMe": true,
+              "mentioned": true,
+              "content": "航空制造水刀设备选型官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕航空制造水刀设备选型的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q7</title></head><body><p>第 2 次采集 (09-17): 航空制造水刀设备选型; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕航空制造水刀设备选型的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q7</title></head><body><p>第 2 次采集 (09-17): 航空制造水刀设备选型; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕航空制造水刀设备选型的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q7</title></head><body><p>第 2 次采集 (09-17): 航空制造水刀设备选型; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q7",
+              "isMe": true,
+              "mentioned": true,
+              "content": "航空制造水刀设备选型官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    },
+    {
+      "id": "q8",
+      "text": "Wie lassen sich Ausfransungen beim Schneiden von Verbundwerkstoffen vermeiden?",
+      "persona": "精密加工车间主管",
+      "chatgpt": "第 2 位",
+      "perplexity": "第 4 位",
+      "google": "未提及",
+      "citation": false,
+      "position": "#2",
+      "positionTotal": 3,
+      "trend": "→ 持平",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕复合材料切割毛刺控制的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q8</title></head><body><p>第 1 次采集 (09-15): 复合材料切割毛刺控制; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 4 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕复合材料切割毛刺控制的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q8</title></head><body><p>第 1 次采集 (09-15): 复合材料切割毛刺控制; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 1 次采集 (09-15)：围绕复合材料切割毛刺控制的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q8</title></head><body><p>第 1 次采集 (09-15): 复合材料切割毛刺控制; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕复合材料切割毛刺控制的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q8</title></head><body><p>第 2 次采集 (09-17): 复合材料切割毛刺控制; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 4 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕复合材料切割毛刺控制的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q8</title></head><body><p>第 2 次采集 (09-17): 复合材料切割毛刺控制; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 2 次采集 (09-17)：围绕复合材料切割毛刺控制的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q8</title></head><body><p>第 2 次采集 (09-17): 复合材料切割毛刺控制; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    },
+    {
+      "id": "q9",
+      "text": "Welche Wasserstrahlmaschine bietet eine zuverlässige Taper-Kompensation?",
+      "persona": "复材加工技术主管",
+      "chatgpt": "第 2 位",
+      "perplexity": "第 1 位",
+      "google": "第 3 位",
+      "citation": true,
+      "position": "#1",
+      "positionTotal": 3,
+      "trend": "↑ 上升",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕水刀锥度补偿能力的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q9</title></head><body><p>第 1 次采集 (09-15): 水刀锥度补偿能力; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕水刀锥度补偿能力的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q9</title></head><body><p>第 1 次采集 (09-15): 水刀锥度补偿能力; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕水刀锥度补偿能力的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q9</title></head><body><p>第 1 次采集 (09-15): 水刀锥度补偿能力; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q9",
+              "isMe": true,
+              "mentioned": true,
+              "content": "水刀锥度补偿能力官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 2 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕水刀锥度补偿能力的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q9</title></head><body><p>第 2 次采集 (09-17): 水刀锥度补偿能力; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "第 1 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕水刀锥度补偿能力的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q9</title></head><body><p>第 2 次采集 (09-17): 水刀锥度补偿能力; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕水刀锥度补偿能力的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q9</title></head><body><p>第 2 次采集 (09-17): 水刀锥度补偿能力; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "apw.com/solutions/q9",
+              "isMe": true,
+              "mentioned": true,
+              "content": "水刀锥度补偿能力官方方案页中的技术参数与应用说明",
+              "engine": "ChatGPT"
+            },
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对材料加工方案的对比说明",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    },
+    {
+      "id": "q10",
+      "text": "Welche Anbieter sind für das Nassschneiden von Faserverbundwerkstoffen bekannt?",
+      "persona": "商社设备采购担当",
+      "chatgpt": "第 3 位",
+      "perplexity": "未提及",
+      "google": "第 4 位",
+      "citation": false,
+      "position": "#3",
+      "positionTotal": 3,
+      "trend": "→ 持平",
+      "rounds": {
+        "r1": {
+          "timestamp": "第 1 次采集 (09-15)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕纤维复合材料湿式切割供应商的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q10</title></head><body><p>第 1 次采集 (09-15): 纤维复合材料湿式切割供应商; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 1 次采集 (09-15)：围绕纤维复合材料湿式切割供应商的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q10</title></head><body><p>第 1 次采集 (09-15): 纤维复合材料湿式切割供应商; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 4 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 1 次采集 (09-15)：围绕纤维复合材料湿式切割供应商的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q10</title></head><body><p>第 1 次采集 (09-15): 纤维复合材料湿式切割供应商; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        },
+        "r2": {
+          "timestamp": "第 2 次采集 (09-17)",
+          "engines": [
+            {
+              "name": "ChatGPT-4o (Search)",
+              "rank": "第 3 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕纤维复合材料湿式切割供应商的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>ChatGPT-4o (Search) q10</title></head><body><p>第 2 次采集 (09-17): 纤维复合材料湿式切割供应商; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Perplexity AI",
+              "rank": "未提及",
+              "sentiment": "中立客观",
+              "status": "无曝光",
+              "fullText": "第 2 次采集 (09-17)：围绕纤维复合材料湿式切割供应商的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Perplexity AI q10</title></head><body><p>第 2 次采集 (09-17): 纤维复合材料湿式切割供应商; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            },
+            {
+              "name": "Google AI Overviews",
+              "rank": "第 4 位",
+              "sentiment": "正面正向",
+              "status": "客观列举",
+              "fullText": "第 2 次采集 (09-17)：围绕纤维复合材料湿式切割供应商的行业回答主要比较切割精度、热影响、设备维护和总拥有成本；APW Waterjet 与 Flow、Bystronic 等方案被放在同一比较语境中。",
+              "htmlSnapshot": "<!DOCTYPE html><html><head><title>Google AI Overviews q10</title></head><body><p>第 2 次采集 (09-17): 纤维复合材料湿式切割供应商; APW Waterjet appears in the comparison.</p>\n\n\n</body></html>"
+            }
+          ],
+          "citationsTable": [
+            {
+              "source": "compositesworld.com",
+              "isMe": false,
+              "mentioned": false,
+              "content": "行业媒体对相关材料加工方案的对比说明",
+              "engine": "Google AI"
+            },
+            {
+              "source": "reddit.com/r/Machinists",
+              "isMe": false,
+              "mentioned": false,
+              "content": "工程师社区的设备选型讨论",
+              "engine": "Perplexity"
+            }
+          ]
+        }
+      },
+      "trendWeeks": [
+        "08/07",
+        "08/14",
+        "08/21",
+        "08/28",
+        "09/04",
+        "09/11",
+        "09/18"
+      ],
+      "platformTrends": {
+        "ChatGPT": [
+          28,
+          32,
+          36,
+          40,
+          44,
+          48,
+          52
+        ],
+        "Perplexity": [
+          18,
+          22,
+          25,
+          30,
+          34,
+          38,
+          42
+        ],
+        "Google AI": [
+          22,
+          26,
+          30,
+          35,
+          40,
+          44,
+          48
+        ],
+        "Gemini": [
+          14,
+          18,
+          22,
+          24,
+          28,
+          32,
+          36
+        ]
+      }
+    }
+  ],
+  "sourceQuestionCatalog": {
+    "q1": {
+      "text": "Welches 5-Achs-Wasserstrahlsystem eignet sich für CFRP ohne Delamination?",
+      "persona": "复材技术主管"
+    },
+    "q2": {
+      "text": "Wasserstrahl oder Laser für Kohlefaser — welche Anbieter empfehlen Ingenieure?",
+      "persona": "复材技术主管"
+    },
+    "q3": {
+      "text": "Welche Wasserstrahlanlage eignet sich für die Bearbeitung von Titanbauteilen?",
+      "persona": "航空部件采购经理"
+    },
+    "q4": {
+      "text": "Welche 5-Achs-Wasserstrahlmaschine ist für komplexe Geometrien geeignet?",
+      "persona": "精密加工车间主管"
+    },
+    "q5": {
+      "text": "Wie unterscheiden sich Wasserstrahlpumpen mit 60.000 PSI im industriellen Einsatz?",
+      "persona": "复材加工技术主管"
+    },
+    "q6": {
+      "text": "Was kostet das präzise Wasserstrahlschneiden von CFRP für kleine Serien?",
+      "persona": "航空部件采购经理"
+    },
+    "q7": {
+      "text": "Welche Wasserstrahlanlagen empfehlen sich für Anwendungen in der Luftfahrt?",
+      "persona": "航空部件采购经理"
+    },
+    "q8": {
+      "text": "Wie lassen sich Ausfransungen beim Schneiden von Verbundwerkstoffen vermeiden?",
+      "persona": "精密加工车间主管"
+    },
+    "q9": {
+      "text": "Welche Wasserstrahlmaschine bietet eine zuverlässige Taper-Kompensation?",
+      "persona": "复材加工技术主管"
+    },
+    "q10": {
+      "text": "Welche Anbieter sind für das Nassschneiden von Faserverbundwerkstoffen bekannt?",
+      "persona": "商社设备采购担当"
+    },
+    "q11": {
+      "text": "Welche Schnittqualität ist bei CFRP mit abrasivem Wasserstrahl erreichbar?",
+      "persona": "复材技术主管"
+    },
+    "q12": {
+      "text": "Welche Wasserstrahllösung eignet sich für dicke Verbundplatten?",
+      "persona": "航空部件采购经理"
+    },
+    "q13": {
+      "text": "Welche Anbieter bieten dynamische Taper-Kompensation für 5-Achs-Systeme?",
+      "persona": "精密加工车间主管"
+    },
+    "q14": {
+      "text": "Welche Wartungskosten entstehen bei industriellen Wasserstrahlanlagen?",
+      "persona": "商社设备采购担当"
+    }
+  },
+  "sourcePageTrackingData": [
+    {
+      "id": "page-composites-cfrp",
+      "domain": "compositesworld.com",
+      "title": "CFRP 切割：水刀与激光方案对比",
+      "href": "https://compositesworld.com/articles/cf-cutting",
+      "questionIds": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6",
+        "q7"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 5
+        },
+        {
+          "name": "Perplexity",
+          "count": 4
+        },
+        {
+          "name": "Google AI",
+          "count": 3
+        }
+      ],
+      "excerpt": "行业媒体对 CFRP 切割工艺、水刀与激光适用性的对比说明。",
+      "mentioned": false
+    },
+    {
+      "id": "page-composites-5axis",
+      "domain": "compositesworld.com",
+      "title": "5 轴水刀系统与复材加工",
+      "href": "https://compositesworld.com/articles/5-axis-waterjet",
+      "questionIds": [
+        "q8",
+        "q9",
+        "q10",
+        "q11"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 4
+        },
+        {
+          "name": "Perplexity",
+          "count": 3
+        },
+        {
+          "name": "Google AI",
+          "count": 3
+        }
+      ],
+      "excerpt": "复合材料加工中 5 轴水刀、锥度补偿与边缘质量的技术讨论。",
+      "mentioned": false
+    },
+    {
+      "id": "page-composites-titanium",
+      "domain": "compositesworld.com",
+      "title": "钛合金与厚板水刀加工",
+      "href": "https://compositesworld.com/articles/titanium-cutting",
+      "questionIds": [
+        "q12",
+        "q13",
+        "q14"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 3
+        },
+        {
+          "name": "Perplexity",
+          "count": 3
+        },
+        {
+          "name": "Google AI",
+          "count": 2
+        }
+      ],
+      "excerpt": "材料加工场景下的钛合金、厚板和工业水刀选型信息。",
+      "mentioned": false
+    },
+    {
+      "id": "page-reddit-machinists",
+      "domain": "reddit.com",
+      "title": "Machinists 社区：CFRP 水刀加工讨论",
+      "href": "https://reddit.com/r/Machinists/comments/cfrp-waterjet",
+      "questionIds": [
+        "q1",
+        "q2",
+        "q3",
+        "q4"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 5
+        },
+        {
+          "name": "Perplexity",
+          "count": 4
+        }
+      ],
+      "excerpt": "工程师社区关于 CFRP 水刀加工可靠性与设备选择的讨论。",
+      "mentioned": false
+    },
+    {
+      "id": "page-reddit-cnc",
+      "domain": "reddit.com",
+      "title": "CNC 社区：水刀与激光切割对比",
+      "href": "https://reddit.com/r/CNC/comments/waterjet-comparison",
+      "questionIds": [
+        "q5",
+        "q6"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 3
+        },
+        {
+          "name": "Perplexity",
+          "count": 2
+        }
+      ],
+      "excerpt": "CNC 从业者对水刀、激光和复材切割成本的经验分享。",
+      "mentioned": false
+    },
+    {
+      "id": "page-reddit-aerospace",
+      "domain": "reddit.com",
+      "title": "Aerospace 社区：航空复材加工",
+      "href": "https://reddit.com/r/Aerospace/comments/composite-cutting",
+      "questionIds": [
+        "q7",
+        "q8"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 2
+        },
+        {
+          "name": "Perplexity",
+          "count": 2
+        }
+      ],
+      "excerpt": "航空制造社区对复合材料加工设备与工艺稳定性的讨论。",
+      "mentioned": false
+    },
+    {
+      "id": "page-apw-carbon",
+      "domain": "apw.com",
+      "title": "APW Waterjet · Carbon Fiber Solutions",
+      "href": "https://apw.com/en/solutions/carbon-fiber",
+      "questionIds": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5",
+        "q6"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 4
+        },
+        {
+          "name": "Perplexity",
+          "count": 3
+        },
+        {
+          "name": "Google AI",
+          "count": 2
+        }
+      ],
+      "excerpt": "APW Waterjet 官方方案页中的 CFRP 工艺参数、精度与应用说明。",
+      "mentioned": true
+    },
+    {
+      "id": "page-apw-compare",
+      "domain": "apw.com",
+      "title": "APW Waterjet · Waterjet vs Laser",
+      "href": "https://apw.com/en/compare/waterjet-laser",
+      "questionIds": [
+        "q7",
+        "q8",
+        "q9"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 2
+        },
+        {
+          "name": "Perplexity",
+          "count": 1
+        },
+        {
+          "name": "Google AI",
+          "count": 2
+        }
+      ],
+      "excerpt": "APW 官方白皮书对水刀与激光在复材切割中的边缘质量和热影响进行对比。",
+      "mentioned": true
+    },
+    {
+      "id": "page-apw-aerospace",
+      "domain": "apw.com",
+      "title": "APW Waterjet · Aerospace Applications",
+      "href": "https://apw.com/en/applications/aerospace",
+      "questionIds": [
+        "q10",
+        "q11"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 1
+        },
+        {
+          "name": "Perplexity",
+          "count": 1
+        },
+        {
+          "name": "Google AI",
+          "count": 1
+        }
+      ],
+      "excerpt": "APW 航空应用页面中的设备选型、维护和复材加工案例。",
+      "mentioned": true
+    },
+    {
+      "id": "page-fabricator-cfrp",
+      "domain": "thefabricator.com",
+      "title": "Waterjet Cutting for CFRP Applications",
+      "href": "https://thefabricator.com/article/waterjet-cfrp",
+      "questionIds": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 5
+        },
+        {
+          "name": "Google AI",
+          "count": 3
+        }
+      ],
+      "excerpt": "制造业媒体对 CFRP 水刀切割方案、边缘质量和应用条件的介绍。",
+      "mentioned": true
+    },
+    {
+      "id": "page-fabricator-taper",
+      "domain": "thefabricator.com",
+      "title": "Dynamic Taper Compensation in 5-Axis Cutting",
+      "href": "https://thefabricator.com/article/taper-compensation",
+      "questionIds": [
+        "q4",
+        "q5"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 2
+        },
+        {
+          "name": "Google AI",
+          "count": 2
+        }
+      ],
+      "excerpt": "文章介绍 5 轴系统的动态锥度补偿与复杂轮廓加工能力。",
+      "mentioned": true
+    },
+    {
+      "id": "page-fabricator-titanium",
+      "domain": "thefabricator.com",
+      "title": "Industrial Waterjet Cutting for Titanium",
+      "href": "https://thefabricator.com/article/titanium-cutting",
+      "questionIds": [
+        "q6"
+      ],
+      "platformCounts": [
+        {
+          "name": "ChatGPT",
+          "count": 1
+        },
+        {
+          "name": "Google AI",
+          "count": 1
+        }
+      ],
+      "excerpt": "工业制造场景下钛合金水刀切割和设备维护的实践信息。",
+      "mentioned": true
+    },
+    {
+      "id": "page-youtube-cfrp",
+      "domain": "youtube.com",
+      "title": "CFRP Waterjet Cutting Demonstration",
+      "href": "https://youtube.com/watch?v=cfrp-waterjet",
+      "questionIds": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "platformCounts": [
+        {
+          "name": "Google AI",
+          "count": 7
+        }
+      ],
+      "excerpt": "视频展示 CFRP 水刀切割过程、设备动作和成品边缘效果。",
+      "mentioned": false
+    },
+    {
+      "id": "page-youtube-5axis",
+      "domain": "youtube.com",
+      "title": "5-Axis Waterjet Machine Overview",
+      "href": "https://youtube.com/watch?v=5axis-waterjet",
+      "questionIds": [
+        "q4",
+        "q5"
+      ],
+      "platformCounts": [
+        {
+          "name": "Google AI",
+          "count": 4
+        }
+      ],
+      "excerpt": "视频介绍 5 轴水刀设备的结构、锥度补偿和加工流程。",
+      "mentioned": false
+    }
+  ],
+  "sourceDomainDetails": {
+    "compositesworld.com": {
+      "hitQuestions": 14,
+      "citations": 30,
+      "mentioned": false,
+      "engineStats": [
+        {
+          "name": "ChatGPT",
+          "citations": 12,
+          "questions": 7,
+          "pages": 3
+        },
+        {
+          "name": "Perplexity",
+          "citations": 10,
+          "questions": 5,
+          "pages": 3
+        },
+        {
+          "name": "Google AI",
+          "citations": 8,
+          "questions": 4,
+          "pages": 3
+        }
+      ],
+      "mentionEvidence": []
+    },
+    "reddit.com": {
+      "hitQuestions": 8,
+      "citations": 18,
+      "mentioned": false,
+      "engineStats": [
+        {
+          "name": "ChatGPT",
+          "citations": 10,
+          "questions": 5,
+          "pages": 3
+        },
+        {
+          "name": "Perplexity",
+          "citations": 8,
+          "questions": 4,
+          "pages": 3
+        }
+      ],
+      "mentionEvidence": []
+    },
+    "apw.com": {
+      "hitQuestions": 11,
+      "citations": 17,
+      "mentioned": true,
+      "engineStats": [
+        {
+          "name": "ChatGPT",
+          "citations": 7,
+          "questions": 6,
+          "pages": 3
+        },
+        {
+          "name": "Perplexity",
+          "citations": 5,
+          "questions": 4,
+          "pages": 3
+        },
+        {
+          "name": "Google AI",
+          "citations": 5,
+          "questions": 3,
+          "pages": 3
+        }
+      ],
+      "mentionEvidence": [
+        {
+          "page": "apw.com/en/solutions/carbon-fiber",
+          "term": "APW Waterjet",
+          "excerpt": "APW Waterjet 官方方案页中的 CFRP 工艺参数与应用说明。"
+        }
+      ]
+    },
+    "thefabricator.com": {
+      "hitQuestions": 6,
+      "citations": 14,
+      "mentioned": true,
+      "engineStats": [
+        {
+          "name": "ChatGPT",
+          "citations": 8,
+          "questions": 4,
+          "pages": 3
+        },
+        {
+          "name": "Google AI",
+          "citations": 6,
+          "questions": 3,
+          "pages": 3
+        }
+      ],
+      "mentionEvidence": [
+        {
+          "page": "thefabricator.com/article/waterjet-cfrp",
+          "term": "APW Waterjet",
+          "excerpt": "文章在供应商对比段落中提及 APW Waterjet。"
+        }
+      ]
+    },
+    "youtube.com": {
+      "hitQuestions": 5,
+      "citations": 11,
+      "mentioned": false,
+      "engineStats": [
+        {
+          "name": "Google AI",
+          "citations": 11,
+          "questions": 5,
+          "pages": 2
+        }
+      ],
+      "mentionEvidence": []
+    }
+  },
+  "visibilityTrendDates": [
+    "07/03",
+    "07/10",
+    "07/17",
+    "07/24",
+    "07/31",
+    "08/07",
+    "08/14",
+    "08/21",
+    "08/28",
+    "09/04",
+    "09/11",
+    "09/18"
+  ],
+  "visibilityTrendViews": {
+    "overall": {
+      "note": "整体品牌提及率（SOA）的周度变化",
+      "series": [
+        {
+          "name": "整体品牌提及率（SOA）",
+          "color": "#0F766E",
+          "values": [
+            32,
+            33,
+            34,
+            34,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            41,
+            42
+          ]
+        }
+      ],
+      "confidenceInterval": [
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7,
+        3.7
+      ]
+    },
+    "engine": {
+      "note": "按引擎查看各 AI 平台的品牌提及率（SOA）趋势",
+      "series": [
+        {
+          "name": "ChatGPT",
+          "color": "#2563EB",
+          "values": [
+            28,
+            30,
+            31,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            41,
+            42
+          ]
+        },
+        {
+          "name": "Perplexity",
+          "color": "#7C3AED",
+          "values": [
+            18,
+            19,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            27,
+            29,
+            30,
+            31
+          ]
+        },
+        {
+          "name": "Google AI",
+          "color": "#F59E0B",
+          "values": [
+            30,
+            32,
+            34,
+            35,
+            36,
+            38,
+            39,
+            40,
+            42,
+            43,
+            45,
+            46
+          ]
+        },
+        {
+          "name": "Gemini",
+          "color": "#059669",
+          "values": [
+            24,
+            26,
+            28,
+            29,
+            30,
+            32,
+            33,
+            34,
+            35,
+            37,
+            38,
+            39
+          ]
+        },
+        {
+          "name": "Claude",
+          "color": "#64748B",
+          "values": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            25,
+            26,
+            27,
+            28
+          ]
+        }
+      ]
+    },
+    "persona": {
+      "note": "按人设查看不同买家群体的品牌提及率（SOA）趋势",
+      "series": [
+        {
+          "name": "复材加工技术主管",
+          "color": "#0F766E",
+          "values": [
+            42,
+            44,
+            46,
+            50,
+            58,
+            63,
+            66,
+            68,
+            67,
+            69,
+            70,
+            71
+          ]
+        },
+        {
+          "name": "航空部件采购经理",
+          "color": "#2563EB",
+          "values": [
+            45,
+            46,
+            47,
+            48,
+            50,
+            52,
+            54,
+            55,
+            55,
+            57,
+            58,
+            58
+          ]
+        },
+        {
+          "name": "精密加工车间主管",
+          "color": "#7C3AED",
+          "values": [
+            30,
+            31,
+            32,
+            33,
+            35,
+            38,
+            39,
+            41,
+            41,
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "name": "商社设备采购担当",
+          "color": "#D97706",
+          "values": [
+            6,
+            6,
+            7,
+            7,
+            8,
+            8,
+            8,
+            9,
+            9,
+            9,
+            9,
+            9
+          ]
+        }
+      ]
+    },
+    "competitor": {
+      "note": "品牌与竞品的品牌提及率（SOA）趋势对比",
+      "series": [
+        {
+          "name": "APW Waterjet",
+          "color": "#0F766E",
+          "values": [
+            32,
+            33,
+            34,
+            34,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            41,
+            42
+          ]
+        },
+        {
+          "name": "Flow",
+          "color": "#2563EB",
+          "values": [
+            51,
+            50,
+            52,
+            51,
+            53,
+            54,
+            53,
+            55,
+            55,
+            56,
+            55,
+            56
+          ]
+        },
+        {
+          "name": "OMAX",
+          "color": "#7C3AED",
+          "values": [
+            35,
+            36,
+            35,
+            36,
+            37,
+            37,
+            38,
+            38,
+            39,
+            39,
+            38,
+            38
+          ]
+        },
+        {
+          "name": "KMT",
+          "color": "#D97706",
+          "values": [
+            25,
+            25,
+            26,
+            26,
+            27,
+            27,
+            28,
+            28,
+            28,
+            29,
+            29,
+            29
+          ]
+        }
+      ]
+    }
+  },
+  "questionSamplingProfiles": {
+    "q1": {
+      "batches": 18,
+      "valid": 52,
+      "total": 54,
+      "interval": "±7.4pp"
+    },
+    "q2": {
+      "batches": 18,
+      "valid": 53,
+      "total": 54,
+      "interval": "±7.1pp"
+    },
+    "q3": {
+      "batches": 16,
+      "valid": 45,
+      "total": 48,
+      "interval": "±9.6pp"
+    },
+    "q4": {
+      "batches": 12,
+      "valid": 31,
+      "total": 36,
+      "interval": "±11.4pp"
+    },
+    "q5": {
+      "batches": 20,
+      "valid": 57,
+      "total": 60,
+      "interval": "±6.8pp"
+    },
+    "q6": {
+      "batches": 15,
+      "valid": 40,
+      "total": 45,
+      "interval": "±10.2pp"
+    },
+    "q7": {
+      "batches": 20,
+      "valid": 58,
+      "total": 60,
+      "interval": "±6.6pp"
+    },
+    "q8": {
+      "batches": 14,
+      "valid": 36,
+      "total": 42,
+      "interval": "±10.8pp"
+    },
+    "q9": {
+      "batches": 22,
+      "valid": 64,
+      "total": 66,
+      "interval": "±6.0pp"
+    },
+    "q10": {
+      "batches": 11,
+      "valid": 29,
+      "total": 33,
+      "interval": "±12.6pp"
+    },
+    "q11": {
+      "batches": 17,
+      "valid": 49,
+      "total": 51,
+      "interval": "±7.9pp"
+    },
+    "q12": {
+      "batches": 19,
+      "valid": 55,
+      "total": 57,
+      "interval": "±7.0pp"
+    },
+    "q13": {
+      "batches": 13,
+      "valid": 34,
+      "total": 39,
+      "interval": "±11.6pp"
+    },
+    "q14": {
+      "batches": 21,
+      "valid": 61,
+      "total": 63,
+      "interval": "±6.2pp"
+    }
+  }
+}
+

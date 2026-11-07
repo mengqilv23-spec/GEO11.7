@@ -1,0 +1,35 @@
+.ce-donut-chart {
+  position: relative;
+  flex: none;
+}
+
+.ce-donut-chart-center {
+  position: absolute;
+  inset: 0 17%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.ce-donut-chart-value,
+.ce-donut-chart-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ce-donut-chart-value {
+  color: var(--text-primary);
+  font-size: var(--typography-page-title-font-size);
+  line-height: var(--typography-page-title-line-height);
+  font-weight: var(--typography-page-title-font-weight);
+}
+
+.ce-donut-chart-description {
+  color: var(--text-muted);
+  font-size: var(--typography-caption-font-size);
+  line-height: var(--typography-caption-line-height);
+  font-weight: var(--typography-caption-font-weight);
+}
+

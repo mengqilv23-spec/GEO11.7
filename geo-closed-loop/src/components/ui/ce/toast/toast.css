@@ -1,0 +1,31 @@
+/* 浮层几何归组件；视觉值复用共享语义和 Alert 契约。 */
+.ce-toast {
+  position: fixed;
+  z-index: var(--layer-toast);
+  inset-block-start: var(--space-content-group);
+  inset-inline: var(--space-content-group);
+  margin-inline: auto;
+  width: fit-content;
+  max-width: min(26rem, calc(100% - 2 * var(--space-content-group)));
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+html.ce-iframe-root .ce-toast > .ce-alert {
+  --alert-background: var(--background-primary);
+  --alert-text-color: var(--text-primary);
+  --alert-padding-block: var(--space-control-block);
+  --alert-padding-inline: var(--space-control-sm-inline);
+  --alert-content-gap: var(--space-icon-text-tight);
+  --alert-icon-size: var(--size-control-icon);
+
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-overlay);
+  pointer-events: auto;
+}
+
+html.ce-iframe-root .ce-toast > .ce-alert .ce-alert__layout {
+  align-items: center;
+}
+

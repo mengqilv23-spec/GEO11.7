@@ -1,0 +1,190 @@
+html.ce-iframe-root {
+  --primitive-white: #ffffff;
+  --primitive-page: var(--primitive-white);
+  --primitive-subtle: #f7f8fa;
+  --primitive-text: #1d2129;
+  --primitive-secondary: #4e5969;
+  --primitive-muted: #86909c;
+  --primitive-disabled: #939cab;
+  --primitive-border: #e5e6eb;
+  --primitive-control-border: #818ba1;
+  --primitive-blue: #4152f6;
+  --primitive-purple: #6941c6;
+  --primitive-green: #067647;
+  --primitive-success: #00b42a;
+  --primitive-success-bg: #e8ffea;
+  --primitive-info: #175cd3;
+  --primitive-info-bg: #f2f3fd;
+  --primitive-warning: #965b0c;
+  --primitive-warning-bg: #fff7e8;
+  --primitive-error: #b42318;
+  --primitive-error-bg: #ffece8;
+
+  --background-page: var(--primitive-page);
+  --background-primary: var(--primitive-white);
+  --background-secondary: var(--primitive-subtle);
+  --background-subtle: var(--primitive-subtle);
+  --background-control-hover: #e5e6eb;
+  --background-hover: #f2f3fd;
+  --background-disabled: #f2f3f5;
+  --background-overlay: rgb(17 24 39 / 35%);
+  --text-primary: var(--primitive-text);
+  --text-secondary: var(--primitive-secondary);
+  --text-muted: var(--primitive-muted);
+  --text-disabled: var(--primitive-disabled);
+  --border-default: var(--primitive-border);
+  --border-control: var(--primitive-control-border);
+  --action-accent: var(--primitive-blue);
+  --action-primary-background: var(--action-accent);
+  --action-primary-foreground: var(--primitive-white);
+  --action-primary-hover: #3040df;
+  --action-subtle-background: #f2f3fd;
+  --focus-ring: var(--action-accent);
+  --status-info-foreground: var(--primitive-info);
+  --status-info-background: var(--primitive-info-bg);
+  --status-success-foreground: var(--primitive-success);
+  --status-success-background: var(--primitive-success-bg);
+  --status-warning-foreground: var(--primitive-warning);
+  --status-warning-background: var(--primitive-warning-bg);
+  --status-error-foreground: var(--primitive-error);
+  --status-error-background: var(--primitive-error-bg);
+
+  --font-family-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-size-page-title: 20px;
+  --font-size-section-title: 16px;
+  --font-size-body: 14px;
+  --font-size-caption: 12px;
+  --line-height-page-title: 28px;
+  --line-height-body: 22px;
+  --line-height-caption: 20px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-page-inline: 20px;
+  --space-module-stack: 32px;
+  --space-surface-content: 20px;
+  --space-form-gap: 24px;
+  --button-padding-inline: 16px;
+  --radius-tag: 4px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-metric: 16px;
+  --shadow-floating: 0 2px 5px rgb(0 0 0 / 10%);
+  --outline-width-focus: 2px;
+  --outline-offset-focus: 2px;
+  --input-focus-offset: -2px;
+  --blur-overlay: 8px;
+  --motion-fast: 160ms ease-out;
+
+  /* Compatibility aliases for existing page modules. */
+  --color-brand: var(--action-accent);
+  --color-brand-soft: var(--action-subtle-background);
+  --color-page: var(--background-page);
+  --color-surface: var(--background-primary);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-muted);
+  --color-border: var(--border-default);
+  --color-border-brand: color-mix(in srgb, var(--action-accent) 20%, transparent);
+  --color-success: var(--status-success-foreground);
+  --color-success-soft: var(--status-success-background);
+  --font-family: var(--font-family-ui);
+  --font-size-title: var(--font-size-page-title);
+  --font-size-section: var(--font-size-section-title);
+  --font-size-helper: var(--font-size-caption);
+  --line-height-title: var(--line-height-page-title);
+}
+
+html.ce-iframe-root[data-theme='dark'] {
+  --background-page: #1b1d20;
+  --background-primary: #272629;
+  --background-secondary: #1b1d20;
+  --background-subtle: #1b1d20;
+  --background-control-hover: #343953;
+  --background-hover: #343953;
+  --background-disabled: #303136;
+  --background-overlay: rgb(0 0 0 / 55%);
+  --text-primary: #e2e2e5;
+  --text-secondary: #b0afb6;
+  --text-muted: #b0afb6;
+  --text-disabled: #767780;
+  --border-default: #404041;
+  --border-control: #7c7e89;
+  --action-accent: #a5afff;
+  --action-primary-background: #6675ff;
+  --action-primary-foreground: rgb(255 255 255 / 90%);
+  --action-primary-hover: #8490ff;
+  --action-subtle-background: #343953;
+  --focus-ring: #a5afff;
+  --status-info-foreground: #84caff;
+  --status-info-background: #203a51;
+  --status-success-foreground: #75e0a7;
+  --status-success-background: #233f35;
+  --status-warning-foreground: #fec84b;
+  --status-warning-background: #433821;
+  --status-error-foreground: #fda29b;
+  --status-error-background: #4f2928;
+  --shadow-floating: 0 2px 5px rgb(0 0 0 / 40%);
+}
+
+html.ce-iframe-root[data-color-scheme='purple'] {
+  --action-accent: var(--primitive-purple);
+  --action-primary-background: var(--primitive-purple);
+  --action-primary-hover: #5933aa;
+  --action-subtle-background: #f5f0ff;
+  --focus-ring: var(--primitive-purple);
+}
+
+html.ce-iframe-root[data-theme='dark'][data-color-scheme='purple'] {
+  --action-accent: #d6bbfb;
+  --action-primary-background: #6675ff;
+  --action-primary-hover: #8490ff;
+  --action-subtle-background: #3d315a;
+  --focus-ring: #d6bbfb;
+}
+
+html.ce-iframe-root[data-color-scheme='green'] {
+  --action-accent: var(--primitive-green);
+  --action-primary-background: var(--primitive-green);
+  --action-primary-hover: #055b38;
+  --action-subtle-background: #ecfdf3;
+  --focus-ring: var(--primitive-green);
+}
+
+html.ce-iframe-root[data-theme='dark'][data-color-scheme='green'] {
+  --action-accent: #75e0a7;
+  --action-primary-background: #6675ff;
+  --action-primary-hover: #8490ff;
+  --action-subtle-background: #233f35;
+  --focus-ring: #75e0a7;
+}
+
+html.ce-iframe-root[data-density='compact'] {
+  --space-surface-content: 16px;
+  --space-form-gap: 16px;
+  --button-padding-inline: 12px;
+}
+
+@media (max-width: 760px) {
+  html.ce-iframe-root {
+    --space-page-inline: 16px;
+    --space-module-stack: 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  html.ce-iframe-root {
+    --space-surface-content: 16px;
+  }
+}
+

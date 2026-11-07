@@ -1,0 +1,162 @@
+.ce-drawer {
+  --ce-drawer-size: 25rem;
+  --ce-drawer-background: var(--drawer-background);
+  --ce-drawer-border: var(--drawer-border);
+  --ce-drawer-text: var(--drawer-foreground);
+  position: fixed;
+  inset: 0 0 0 auto;
+  box-sizing: border-box;
+  width: min(var(--ce-drawer-size), 100vw);
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--ce-drawer-text);
+  background: var(--ce-drawer-background);
+  font-family: var(--font-family-ui);
+  font-size: var(--typography-body-font-size);
+  line-height: var(--typography-body-line-height);
+  font-weight: var(--typography-body-font-weight);
+  overflow: hidden;
+}
+.ce-drawer[open] {
+  display: flex;
+  flex-direction: column;
+  animation: ce-drawer-enter var(--drawer-motion);
+}
+.ce-drawer::backdrop {
+  background: var(--drawer-backdrop);
+  backdrop-filter: blur(var(--drawer-backdrop-blur));
+}
+.ce-drawer[data-placement='left'] {
+  inset: 0 auto 0 0;
+  --ce-drawer-x: -100%;
+}
+.ce-drawer[data-placement='right'] {
+  --ce-drawer-x: 100%;
+}
+.ce-drawer[data-placement='top'],
+.ce-drawer[data-placement='bottom'] {
+  width: 100vw;
+  height: min(var(--ce-drawer-size), 100dvh);
+}
+.ce-drawer[data-placement='top'] {
+  inset: 0 0 auto;
+  --ce-drawer-y: -100%;
+}
+.ce-drawer[data-placement='bottom'] {
+  inset: auto 0 0;
+  --ce-drawer-y: 100%;
+}
+.ce-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--drawer-header-gap);
+  padding: var(--drawer-content-block) var(--drawer-content-inline);
+  border-bottom: var(--border-width-default) solid var(--ce-drawer-border);
+  flex-shrink: 0;
+}
+.ce-drawer-header h2 {
+  margin: 0;
+  font-size: var(--typography-card-title-font-size);
+  line-height: var(--typography-card-title-line-height);
+  font-weight: var(--typography-card-title-font-weight);
+  overflow-wrap: anywhere;
+}
+.ce-drawer-eyebrow {
+  margin-bottom: var(--space-icon-text-tight);
+  color: var(--text-muted);
+  font-size: var(--typography-body-font-size);
+  line-height: var(--typography-body-line-height);
+  font-weight: var(--typography-body-font-weight);
+}
+.ce-drawer-close {
+  display: grid;
+  place-items: center;
+  width: var(--drawer-close-size);
+  height: var(--drawer-close-size);
+  padding: var(--space-icon-text-tight);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ce-drawer-close span {
+  display: block;
+  width: var(--drawer-close-icon-size);
+  height: var(--drawer-close-icon-size);
+  background: var(--drawer-close-color);
+  mask: url('./close.svg') center / contain no-repeat;
+}
+.ce-drawer-close--text {
+  width: auto;
+  min-width: var(--drawer-close-size);
+  padding: 0 var(--space-control-inline, 1rem);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-control, 0.75rem);
+  background: var(--background-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+}
+.ce-drawer-close .ce-drawer-close-text {
+  width: auto;
+  height: auto;
+  background: none;
+  mask: none;
+}
+.ce-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--drawer-content-block) var(--drawer-content-inline);
+  overflow-wrap: anywhere;
+}
+.ce-drawer-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--drawer-action-gap);
+  padding: var(--drawer-footer-inset);
+  border-top: var(--border-width-default) solid var(--ce-drawer-border);
+}
+.ce-drawer button:not(.ce-button):focus-visible,
+.ce-drawer [tabindex]:not(.ce-button):focus-visible {
+  outline: var(--outline-width-focus) solid var(--focus-ring);
+  outline-offset: var(--outline-offset-focus);
+}
+.ce-drawer-close:disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+}
+@keyframes ce-drawer-enter {
+  from {
+    transform: translate(var(--ce-drawer-x, 0), var(--ce-drawer-y, 0));
+  }
+  to {
+    transform: translate(0, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ce-drawer[open] {
+    animation: none;
+  }
+}
+
+.ce-drawer-heading {
+  min-width: 0;
+  flex: 1;
+}
+.ce-drawer-description {
+  margin-top: var(--space-icon-text-tight);
+  color: var(--text-muted);
+  font-size: var(--typography-caption-font-size);
+  line-height: var(--typography-caption-line-height);
+  font-weight: var(--typography-caption-font-weight);
+}
+

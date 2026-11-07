@@ -1,0 +1,3566 @@
+@import './drawer/drawer.css';
+@import './pagination/pagination.css';
+@import './toast/toast.css';
+@import './chart/donut-chart.css';
+@import './chart/chart.css';
+@import './content-preview/content-preview.css';
+@import './dropdown-select/dropdown-select.css';
+@import './quota-card/quota-card.css';
+@import './data-list/data-list.css';
+@import './switch/switch.css';
+
+.ce-tooltip {
+  position: fixed;
+  z-index: 1100;
+  max-width: min(320px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  overflow: visible;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border: 1px solid var(--ce-color-light-border, #e5e6eb);
+  border-radius: 6px;
+  background: var(--ce-color-dark-surface, #272629);
+  color: var(--ce-color-dark-text, #e2e2e5);
+  font-size: 12px;
+  line-height: 18px;
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  white-space: normal;
+}
+
+.ce-tooltip__content {
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ce-tooltip[data-placement='right'] {
+  transform: translate(0, -50%);
+}
+
+.ce-tooltip[data-placement='bottom'] {
+  transform: translate(-50%, 0);
+}
+
+.ce-tooltip[data-placement='left'] {
+  transform: translate(-100%, -50%);
+}
+
+.ce-tooltip[data-variant='callout'] {
+  max-width: min(280px, calc(100vw - 16px));
+  padding: 12px 14px;
+  border-color: var(--border-default, #dce3ee);
+  border-radius: 12px;
+  background: var(--background-primary, #fff);
+  color: var(--text-secondary, #5b6678);
+  box-shadow: 0 12px 32px rgb(24 39 75 / 14%);
+  font-size: var(--font-size-body, 14px);
+  line-height: var(--line-height-body, 22px);
+}
+
+.ce-tooltip[data-variant='callout'][data-placement='right']::before {
+  position: absolute;
+  top: var(--ce-tooltip-arrow-top, 18px);
+  left: -7px;
+  width: 12px;
+  height: 12px;
+  border-bottom: 1px solid var(--border-default, #dce3ee);
+  border-left: 1px solid var(--border-default, #dce3ee);
+  background: var(--background-primary, #fff);
+  content: '';
+  transform: rotate(45deg);
+}
+
+.ce-modal-root {
+  width: min(var(--ce-modal-width, 720px), calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+}
+
+.ce-modal-root::backdrop {
+  background: var(--modal-backdrop, rgb(17 24 39 / 35%));
+  backdrop-filter: blur(var(--modal-backdrop-blur, 8px));
+}
+
+.ce-modal {
+  display: flex;
+  max-height: calc(100vh - 32px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--modal-border, #e5e6eb);
+  border-radius: 12px;
+  background: var(--modal-background, #fff);
+  color: var(--modal-foreground, inherit);
+  box-shadow: var(--modal-shadow, 0 2px 5px rgb(0 0 0 / 10%));
+}
+
+.ce-modal-header,
+.ce-modal-footer {
+  flex: 0 0 auto;
+}
+
+.ce-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: var(--modal-inset, 24px) var(--modal-inset, 24px) 16px;
+}
+
+.ce-modal-title {
+  min-width: 0;
+  font-size: var(--modal-title-font-size, 16px);
+  font-weight: var(--modal-title-font-weight, 500);
+  line-height: var(--modal-title-line-height, 24px);
+}
+
+.ce-modal-close {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: var(--modal-close-size, 32px);
+  height: var(--modal-close-size, 32px);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--modal-close-color, inherit);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  transition: background-color var(--motion-fast, 160ms ease-out);
+}
+
+.ce-modal-close__icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.ce-modal-close:hover {
+  background: var(--modal-close-hover, #f2f3f5);
+}
+
+.ce-modal-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 0 var(--modal-inset, 24px) var(--modal-inset, 24px);
+}
+
+.ce-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--modal-action-gap, 12px);
+  padding: 0 var(--modal-inset, 24px) var(--modal-inset, 24px);
+}
+
+.ce-modal-footer-start {
+  margin-right: auto;
+}
+
+.ce-modal-status {
+  margin: 12px 0 0;
+}
+
+.ce-message-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ce-message {
+  font-size: 14px;
+  line-height: 22px;
+}
+/*
+ * 外部 iframe 视觉适配包 v1，快照日期：2026-09-24。
+ * 只在 iframe 自身文档显式设置 <html class="ce-iframe-root" data-theme="light">
+ * 并使用 <body class="ce-body"> 时引入；无需额外前端框架、字体或网络资源。
+ * 这是人工维护的交付快照，不是 @ce-ops/ui 新增公开入口，也不会自动同步。
+ * A 部分：从下述真实源码复制变量，保持 Primitive → Semantic → Component 引用关系。
+ * 仅把根选择器限定到 html.ce-iframe-root，类名转换为 ce-*，不提供局部 appearance 主题。
+ * B 部分：从公共组件 CSS 复制相关样式，限定作用域并重命名类和动画。
+ * C 部分：本次外部接入建议，复用现有 Token；类名别名和布局组合并非宿主现有 API。
+ * D 部分：依据用户附件 2《CE OPS 外部页面视觉规范》校准交付外观，冲突时以 D 部分为准。
+ * 更新时重新核对源码、主题组合、窄屏、键盘焦点、禁用和减少动态效果。
+ */
+
+/* A：三层 Token 与主题映射的源码快照。 */
+
+/* 来源：packages/ui/src/tokens/primitives.css；声明值及顺序保持源码。 */
+/* 原始设计值仅供 Semantic 层引用，组件与业务不得直接消费。 */
+html.ce-iframe-root {
+  /* Primitive层：90% 不透明白色。 */
+  --primitive-color-white-90: rgba(255, 255, 255, 0.9);
+  /* Primitive层：暗色信息提示图标。 */
+  --primitive-feedback-info-icon-dark: #6675ff;
+  /* Primitive层：暗色成功提示图标。 */
+  --primitive-feedback-success-icon-dark: #27c346;
+  /* Primitive层：暗色警告提示图标。 */
+  --primitive-feedback-warning-icon-dark: #ff9626;
+  /* Primitive层：暗色错误提示图标。 */
+  --primitive-feedback-error-icon-dark: #f76965;
+  /* Primitive层：Figma 暗色反馈底色。 */
+  --primitive-feedback-info-dark: #101333;
+  /* Primitive层：Figma 暗色成功底色。 */
+  --primitive-feedback-success-dark: #004b1c;
+  /* Primitive层：Figma 暗色警告底色。 */
+  --primitive-feedback-warning-dark: #4b1e00;
+  /* Primitive层：Figma 暗色错误底色。 */
+  --primitive-feedback-error-dark: #4b000a;
+  /* Primitive层：增长漏斗四阶段背景，保留 Figma 的角度、色值和透明度。 */
+  --primitive-gradient-funnel-discovery: linear-gradient(
+    153.19366806207705deg,
+    rgba(242, 243, 253, 0.2) 0%,
+    rgba(242, 243, 253, 0.65) 100%
+  );
+  --primitive-gradient-funnel-trust: linear-gradient(
+    153.19366806207705deg,
+    rgba(255, 243, 232, 0.2) 0%,
+    rgba(255, 243, 232, 0.65) 100%
+  );
+  --primitive-gradient-funnel-conversion: linear-gradient(
+    153.19366806207705deg,
+    rgba(245, 232, 255, 0.2) 0%,
+    rgba(245, 232, 255, 0.65) 100%
+  );
+  --primitive-gradient-funnel-retention: linear-gradient(
+    153.19366806207705deg,
+    rgba(255, 232, 241, 0.2) 0%,
+    rgba(255, 232, 241, 0.65) 100%
+  );
+  /* Primitive层：渠道贡献统计卡片的 Figma 纵向渐变，透明度 65%。 */
+  --primitive-gradient-channel-count: linear-gradient(
+    180deg,
+    rgba(223, 225, 252, 0.65) 0%,
+    rgba(242, 243, 253, 0.65) 65%
+  );
+  --primitive-gradient-channel-leads: linear-gradient(
+    180deg,
+    rgba(255, 228, 186, 0.65) 0%,
+    rgba(255, 247, 232, 0.65) 65%
+  );
+  --primitive-gradient-channel-opportunities: linear-gradient(
+    180deg,
+    rgba(221, 190, 246, 0.65) 0%,
+    rgba(245, 232, 255, 0.65) 65%
+  );
+  --primitive-gradient-channel-customers: linear-gradient(
+    180deg,
+    rgba(253, 194, 219, 0.65) 0%,
+    rgba(255, 232, 241, 0.65) 65%
+  );
+  /* Primitive层：AI 来源标签的品牌渐变及 12% 浅底。 */
+  --primitive-gradient-ai-source: linear-gradient(90deg, #4152f6, #ff84ff);
+  --primitive-gradient-ai-source-soft: linear-gradient(
+    90deg,
+    #4152f61f,
+    #ff84ff1f
+  );
+  /* Primitive层：账号版本标签的设计稿渐变与文字颜色。 */
+  --primitive-gradient-edition-professional: linear-gradient(
+    90deg,
+    #4152f6,
+    #e865df
+  );
+  --primitive-gradient-edition-basic: linear-gradient(
+    -71.97284170317485deg,
+    #e5e6eb 0%,
+    #f2f3f5 50%,
+    #c9cdd4 100%
+  );
+  --primitive-color-edition-basic-text: #6b7785;
+  /* Primitive层：设计稿固定蓝色的 4% 透明底。 */
+  --primitive-color-blue-selection-soft: rgba(65, 82, 246, 0.04);
+  /* Primitive层：深墨绿色代码阅读底色。 */
+  --primitive-color-code-surface: #103436;
+  /* Primitive层：深色代码块的浅青文字。 */
+  --primitive-color-code-text: #d6eded;
+  /* Primitive层：额度展示 warning-border 的 Figma 原始颜色。 */
+  --primitive-color-quota-warning-border: #ffe4ba;
+  /* Primitive层：额度展示 error-border 的 Figma 原始颜色。 */
+  --primitive-color-quota-error-border: #fdcdc5;
+
+  /* Primitive层：基础调色板 white 原始颜色。 */
+  --primitive-color-white: #ffffff;
+  /* Primitive层：白色 70% 透明度，供暗色主题次要操作文字使用。 */
+  --primitive-color-white-70: #ffffffb3;
+  /* Primitive层：弹窗危险确认按钮的品牌红色。 */
+  --primitive-color-modal-danger: #f53f3f;
+  /* Primitive层：基础调色板 transparent 原始颜色。 */
+  --primitive-color-transparent: transparent;
+  /* Primitive层：基础调色板 ink 原始颜色。 */
+  --primitive-color-ink: #141723;
+  /* Primitive层：基础调色板 light-shell 原始颜色。 */
+  --primitive-color-light-shell: #f2f4fc;
+  /* Primitive层：Figma fill/1，内容详情块的中性浅灰底。 */
+  --primitive-color-light-subtle: #f7f8fa;
+  /* Primitive层：Figma fill/2，中性次要操作底色。 */
+  --primitive-color-light-control-subtle: #f2f3f5;
+  /* Primitive层：基础调色板 light-hover 原始颜色。 */
+  --primitive-color-light-hover: #e7eaf5;
+  /* Primitive层：基础调色板 light-navigation-hover 原始颜色。 */
+  --primitive-color-light-navigation-hover: #ffffff80;
+  /* Primitive层：基础调色板 light-avatar 原始颜色。 */
+  --primitive-color-light-avatar: #cbd0d9;
+  /* Primitive层：基础调色板 light-badge 原始颜色。 */
+  --primitive-color-light-badge: #e6eaf3;
+  /* Primitive层：基础调色板 light-text 原始颜色。 */
+  --primitive-color-light-text: #1d2129;
+  /* Primitive层：基础调色板 light-secondary 原始颜色。 */
+  --primitive-color-light-secondary: #4e5969;
+  /* Primitive层：Figma text/3，辅助说明与次要数据。 */
+  --primitive-color-light-muted: #86909c;
+  /* Primitive层：基础调色板 light-disabled 原始颜色。 */
+  --primitive-color-light-disabled: #939cab;
+  /* Primitive层：执行步骤装饰圆点的中性浅灰。 */
+  --primitive-color-light-step-marker: #c9cdd4;
+  /* Primitive层：基础调色板 light-border 原始颜色。 */
+  --primitive-color-light-border: #e5e6eb;
+  /* Primitive层：基础调色板 light-control-border 原始颜色。 */
+  --primitive-color-light-control-border: #818ba1;
+  /* Primitive层：基础调色板 light-scrollbar 原始颜色。 */
+  --primitive-color-light-scrollbar: #bac2d2;
+  /* Primitive层：基础调色板 dark-surface 原始颜色。 */
+  --primitive-color-dark-surface: #272629;
+  /* Primitive层：基础调色板 dark-shell 原始颜色。 */
+  --primitive-color-dark-shell: #1b1d20;
+  /* Primitive层：基础调色板 dark-header 原始颜色。 */
+  --primitive-color-dark-header: #1a1a20;
+  /* Primitive层：基础调色板 dark-active 原始颜色。 */
+  --primitive-color-dark-active: #2c2c31;
+  /* Primitive层：基础调色板 dark-hover 原始颜色。 */
+  --primitive-color-dark-hover: #36353a;
+  /* Primitive层：基础调色板 dark-navigation-hover 原始颜色。 */
+  --primitive-color-dark-navigation-hover: #29292e;
+  /* Primitive层：基础调色板 dark-avatar 原始颜色。 */
+  --primitive-color-dark-avatar: #45464a;
+  /* Primitive层：基础调色板 dark-badge 原始颜色。 */
+  --primitive-color-dark-badge: #dfe3e8;
+  /* Primitive层：基础调色板 dark-badge-text 原始颜色。 */
+  --primitive-color-dark-badge-text: #626d7b;
+  /* Primitive层：基础调色板 dark-text 原始颜色。 */
+  --primitive-color-dark-text: #e2e2e5;
+  /* Primitive层：基础调色板 dark-secondary 原始颜色。 */
+  --primitive-color-dark-secondary: #b0afb6;
+  /* Primitive层：基础调色板 dark-disabled 原始颜色。 */
+  --primitive-color-dark-disabled: #767780;
+  /* Primitive层：基础调色板 dark-border 原始颜色。 */
+  --primitive-color-dark-border: #404041;
+  /* Primitive层：基础调色板 dark-divider 原始颜色。 */
+  --primitive-color-dark-divider: #3c3c42;
+  /* Primitive层：基础调色板 dark-control-border 原始颜色。 */
+  --primitive-color-dark-control-border: #7c7e89;
+  /* Primitive层：基础调色板 dark-scrollbar 原始颜色。 */
+  --primitive-color-dark-scrollbar: #686975;
+  /* Primitive层：基础调色板 blue-base 原始颜色。 */
+  --primitive-color-blue-base: #4152f6;
+  /* Primitive层：基础调色板 blue-hover 原始颜色。 */
+  --primitive-color-blue-hover: #3443df;
+  /* Primitive层：基础调色板 blue-active 原始颜色。 */
+  --primitive-color-blue-active: #2936bd;
+  /* Primitive层：基础调色板 blue-tint 原始颜色。 */
+  --primitive-color-blue-tint: #f2f3fd;
+  /* Primitive层：基础调色板 blue-dark 原始颜色。 */
+  --primitive-color-blue-dark: #a5afff;
+  /* Primitive层：基础调色板 blue-dark-hover 原始颜色。 */
+  --primitive-color-blue-dark-hover: #c2c9ff;
+  /* Primitive层：基础调色板 blue-dark-active 原始颜色。 */
+  --primitive-color-blue-dark-active: #8e9bf5;
+  /* Primitive层：基础调色板 blue-dark-tint 原始颜色。 */
+  --primitive-color-blue-dark-tint: #343953;
+  /* Primitive层：基础调色板 purple-base 原始颜色。 */
+  --primitive-color-purple-base: #6941c6;
+  /* Primitive层：基础调色板 purple-hover 原始颜色。 */
+  --primitive-color-purple-hover: #5732ac;
+  /* Primitive层：基础调色板 purple-active 原始颜色。 */
+  --primitive-color-purple-active: #48278f;
+  /* Primitive层：基础调色板 purple-tint 原始颜色。 */
+  --primitive-color-purple-tint: #f4ebff;
+  /* Primitive层：基础调色板 purple-dark 原始颜色。 */
+  --primitive-color-purple-dark: #d6bbfb;
+  /* Primitive层：基础调色板 purple-dark-hover 原始颜色。 */
+  --primitive-color-purple-dark-hover: #e9d7fe;
+  /* Primitive层：基础调色板 purple-dark-active 原始颜色。 */
+  --primitive-color-purple-dark-active: #b692f6;
+  /* Primitive层：基础调色板 purple-dark-tint 原始颜色。 */
+  --primitive-color-purple-dark-tint: #41334f;
+  /* Primitive层：基础调色板 green-base 原始颜色。 */
+  --primitive-color-green-base: #067647;
+  /* Primitive层：基础调色板 green-hover 原始颜色。 */
+  --primitive-color-green-hover: #05603a;
+  /* Primitive层：基础调色板 green-active 原始颜色。 */
+  --primitive-color-green-active: #044c2f;
+  /* Primitive层：基础调色板 green-tint 原始颜色。 */
+  --primitive-color-green-tint: #ecfdf3;
+  /* Primitive层：基础调色板 green-dark 原始颜色。 */
+  --primitive-color-green-dark: #75e0a7;
+  /* Primitive层：基础调色板 green-dark-hover 原始颜色。 */
+  --primitive-color-green-dark-hover: #abefc6;
+  /* Primitive层：基础调色板 green-dark-active 原始颜色。 */
+  --primitive-color-green-dark-active: #47cd89;
+  /* Primitive层：基础调色板 green-dark-tint 原始颜色。 */
+  --primitive-color-green-dark-tint: #233f35;
+  /* Primitive层：基础调色板 brand-mark 原始颜色。 */
+  --primitive-color-brand-mark: #6254ff;
+  /* Primitive层：基础调色板 brand-assistant 原始颜色。 */
+  --primitive-color-brand-assistant: #fbfaff;
+  /* Primitive层：基础调色板 glass-light 原始颜色。 */
+  --primitive-color-glass-light: #fffffff0;
+  /* Primitive层：基础调色板 glass-dark 原始颜色。 */
+  --primitive-color-glass-dark: #272629f2;
+  /* Primitive层：基础调色板 overlay-light 原始颜色。 */
+  --primitive-color-overlay-light: #11182759;
+  /* Primitive层：资源类型胶囊半透明底，来自原型 grid-type-badge。 */
+  --primitive-color-overlay-media-badge: #1f2937b8;
+  /* Primitive层：基础调色板 overlay-dark 原始颜色。 */
+  --primitive-color-overlay-dark: #0000008c;
+  /* Primitive层：分类 neutral 的 dark-foreground 原始颜色。 */
+  --primitive-category-neutral-dark-foreground: #d5d9e1;
+  /* Primitive层：分类 neutral 的 dark-background 原始颜色。 */
+  --primitive-category-neutral-dark-background: #353940;
+  /* Primitive层：分类 neutral 的 dark-border 原始颜色。 */
+  --primitive-category-neutral-dark-border: #858c98;
+  /* Primitive层：分类 red 的 background 原始颜色。 */
+  --primitive-category-red-background: #fff0f0;
+  /* Primitive层：分类 red 的 border 原始颜色。 */
+  --primitive-category-red-border: #d92d20;
+  /* Primitive层：分类 red 的 dark-background 原始颜色。 */
+  --primitive-category-red-dark-background: #4f2928;
+  /* Primitive层：分类 red 的 dark-border 原始颜色。 */
+  --primitive-category-red-dark-border: #f97066;
+  /* Primitive层：分类 green 的 foreground 原始颜色。 */
+  --primitive-category-green-foreground: #00b42a;
+  /* Primitive层：分类 green 的 background 原始颜色。 */
+  --primitive-category-green-background: #e8ffea;
+  /* Primitive层：分类 green 的 border 原始颜色。 */
+  --primitive-category-green-border: #138554;
+  /* Primitive层：分类 cyan 的 foreground 原始颜色。 */
+  --primitive-category-cyan-foreground: #14c9c9;
+  /* Primitive层：分类 cyan 的 background 原始颜色。 */
+  --primitive-category-cyan-background: #ecfeff;
+  /* Primitive层：分类 cyan 的 border 原始颜色。 */
+  --primitive-category-cyan-border: #08859c;
+  /* Primitive层：分类 cyan 的 dark-foreground 原始颜色。 */
+  --primitive-category-cyan-dark-foreground: #67e3f9;
+  /* Primitive层：分类 cyan 的 dark-background 原始颜色。 */
+  --primitive-category-cyan-dark-background: #203d46;
+  /* Primitive层：分类 cyan 的 dark-border 原始颜色。 */
+  --primitive-category-cyan-dark-border: #22ccee;
+  /* Primitive层：分类 orange 的 foreground 原始颜色。 */
+  --primitive-category-orange-foreground: #ff7d00;
+  /* Primitive层：分类 orange 的 background 原始颜色。 */
+  --primitive-category-orange-background: #fff7e8;
+  /* Primitive层：分类 orange 的 border 原始颜色。 */
+  --primitive-category-orange-border: #e06c16;
+  /* Primitive层：分类 orange 的 dark-foreground 原始颜色。 */
+  --primitive-category-orange-dark-foreground: #feb273;
+  /* Primitive层：分类 orange 的 dark-background 原始颜色。 */
+  --primitive-category-orange-dark-background: #492f21;
+  /* Primitive层：分类 orange 的 dark-border 原始颜色。 */
+  --primitive-category-orange-dark-border: #fd853a;
+  /* Primitive层：分类 orange-red 的 foreground 原始颜色。 */
+  --primitive-category-orange-red-foreground: #b93815;
+  /* Primitive层：分类 orange-red 的 background 原始颜色。 */
+  --primitive-category-orange-red-background: #fff0e8;
+  /* Primitive层：分类 orange-red 的 border 原始颜色。 */
+  --primitive-category-orange-red-border: #d94b29;
+  /* Primitive层：分类 orange-red 的 dark-foreground 原始颜色。 */
+  --primitive-category-orange-red-dark-foreground: #ffad91;
+  /* Primitive层：分类 orange-red 的 dark-background 原始颜色。 */
+  --primitive-category-orange-red-dark-background: #4f2b24;
+  /* Primitive层：分类 orange-red 的 dark-border 原始颜色。 */
+  --primitive-category-orange-red-dark-border: #fc8062;
+  /* Primitive层：分类 gold 的 foreground 原始颜色。 */
+  --primitive-category-gold-foreground: #965b0c;
+  /* Primitive层：分类 gold 的 background 原始颜色。 */
+  --primitive-category-gold-background: #fffaeb;
+  /* Primitive层：分类 gold 的 border 原始颜色。 */
+  --primitive-category-gold-border: #ac7908;
+  /* Primitive层：分类 gold 的 dark-foreground 原始颜色。 */
+  --primitive-category-gold-dark-foreground: #fec84b;
+  /* Primitive层：分类 gold 的 dark-background 原始颜色。 */
+  --primitive-category-gold-dark-background: #433821;
+  /* Primitive层：分类 gold 的 dark-border 原始颜色。 */
+  --primitive-category-gold-dark-border: #fdb022;
+  /* Primitive层：分类 purple 的 foreground 原始颜色。 */
+  --primitive-category-purple-foreground: #722ed1;
+  /* Primitive层：分类 purple 的 border 原始颜色。 */
+  --primitive-category-purple-border: #8a5dd2;
+  /* Primitive层：分类 magenta 的 foreground 原始颜色。 */
+  --primitive-category-magenta-foreground: #f5319d;
+  /* Primitive层：分类 magenta 的 background 原始颜色。 */
+  --primitive-category-magenta-background: #fdf2fa;
+  /* Primitive层：分类 magenta 的 border 原始颜色。 */
+  --primitive-category-magenta-border: #d72b91;
+  /* Primitive层：分类 magenta 的 dark-foreground 原始颜色。 */
+  --primitive-category-magenta-dark-foreground: #faa7e0;
+  /* Primitive层：分类 magenta 的 dark-background 原始颜色。 */
+  --primitive-category-magenta-dark-background: #4b2942;
+  /* Primitive层：分类 magenta 的 dark-border 原始颜色。 */
+  --primitive-category-magenta-dark-border: #f670c7;
+  /* Primitive层：分类 indigo 的 border 原始颜色。 */
+  --primitive-category-indigo-border: #687ddd;
+  /* Primitive层：分类 indigo 的 dark-foreground 原始颜色。 */
+  --primitive-category-indigo-dark-foreground: #b2bcff;
+  /* Primitive层：分类 indigo 的 dark-background 原始颜色。 */
+  --primitive-category-indigo-dark-background: #303650;
+  /* Primitive层：分类 indigo 的 dark-border 原始颜色。 */
+  --primitive-category-indigo-dark-border: #8098f9;
+  /* Primitive层：分类 blue 的 foreground 原始颜色。 */
+  --primitive-category-blue-foreground: #175cd3;
+  /* Primitive层：分类 blue 的 background 原始颜色。 */
+  --primitive-category-blue-background: #eff8ff;
+  /* Primitive层：分类 blue 的 border 原始颜色。 */
+  --primitive-category-blue-border: #3f83da;
+  /* Primitive层：分类 blue 的 dark-foreground 原始颜色。 */
+  --primitive-category-blue-dark-foreground: #84caff;
+  /* Primitive层：分类 blue 的 dark-background 原始颜色。 */
+  --primitive-category-blue-dark-background: #203a51;
+  /* Primitive层：分类 blue 的 dark-border 原始颜色。 */
+  --primitive-category-blue-dark-border: #53b1fd;
+  /* Primitive层：资源占用条图片分段原始颜色，对齐素材页原型。 */
+  --primitive-storage-image: #5b4cf0;
+  /* Primitive层：资源占用条文件分段原始颜色，对齐素材页原型。 */
+  --primitive-storage-file: #2f8ff0;
+  /* Primitive层：资源占用条视频分段原始颜色，对齐素材页原型。 */
+  --primitive-storage-video: #27c98b;
+  /* Primitive层：资源占用条可用空间原始颜色，对齐素材页原型。 */
+  --primitive-storage-free: #dfe3e5;
+  /* Primitive层：基础长度 0px。 */
+  --primitive-space-0: 0px;
+  /* Primitive层：基础长度 1px。 */
+  --primitive-space-1: 1px;
+  /* Primitive层：基础长度 2px。 */
+  --primitive-space-2: 2px;
+  /* Primitive层：基础长度 4px。 */
+  --primitive-space-4: 4px;
+  /* Primitive层：基础长度 8px。 */
+  --primitive-space-8: 8px;
+  /* Primitive层：基础长度 12px。 */
+  --primitive-space-12: 12px;
+  /* Primitive层：基础长度 16px。 */
+  --primitive-space-16: 16px;
+  /* Primitive层：基础长度 20px。 */
+  --primitive-space-20: 20px;
+  /* Primitive层：基础长度 24px。 */
+  --primitive-space-24: 24px;
+  /* Primitive层：基础长度 28px。 */
+  --primitive-space-28: 28px;
+  /* Primitive层：分段选项在 2px 内边距轨道上的 30px 点击面。 */
+  --primitive-space-30: 30px;
+  /* Primitive层：基础长度 32px。 */
+  --primitive-space-32: 32px;
+  /* Primitive层：基础长度 36px。 */
+  --primitive-space-36: 36px;
+  /* Primitive层：基础长度 40px。 */
+  --primitive-space-40: 40px;
+  /* Primitive层：基础长度 48px。 */
+  --primitive-space-48: 48px;
+  /* Primitive层：资源网格卡片最小列宽 170px。 */
+  --primitive-space-170: 170px;
+  /* Primitive层：基础长度 112px。 */
+  --primitive-space-112: 112px;
+  /* Primitive层：按 16px 根字号换算的 11px 排版长度。 */
+  --primitive-font-11: 0.6875rem;
+  /* Primitive层：按 16px 根字号换算的 12px 排版长度。 */
+  --primitive-font-12: 0.75rem;
+  /* Primitive层：按 16px 根字号换算的 14px 排版长度。 */
+  --primitive-font-14: 0.875rem;
+  /* Primitive层：按 16px 根字号换算的 16px 排版长度。 */
+  --primitive-font-16: 1rem;
+  /* Primitive层：按 16px 根字号换算的 20px 排版长度。 */
+  --primitive-font-20: 1.25rem;
+  /* Primitive层：按 16px 根字号换算的 22px 排版长度。 */
+  --primitive-font-22: 1.375rem;
+  /* Primitive层：按 16px 根字号换算的 24px 排版长度。 */
+  --primitive-font-24: 1.5rem;
+  /* Primitive层：按 16px 根字号换算的 28px 排版长度。 */
+  --primitive-font-28: 1.75rem;
+  /* Primitive层：按 16px 根字号换算的 36px 排版长度。 */
+  --primitive-font-36: 2.25rem;
+  /* Primitive层：基础字重 400。 */
+  --primitive-weight-400: 400;
+  /* Primitive层：基础字重 600。 */
+  --primitive-weight-600: 600;
+  /* Primitive层：系统正文与中文字体栈。 */
+  --primitive-font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  /* Primitive层：代码、日期与等宽数字使用系统等宽字体，不依赖外部字体加载。 */
+  --primitive-font-family-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  /* Primitive层：胶囊原始圆角。 */
+  --primitive-radius-pill: 9999px;
+  /* Primitive层：圆形原始圆角。 */
+  --primitive-radius-circle: 50%;
+  /* Primitive层：助手悬浮入口原型阴影，向下偏移 8px、模糊 20px。 */
+  --primitive-shadow-assistant-launcher: 0 8px 20px 0 rgb(0 0 0 / 10%);
+  /* Primitive层：UI 场景图中的推荐卡蓝紫色柔和阴影。 */
+  --primitive-shadow-assistant-recommendation: 0 8px 24px 0 rgb(65 82 246 / 10%);
+  /* Primitive层：Arco Design 2.66.15 shadow1-down 浮层阴影。 */
+  --primitive-shadow-overlay-light: 0 2px 5px rgb(0 0 0 / 10%);
+  /* Primitive层：暗色表面适配的浮层阴影。 */
+  --primitive-shadow-overlay-dark: 0 2px 5px rgb(0 0 0 / 40%);
+  /* Primitive层：亮色主面板轻阴影候选参数。 */
+  --primitive-shadow-main-light: -2px 0 8px rgb(37 41 52 / 4%);
+  /* Primitive层：暗色主面板轻阴影候选参数。 */
+  --primitive-shadow-main-dark: -2px 0 8px rgb(0 0 0 / 16%);
+  /* Primitive层：亮色内容卡片表面阴影，对齐素材概览原型。 */
+  --primitive-shadow-surface-light:
+    0 1px 2px rgb(17 24 22 / 4%), 0 3px 8px rgb(17 24 22 / 5.5%);
+  /* Primitive层：暗色内容卡片表面阴影。 */
+  --primitive-shadow-surface-dark:
+    0 1px 2px rgb(0 0 0 / 20%), 0 3px 8px rgb(0 0 0 / 24%);
+  /* Primitive层：独立助手品牌渐变。 */
+  --primitive-gradient-assistant: linear-gradient(145deg, #6154ff, #9475ff);
+  /* Primitive层：专业版品牌渐变，不随个人主题色切换。 */
+  --primitive-gradient-professional: linear-gradient(110deg, #6941c6, #9e49b7);
+  /* Primitive层：交互颜色过渡时长。 */
+  --primitive-motion-fast: 120ms;
+  /* Primitive层：忙碌指示器旋转周期。 */
+  --primitive-motion-loading: 800ms;
+}
+
+html.ce-iframe-root {
+  /* Primitive层：危险主操作亮色。 */
+  --primitive-color-danger-base: #b42318;
+  /* Primitive层：危险反馈的亮色浅背景。 */
+  --primitive-color-danger-tint: #ffece8;
+  /* Primitive层：危险主操作亮色悬停。 */
+  --primitive-color-danger-hover: #912018;
+  /* Primitive层：危险主操作亮色按下。 */
+  --primitive-color-danger-active: #7a271a;
+  /* Primitive层：危险主操作暗色。 */
+  --primitive-color-danger-dark: #fda29b;
+  /* Primitive层：危险主操作暗色悬停。 */
+  --primitive-color-danger-dark-hover: #fecdc9;
+  /* Primitive层：弹层标题区基础高度。 */
+  --primitive-space-56: 56px;
+  /* Primitive层：操作按钮最小宽度。 */
+  --primitive-space-64: 64px;
+  /* Primitive层：空状态插画尺寸。 */
+  --primitive-space-120: 120px;
+  /* Primitive层：非按钮控件禁用透明度。 */
+  --primitive-opacity-disabled: 0.55;
+  /* Primitive层：浮层进入动效。 */
+  --primitive-motion-overlay: 180ms ease-out;
+  /* Primitive层：大面积助手抽屉以减速曲线滑入，避免弹跳与突停。 */
+  --primitive-motion-assistant: 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.ce-iframe-root {
+  /* Primitive层：用户本次 Figma 指标卡片指定的行高。 */
+  --primitive-font-32: 2rem;
+  /* Primitive层：用户本次 Figma 指标卡片指定的中等字重。 */
+  --primitive-weight-500: 500;
+}
+
+html.ce-iframe-root {
+  /* Primitive层：有限浮层阶梯，顺序与视觉用途在语义层映射。 */
+  --primitive-layer-10: 10;
+  /* Primitive层：第二档浮层。 */
+  --primitive-layer-20: 20;
+  /* Primitive层：第三档浮层。 */
+  --primitive-layer-30: 30;
+  /* Primitive层：第四档浮层。 */
+  --primitive-layer-40: 40;
+  /* Primitive层：第五档浮层。 */
+  --primitive-layer-50: 50;
+  /* Primitive层：第六档浮层。 */
+  --primitive-layer-60: 60;
+}
+
+/* 来源：packages/ui/src/tokens/semantic.css；声明值及顺序保持源码。 */
+/* 业务可直接消费的视觉角色；默认主题为亮色、蓝色、舒适密度。 */
+html.ce-iframe-root {
+  /* Semantic层：仅普通主按钮的背景，浅色沿用品牌背景。 */
+  --action-button-primary-background: var(--action-primary-background);
+  /* Semantic层：信息弹窗专用图标色。 */
+  --message-info-icon: var(--primitive-color-blue-base);
+  /* Semantic层：危险弹窗专用图标色。 */
+  --message-danger-icon: var(--primitive-color-modal-danger);
+  /* Semantic层：仅主按钮使用的前景色。 */
+  --action-button-primary-foreground: var(--action-primary-foreground);
+  /* Semantic层：Alert/Toast 信息图标色，不随品牌色切换。 */
+  --feedback-info-icon: var(--primitive-color-blue-base);
+  /* Semantic层：Alert/Toast 成功图标色。 */
+  --feedback-success-icon: var(--primitive-category-green-foreground);
+  /* Semantic层：Alert/Toast 警告图标色。 */
+  --feedback-warning-icon: var(--primitive-category-orange-foreground);
+  /* Semantic层：Alert/Toast 错误图标色。 */
+  --feedback-error-icon: var(--primitive-color-modal-danger);
+  /* Semantic层：反馈提示底色，与其他状态标签独立。 */
+  --feedback-info-background: var(--primitive-color-blue-tint);
+  /* Semantic层：成功反馈底色。 */
+  --feedback-success-background: var(--primitive-category-green-background);
+  /* Semantic层：警告反馈底色。 */
+  --feedback-warning-background: var(--primitive-category-orange-background);
+  /* Semantic层：错误反馈底色。 */
+  --feedback-error-background: var(--primitive-color-danger-tint);
+  /* Semantic层：单行反馈最小高度。 */
+  --size-feedback-single: var(--primitive-space-40);
+  /* Semantic层：仅增长漏斗四阶段卡片使用的背景。 */
+  --background-funnel-discovery: var(--primitive-gradient-funnel-discovery);
+  --background-funnel-trust: var(--primitive-gradient-funnel-trust);
+  --background-funnel-conversion: var(--primitive-gradient-funnel-conversion);
+  --background-funnel-retention: var(--primitive-gradient-funnel-retention);
+  /* Semantic层：仅渠道贡献顶部四张统计卡片消费的背景。 */
+  --background-channel-count: var(--primitive-gradient-channel-count);
+  --background-channel-leads: var(--primitive-gradient-channel-leads);
+  --background-channel-opportunities: var(
+    --primitive-gradient-channel-opportunities
+  );
+  --background-channel-customers: var(--primitive-gradient-channel-customers);
+  /* Semantic层：AI 来源标签的背景及文字渐变。 */
+  --ai-source-background: var(--primitive-gradient-ai-source-soft);
+  --ai-source-text-gradient: var(--primitive-gradient-ai-source);
+  /* Semantic层：账号版本标签配色，深浅主题保持设计稿外观。 */
+  --edition-professional-background: var(
+    --primitive-gradient-edition-professional
+  );
+  --edition-professional-foreground: var(--primitive-color-white);
+  --edition-basic-background: var(--primitive-gradient-edition-basic);
+  --edition-basic-foreground: var(--primitive-color-edition-basic-text);
+  /* Semantic层：产品切换条的浅色选中底，不随主题变化。 */
+  --background-product-tab-selected: var(--primitive-color-blue-selection-soft);
+  /* Semantic层：代码阅读区背景，亮暗主题均保留深色底。 */
+  --background-code: var(--primitive-color-code-surface);
+  /* Semantic层：深色代码阅读区文字，亮暗主题均保持高对比。 */
+  --text-code: var(--primitive-color-code-text);
+  /* Semantic层：额度展示 info 角色，独立于通用反馈状态。 */
+  --usage-info: var(--primitive-color-blue-base);
+  /* Semantic层：额度展示 warning 角色，独立于通用反馈状态。 */
+  --usage-warning: var(--primitive-category-orange-foreground);
+  /* Semantic层：额度展示 warning-border 角色，独立于通用反馈状态。 */
+  --usage-warning-border: var(--primitive-color-quota-warning-border);
+  /* Semantic层：额度展示 warning-background 角色，独立于通用反馈状态。 */
+  --usage-warning-background: var(--primitive-category-orange-background);
+  /* Semantic层：额度展示 error 角色，独立于通用反馈状态。 */
+  --usage-error: var(--primitive-color-modal-danger);
+  /* Semantic层：额度展示 error-border 角色，独立于通用反馈状态。 */
+  --usage-error-border: var(--primitive-color-quota-error-border);
+  /* Semantic层：额度展示 error-background 角色，独立于通用反馈状态。 */
+  --usage-error-background: var(--primitive-color-danger-tint);
+
+  /* Semantic层：界面 background-primary 视觉角色。 */
+  --background-primary: var(--primitive-color-white);
+  /* Semantic层：界面 background-secondary 视觉角色。 */
+  --background-secondary: var(--primitive-color-light-shell);
+  /* Semantic层：内容内部的中性浅灰底，与应用外壳底色区分。 */
+  --background-subtle: var(--primitive-color-light-subtle);
+  /* Semantic层：中性次要操作背景，不使用应用外壳或内容详情块底色。 */
+  --background-control-subtle: var(--primitive-color-light-control-subtle);
+  /* Semantic层：亮色实心分类标签的反白文字。 */
+  --category-filled-foreground: var(--primitive-color-white);
+  /* Semantic层：界面 background-tertiary 视觉角色。 */
+  --background-tertiary: var(--primitive-color-light-hover);
+  /* Semantic层：界面 background-header 视觉角色。 */
+  --background-header: var(--primitive-color-light-shell);
+  /* Semantic层：界面 background-active 视觉角色。 */
+  --background-active: var(--primitive-color-white);
+  /* Semantic层：界面 background-hover 视觉角色。 */
+  --background-hover: var(--primitive-color-light-hover);
+  /* Semantic层：界面 background-navigation-hover 视觉角色。 */
+  --background-navigation-hover: var(--primitive-color-light-navigation-hover);
+  /* Semantic层：界面 background-avatar 视觉角色。 */
+  --background-avatar: var(--primitive-color-light-avatar);
+  /* Semantic层：界面 background-badge 视觉角色。 */
+  --background-badge: var(--primitive-color-light-badge);
+  /* Semantic层：界面 background-transparent 视觉角色。 */
+  --background-transparent: var(--primitive-color-transparent);
+  /* Semantic层：界面 background-overlay 视觉角色。 */
+  --background-overlay: var(--primitive-color-overlay-light);
+  /* Semantic层：资源预览角标半透明底。 */
+  --background-media-badge: var(--primitive-color-overlay-media-badge);
+  /* Semantic层：界面 background-disabled 视觉角色。 */
+  --background-disabled: var(--primitive-color-light-shell);
+  /* Semantic层：全局应用故障页的固定深色背景。 */
+  --background-emergency: var(--primitive-color-dark-shell);
+  /* Semantic层：全局应用故障页的深灰操作背景。 */
+  --background-emergency-control: var(--primitive-color-dark-hover);
+  /* Semantic层：界面 text-primary 视觉角色。 */
+  --text-primary: var(--primitive-color-light-text);
+  /* Semantic层：界面 text-secondary 视觉角色。 */
+  --text-secondary: var(--primitive-color-light-secondary);
+  /* Semantic层：界面 text-muted 视觉角色。 */
+  --text-muted: var(--primitive-color-light-muted);
+  /* Semantic层：界面 text-disabled 视觉角色。 */
+  --text-disabled: var(--primitive-color-light-disabled);
+  /* Semantic层：执行步骤的装饰圆点，不代表禁用或业务状态。 */
+  --foreground-step-marker: var(--primitive-color-light-step-marker);
+  /* Semantic层：界面 text-badge 视觉角色。 */
+  --text-badge: var(--primitive-color-light-secondary);
+  /* Semantic层：全局应用故障页的主文字。 */
+  --text-emergency-primary: var(--primitive-color-dark-text);
+  /* Semantic层：全局应用故障页的次级文字。 */
+  --text-emergency-secondary: var(--primitive-color-dark-secondary);
+  /* Semantic层：界面 border-default 视觉角色。 */
+  --border-default: var(--primitive-color-light-border);
+  /* Semantic层：界面 border-divider 视觉角色。 */
+  --border-divider: var(--primitive-color-light-border);
+  /* Semantic层：界面 border-control 视觉角色。 */
+  --border-control: var(--primitive-color-light-control-border);
+  /* Semantic层：界面 border-transparent 视觉角色。 */
+  --border-transparent: var(--primitive-color-transparent);
+  /* Semantic层：界面 scrollbar-thumb 视觉角色。 */
+  --scrollbar-thumb: var(--primitive-color-light-scrollbar);
+  /* Semantic层：界面 surface-main-panel-glass 视觉角色。 */
+  --surface-main-panel-glass: var(--primitive-color-glass-light);
+  /* Semantic层：默认蓝主题方案的主色，供预览与实际操作共同使用。 */
+  --theme-color-default: var(--primitive-color-blue-base);
+  /* Semantic层：紫色主题方案的主色，供预览与实际操作共同使用。 */
+  --theme-color-purple: var(--primitive-color-purple-base);
+  /* Semantic层：绿色主题方案的主色，供预览与实际操作共同使用。 */
+  --theme-color-green: var(--primitive-color-green-base);
+  /* Semantic层：界面 action-primary-background 视觉角色。 */
+  --action-primary-background: var(--theme-color-default);
+  /* Semantic层：界面 action-primary-foreground 视觉角色。 */
+  --action-primary-foreground: var(--primitive-color-white);
+  /* Semantic层：界面 action-primary-hover 视觉角色。 */
+  --action-primary-hover: var(--primitive-color-blue-hover);
+  /* Semantic层：界面 action-primary-active 视觉角色。 */
+  --action-primary-active: var(--primitive-color-blue-active);
+  /* Semantic层：界面 action-accent 视觉角色。 */
+  --action-accent: var(--theme-color-default);
+  /* Semantic层：全局应用故障页的蓝色主操作背景。 */
+  --action-emergency-background: var(--primitive-color-blue-base);
+  /* Semantic层：全局应用故障页的蓝色主操作文字。 */
+  --action-emergency-foreground: var(--primitive-color-white);
+  /* Semantic层：界面 action-subtle-background 视觉角色。 */
+  --action-subtle-background: var(--primitive-color-blue-tint);
+  /* Semantic层：界面 focus-ring 视觉角色。 */
+  --focus-ring: var(--theme-color-default);
+  /* Semantic层：界面 brand-mark-color 视觉角色。 */
+  --brand-mark-color: var(--primitive-color-brand-mark);
+  /* Semantic层：界面 brand-assistant-foreground 视觉角色。 */
+  --brand-assistant-foreground: var(--primitive-color-brand-assistant);
+  /* Semantic层：界面 brand-professional-foreground 视觉角色。 */
+  --brand-professional-foreground: var(--primitive-color-white);
+  /* Semantic层：界面 brand-professional-text 视觉角色。 */
+  --brand-professional-text: var(--primitive-color-purple-base);
+  /* Semantic层：助手竖向悬浮入口阴影，不改变其他公共浮层。 */
+  --shadow-assistant-launcher: var(--primitive-shadow-assistant-launcher);
+  /* Semantic层：助手推荐卡阴影，不复用悬浮入口或通用浮层。 */
+  --shadow-assistant-recommendation: var(
+    --primitive-shadow-assistant-recommendation
+  );
+  /* Semantic层：共享 shadow-overlay 角色。 */
+  --shadow-overlay: var(--primitive-shadow-overlay-light);
+  /* Semantic层：共享 shadow-main-panel 角色。 */
+  --shadow-main-panel: var(--primitive-shadow-main-light);
+  /* Semantic层：内容卡片表面投影，区别于浮层 overlay。 */
+  --shadow-surface: var(--primitive-shadow-surface-light);
+  /* Semantic层：共享 blur-main-panel 角色。 */
+  --blur-main-panel: var(--primitive-space-12);
+  /* Semantic层：共享 brand-assistant-gradient 角色。 */
+  --brand-assistant-gradient: var(--primitive-gradient-assistant);
+  /* Semantic层：共享 brand-professional-gradient 角色。 */
+  --brand-professional-gradient: var(--primitive-gradient-professional);
+  /* Semantic层：共享 font-family-ui 角色。 */
+  --font-family-ui: var(--primitive-font-family);
+  /* Semantic层：代码、日期与等宽数字字体，在所有主题和密度下保持一致。 */
+  --font-family-mono: var(--primitive-font-family-mono);
+  /* Semantic层：共享 motion-fast 角色。 */
+  --motion-fast: var(--primitive-motion-fast);
+  /* Semantic层：共享 motion-loading 角色。 */
+  --motion-loading: var(--primitive-motion-loading);
+  /* Semantic层：分类 neutral 的 foreground，不代表业务状态。 */
+  --category-neutral-foreground: var(--primitive-color-light-secondary);
+  /* Semantic层：分类 neutral 的 background，不代表业务状态。 */
+  --category-neutral-background: var(--primitive-color-light-control-subtle);
+  /* Semantic层：分类 neutral 的 border，不代表业务状态。 */
+  --category-neutral-border: var(--primitive-color-light-muted);
+  /* Semantic层：分类 red 的 foreground，不代表业务状态。 */
+  --category-red-foreground: var(--primitive-color-modal-danger);
+  /* Semantic层：分类 red 的 background，不代表业务状态。 */
+  --category-red-background: var(--primitive-category-red-background);
+  /* Semantic层：分类 red 的 border，不代表业务状态。 */
+  --category-red-border: var(--primitive-category-red-border);
+  /* Semantic层：分类 green 的 foreground，不代表业务状态。 */
+  --category-green-foreground: var(--primitive-category-green-foreground);
+  /* Semantic层：分类 green 的 background，不代表业务状态。 */
+  --category-green-background: var(--primitive-category-green-background);
+  /* Semantic层：分类 green 的 border，不代表业务状态。 */
+  --category-green-border: var(--primitive-category-green-border);
+  /* Semantic层：分类 cyan 的 foreground，不代表业务状态。 */
+  --category-cyan-foreground: var(--primitive-category-cyan-foreground);
+  /* Semantic层：分类 cyan 的 background，不代表业务状态。 */
+  --category-cyan-background: var(--primitive-category-cyan-background);
+  /* Semantic层：分类 cyan 的 border，不代表业务状态。 */
+  --category-cyan-border: var(--primitive-category-cyan-border);
+  /* Semantic层：分类 orange 的 foreground，不代表业务状态。 */
+  --category-orange-foreground: var(--primitive-category-orange-foreground);
+  /* Semantic层：分类 orange 的 background，不代表业务状态。 */
+  --category-orange-background: var(--primitive-category-orange-background);
+  /* Semantic层：分类 orange 的 border，不代表业务状态。 */
+  --category-orange-border: var(--primitive-category-orange-border);
+  /* Semantic层：分类 orange-red 的 foreground，不代表业务状态。 */
+  --category-orange-red-foreground: var(
+    --primitive-category-orange-red-foreground
+  );
+  /* Semantic层：分类 orange-red 的 background，不代表业务状态。 */
+  --category-orange-red-background: var(
+    --primitive-category-orange-red-background
+  );
+  /* Semantic层：分类 orange-red 的 border，不代表业务状态。 */
+  --category-orange-red-border: var(--primitive-category-orange-red-border);
+  /* Semantic层：分类 gold 的 foreground，不代表业务状态。 */
+  --category-gold-foreground: var(--primitive-category-gold-foreground);
+  /* Semantic层：分类 gold 的 background，不代表业务状态。 */
+  --category-gold-background: var(--primitive-category-gold-background);
+  /* Semantic层：分类 gold 的 border，不代表业务状态。 */
+  --category-gold-border: var(--primitive-category-gold-border);
+  /* Semantic层：分类 purple 的 foreground，不代表业务状态。 */
+  --category-purple-foreground: var(--primitive-category-purple-foreground);
+  /* Semantic层：分类 purple 的 background，不代表业务状态。 */
+  --category-purple-background: var(--primitive-color-purple-tint);
+  /* Semantic层：分类 purple 的 border，不代表业务状态。 */
+  --category-purple-border: var(--primitive-category-purple-border);
+  /* Semantic层：分类 magenta 的 foreground，不代表业务状态。 */
+  --category-magenta-foreground: var(--primitive-category-magenta-foreground);
+  /* Semantic层：分类 magenta 的 background，不代表业务状态。 */
+  --category-magenta-background: var(--primitive-category-magenta-background);
+  /* Semantic层：分类 magenta 的 border，不代表业务状态。 */
+  --category-magenta-border: var(--primitive-category-magenta-border);
+  /* Semantic层：分类 indigo 的 foreground，不代表业务状态。 */
+  --category-indigo-foreground: var(--primitive-color-blue-base);
+  /* Semantic层：分类 indigo 的 background，不代表业务状态。 */
+  --category-indigo-background: var(--primitive-color-blue-tint);
+  /* Semantic层：分类 indigo 的 border，不代表业务状态。 */
+  --category-indigo-border: var(--primitive-category-indigo-border);
+  /* Semantic层：分类 blue 的 foreground，不代表业务状态。 */
+  --category-blue-foreground: var(--primitive-category-blue-foreground);
+  /* Semantic层：分类 blue 的 background，不代表业务状态。 */
+  --category-blue-background: var(--primitive-category-blue-background);
+  /* Semantic层：分类 blue 的 border，不代表业务状态。 */
+  --category-blue-border: var(--primitive-category-blue-border);
+  /* Semantic层：资源占用条图片分段色，不代表业务状态。 */
+  --storage-image: var(--primitive-storage-image);
+  /* Semantic层：资源占用条文件分段色，不代表业务状态。 */
+  --storage-file: var(--primitive-storage-file);
+  /* Semantic层：资源占用条视频分段色，不代表业务状态。 */
+  --storage-video: var(--primitive-storage-video);
+  /* Semantic层：资源占用条可用空间色。 */
+  --storage-free: var(--primitive-storage-free);
+  /* Semantic层：info 反馈的 foreground。 */
+  --status-info-foreground: var(--primitive-category-blue-foreground);
+  /* Semantic层：info 反馈图标使用已确认的 indigo 强调色。 */
+  --status-info-icon: var(--category-indigo-foreground);
+  /* Semantic层：info 反馈的 background。 */
+  --status-info-background: var(--primitive-color-blue-tint);
+  /* Semantic层：info 反馈的 border。 */
+  --status-info-border: var(--primitive-category-blue-border);
+  /* Semantic层（兼容）：info 旧强调色别名；新消费方使用明确的 foreground 角色。 */
+  --status-info: var(--status-info-foreground);
+  /* Semantic层：success 反馈的 foreground。 */
+  --status-success-foreground: var(--primitive-category-green-foreground);
+  /* Semantic层：success 反馈图标使用已确认的 green 强调色。 */
+  --status-success-icon: var(--category-green-foreground);
+  /* Semantic层：success 反馈的 background。 */
+  --status-success-background: var(--primitive-category-green-background);
+  /* Semantic层：success 反馈的 border。 */
+  --status-success-border: var(--primitive-category-green-border);
+  /* Semantic层（兼容）：success 旧强调色别名；新消费方使用明确的 foreground 角色。 */
+  --status-success: var(--status-success-foreground);
+  /* Semantic层：warning 反馈的 foreground。 */
+  --status-warning-foreground: var(--primitive-category-gold-foreground);
+  /* Semantic层：warning 反馈图标使用已确认的 orange 强调色。 */
+  --status-warning-icon: var(--category-orange-foreground);
+  /* Semantic层：warning 反馈的 background。 */
+  --status-warning-background: var(--primitive-category-orange-background);
+  /* Semantic层：warning 反馈的 border。 */
+  --status-warning-border: var(--primitive-category-gold-border);
+  /* Semantic层（兼容）：warning 旧强调色别名；新消费方使用明确的 foreground 角色。 */
+  --status-warning: var(--status-warning-foreground);
+  /* Semantic层：error 反馈的 foreground。 */
+  --status-error-foreground: var(--primitive-color-danger-base);
+  /* Semantic层：error 反馈图标使用已确认的 red 强调色。 */
+  --status-error-icon: var(--category-red-foreground);
+  /* Semantic层：error 反馈的 background。 */
+  --status-error-background: var(--primitive-color-danger-tint);
+  /* Semantic层：error 反馈的 border。 */
+  --status-error-border: var(--primitive-category-red-border);
+  /* Semantic层（兼容）：error 旧强调色别名；新消费方使用明确的 foreground 角色。 */
+  --status-error: var(--status-error-foreground);
+  /* Semantic层：布局尺寸 space-page-inline；长度 20px。 */
+  --space-page-inline: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 space-page-top；长度 20px。 */
+  --space-page-top: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 space-page-bottom；长度 20px。 */
+  --space-page-bottom: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 space-page-heading-after；长度 20px。 */
+  --space-page-heading-after: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 space-tabs-after；长度 20px。 */
+  --space-tabs-after: var(--primitive-space-20);
+  /* Semantic层：主导航四周安全内边距；长度 20px，不随密度和视口变化。 */
+  --space-navigation-inset: var(--primitive-space-20);
+  /* Semantic层：主导航相邻分组间距；长度 20px，不随密度和视口变化。 */
+  --space-navigation-section: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 space-module-stack；长度 32px。 */
+  --space-module-stack: var(--primitive-space-32);
+  /* Semantic层：布局尺寸 space-section-heading；长度 16px。 */
+  --space-section-heading: var(--primitive-space-16);
+  /* Semantic层：独立空白、错误与加载页面的安全内边距，不随密度缩放。 */
+  --space-state-inset: var(--primitive-space-32);
+  /* Semantic层：页面状态数据、说明与加载图形的内容间距。 */
+  --space-state-content: var(--primitive-space-12);
+  /* Semantic层：状态说明到后续操作组的距离。 */
+  --space-state-actions: var(--primitive-space-24);
+  /* Semantic层：较宽松的分区标题后留白；长度 20px，不随密度变化。 */
+  --space-section-heading-large: var(--primitive-space-20);
+  /* Semantic层：带分隔线的内容分区上下留白；长度 24px，不随密度变化。 */
+  --space-section-block: var(--primitive-space-24);
+  /* Semantic层：布局尺寸 space-description；长度 4px。 */
+  --space-description: var(--primitive-space-4);
+  /* Semantic层：布局尺寸 space-content-group；长度 16px。 */
+  --space-content-group: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-toolbar；长度 12px。 */
+  --space-toolbar: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 space-icon-text；长度 8px。 */
+  --space-icon-text: var(--primitive-space-8);
+  /* Semantic层：布局尺寸 space-icon-text-tight；长度 4px。 */
+  --space-icon-text-tight: var(--primitive-space-4);
+  /* Semantic层：布局尺寸 space-metric-grid-small；长度 12px。 */
+  --space-metric-grid-small: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 space-metric-grid-medium；长度 16px。 */
+  --space-metric-grid-medium: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-metric-grid-large；长度 20px。 */
+  --space-metric-grid-large: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 space-business-grid；长度 16px。 */
+  --space-business-grid: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 size-control-regular；长度 32px。 */
+  --size-control-regular: var(--primitive-space-32);
+  /* Semantic层：布局尺寸 size-control-xs；长度 24px。 */
+  --size-control-xs: var(--primitive-space-24);
+  /* Semantic层：布局尺寸 size-control-sm；长度 28px。 */
+  --size-control-sm: var(--primitive-space-28);
+  /* Semantic层：布局尺寸 size-control-md；长度 32px。 */
+  --size-control-md: var(--primitive-space-32);
+  /* Semantic层：布局尺寸 size-control-lg；长度 36px。 */
+  --size-control-lg: var(--primitive-space-36);
+  /* Semantic层：布局尺寸 space-control-inline；长度 16px。 */
+  --space-control-inline: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-control-xs-inline；长度 8px。 */
+  --space-control-xs-inline: var(--primitive-space-8);
+  /* Semantic层：布局尺寸 space-control-sm-inline；长度 12px。 */
+  --space-control-sm-inline: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 space-control-md-inline；长度 16px。 */
+  --space-control-md-inline: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-control-lg-inline；长度 20px。 */
+  --space-control-lg-inline: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 size-control-icon；长度 16px。 */
+  --size-control-icon: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-control-block；长度 4px。 */
+  --space-control-block: var(--primitive-space-4);
+  /* Semantic层：布局尺寸 space-input-inline；长度 12px。 */
+  --space-input-inline: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 size-segment-option；长度 28px。 */
+  --size-segment-option: var(--primitive-space-28);
+  /* Semantic层：原型 view-switch 选项点击面；长度 30px。 */
+  --size-segment-option-lg: var(--primitive-space-30);
+  /* Semantic层：资源网格卡片最小列宽；长度 170px。 */
+  --size-media-card-min: var(--primitive-space-170);
+  /* Semantic层：布局尺寸 space-segment-inset；长度 2px。 */
+  --space-segment-inset: var(--primitive-space-2);
+  /* Semantic层：布局尺寸 space-segment-inline；长度 12px。 */
+  --space-segment-inline: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 space-surface-metric；长度 16px。 */
+  --space-surface-metric: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-surface-content；长度 20px。 */
+  --space-surface-content: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 size-metric-min-height；长度 112px。 */
+  --size-metric-min-height: var(--primitive-space-112);
+  /* Semantic层：布局尺寸 size-table-header；长度 40px。 */
+  --size-table-header: var(--primitive-space-40);
+  /* Semantic层：布局尺寸 space-table-cell-inline；长度 16px。 */
+  --space-table-cell-inline: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-table-cell-block；长度 12px。 */
+  --space-table-cell-block: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 space-table-header-block；长度 8px。 */
+  --space-table-header-block: var(--primitive-space-8);
+  /* Semantic层：布局尺寸 size-table-icon-slot-single；长度 24px。 */
+  --size-table-icon-slot-single: var(--primitive-space-24);
+  /* Semantic层：布局尺寸 size-table-icon-slot-double；长度 48px。 */
+  --size-table-icon-slot-double: var(--primitive-space-48);
+  /* Semantic层：布局尺寸 space-form-fields；长度 24px。 */
+  --space-form-fields: var(--primitive-space-24);
+  /* Semantic层：布局尺寸 size-label-default；长度 24px。 */
+  --size-label-default: var(--primitive-space-24);
+  /* Semantic层：布局尺寸 space-label-default-inline；长度 8px。 */
+  --space-label-default-inline: var(--primitive-space-8);
+  /* Semantic层：布局尺寸 size-label-xs；长度 20px。 */
+  --size-label-xs: var(--primitive-space-20);
+  /* Semantic层：布局尺寸 space-label-xs-inline；长度 4px。 */
+  --space-label-xs-inline: var(--primitive-space-4);
+  /* Semantic层：布局尺寸 size-label-sm；长度 24px。 */
+  --size-label-sm: var(--primitive-space-24);
+  /* Semantic层：布局尺寸 space-label-sm-inline；长度 8px。 */
+  --space-label-sm-inline: var(--primitive-space-8);
+  /* Semantic层：布局尺寸 size-label-md；长度 28px。 */
+  --size-label-md: var(--primitive-space-28);
+  /* Semantic层：布局尺寸 space-label-md-inline；长度 8px。 */
+  --space-label-md-inline: var(--primitive-space-8);
+  /* Semantic层：布局尺寸 size-label-lg；长度 32px。 */
+  --size-label-lg: var(--primitive-space-32);
+  /* Semantic层：布局尺寸 space-label-lg-inline；长度 12px。 */
+  --space-label-lg-inline: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 space-label-block；长度 0px。 */
+  --space-label-block: var(--primitive-space-0);
+  /* Semantic层：布局尺寸 space-feedback-inline；长度 16px。 */
+  --space-feedback-inline: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-feedback-block；长度 12px。 */
+  --space-feedback-block: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 size-feedback-icon；长度 16px。 */
+  --size-feedback-icon: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 space-dialog-inset；长度 24px。 */
+  --space-dialog-inset: var(--primitive-space-24);
+  /* Semantic层：布局尺寸 border-width-default；长度 1px。 */
+  --border-width-default: var(--primitive-space-1);
+  /* Semantic层：强调分隔与描边使用的 border-width-emphasis；长度 2px。 */
+  --border-width-emphasis: var(--primitive-space-2);
+  /* Semantic层：布局尺寸 outline-width-focus；长度 2px。 */
+  --outline-width-focus: var(--primitive-space-2);
+  /* Semantic层：布局尺寸 outline-offset-focus；长度 2px。 */
+  --outline-offset-focus: var(--primitive-space-2);
+  /* Semantic层：布局尺寸 size-zero；长度 0px。 */
+  --size-zero: var(--primitive-space-0);
+  /* Semantic层：布局尺寸 radius-label；长度 4px。 */
+  --radius-label: var(--primitive-space-4);
+  /* Semantic层：浅色填充表单控件的小圆角，长度 2px。 */
+  --radius-field: var(--primitive-space-2);
+  /* Semantic层：布局尺寸 radius-control；长度 8px。 */
+  --radius-control: var(--primitive-space-8);
+  /* Semantic层：布局尺寸 radius-surface；长度 12px。 */
+  --radius-surface: var(--primitive-space-12);
+  /* Semantic层：布局尺寸 radius-metric；长度 16px。 */
+  --radius-metric: var(--primitive-space-16);
+  /* Semantic层：布局尺寸 radius-main-panel；长度 24px。 */
+  --radius-main-panel: var(--primitive-space-24);
+  /* Semantic层：胶囊控件圆角。 */
+  --radius-pill: var(--primitive-radius-pill);
+  /* Semantic层：圆形头像圆角。 */
+  --radius-avatar: var(--primitive-radius-circle);
+  /* Semantic层：shadcn 兼容语义 background，引用同一角色。 */
+  --background: var(--background-primary);
+  /* Semantic层：shadcn 兼容语义 foreground，引用同一角色。 */
+  --foreground: var(--text-primary);
+  /* Semantic层：shadcn 兼容语义 card，引用同一角色。 */
+  --card: var(--background-primary);
+  /* Semantic层：shadcn 兼容语义 card-foreground，引用同一角色。 */
+  --card-foreground: var(--text-primary);
+  /* Semantic层：shadcn 兼容语义 popover，引用同一角色。 */
+  --popover: var(--background-primary);
+  /* Semantic层：shadcn 兼容语义 popover-foreground，引用同一角色。 */
+  --popover-foreground: var(--text-primary);
+  /* Semantic层：shadcn 兼容语义 primary，引用同一角色。 */
+  --primary: var(--action-primary-background);
+  /* Semantic层：shadcn 兼容语义 primary-foreground，引用同一角色。 */
+  --primary-foreground: var(--action-primary-foreground);
+  /* Semantic层：shadcn 兼容语义 secondary，引用同一角色。 */
+  --secondary: var(--background-secondary);
+  /* Semantic层：shadcn 兼容语义 secondary-foreground，引用同一角色。 */
+  --secondary-foreground: var(--text-primary);
+  /* Semantic层：shadcn 兼容语义 muted，引用同一角色。 */
+  --muted: var(--background-secondary);
+  /* Semantic层：shadcn 兼容语义 muted-foreground，引用同一角色。 */
+  --muted-foreground: var(--text-secondary);
+  /* Semantic层：shadcn 兼容语义 accent，引用同一角色。 */
+  --accent: var(--action-subtle-background);
+  /* Semantic层：shadcn 兼容语义 accent-foreground，引用同一角色。 */
+  --accent-foreground: var(--action-accent);
+  /* Semantic层：shadcn 兼容语义 destructive，引用同一角色。 */
+  --destructive: var(--status-error-foreground);
+  /* Semantic层：shadcn 兼容语义 destructive-foreground，引用同一角色。 */
+  --destructive-foreground: var(--background-primary);
+  /* Semantic层：shadcn 兼容语义 border，引用同一角色。 */
+  --border: var(--border-default);
+  /* Semantic层：shadcn 兼容语义 input，引用同一角色。 */
+  --input: var(--border-control);
+  /* Semantic层：shadcn 兼容语义 ring，引用同一角色。 */
+  --ring: var(--focus-ring);
+  /* Semantic层：shadcn 兼容语义 radius，引用同一角色。 */
+  --radius: var(--radius-control);
+}
+
+html.ce-iframe-root {
+  /* Semantic层：危险操作背景。 */
+  --action-danger-background: var(--primitive-color-danger-base);
+  /* Semantic层：危险操作前景。 */
+  --action-danger-foreground: var(--primitive-color-white);
+  /* Semantic层：危险操作悬停背景。 */
+  --action-danger-hover: var(--primitive-color-danger-hover);
+  /* Semantic层：危险操作按下背景。 */
+  --action-danger-active: var(--primitive-color-danger-active);
+  /* Semantic层：危险操作文本及焦点。 */
+  --action-danger-accent: var(--primitive-color-danger-base);
+  /* Semantic层：危险操作浅背景。 */
+  --action-danger-subtle-background: var(--status-error-background);
+  /* Semantic层：弹窗取消按钮浅色主题文字。 */
+  --modal-cancel-foreground: var(--primitive-color-light-secondary);
+  /* Semantic层：弹窗危险确认按钮背景。 */
+  --modal-danger-confirm-background: var(--primitive-color-modal-danger);
+  /* Semantic层：弹层标题最小高度。 */
+  --size-overlay-header: var(--primitive-space-56);
+  /* Semantic层：弹层操作按钮最小宽度。 */
+  --size-action-min-inline: var(--primitive-space-64);
+  /* Semantic层：弹窗内容水平留白。 */
+  --space-overlay-content-inline: var(--primitive-space-20);
+  /* Semantic层：弹窗内容垂直留白。 */
+  --space-overlay-content-block: var(--primitive-space-24);
+  /* Semantic层：弹层页脚留白。 */
+  --space-overlay-footer: var(--primitive-space-16);
+  /* Semantic层：空状态垂直留白。 */
+  --space-empty-block: var(--primitive-space-40);
+  /* Semantic层：空状态水平留白。 */
+  --space-empty-inline: var(--primitive-space-24);
+  /* Semantic层：空状态插画边长。 */
+  --size-empty-illustration: var(--primitive-space-120);
+  /* Semantic层：消息弹窗水平留白。 */
+  --space-message-inline: var(--primitive-space-32);
+  /* Semantic层：消息弹窗垂直留白。 */
+  --space-message-block: var(--primitive-space-28);
+  /* Semantic层：图例色块边长。 */
+  --size-chart-swatch: var(--primitive-space-8);
+  /* Semantic层：图例与进度指示圆角。 */
+  --radius-indicator: var(--primitive-space-2);
+  /* Semantic层：非按钮控件禁用透明度。 */
+  --opacity-disabled: var(--primitive-opacity-disabled);
+  /* Semantic层：弹层进入动效。 */
+  --motion-overlay: var(--primitive-motion-overlay);
+  /* Semantic层：助手抽屉与背景的同步入场动效。 */
+  --motion-assistant: var(--primitive-motion-assistant);
+  /* Semantic层：浮层背景模糊。 */
+  --blur-overlay: var(--primitive-space-8);
+}
+
+html.ce-iframe-root {
+  /* Semantic层：固定页面导航，低于助手。 */
+  --layer-header: var(--primitive-layer-10);
+  /* Semantic层：助手独立堆叠域。 */
+  --layer-ai-assistant: var(--primitive-layer-20);
+  /* Semantic层：助手域内菜单，不可越过父堆叠域。 */
+  --layer-ai-popover: var(--primitive-layer-30);
+  /* Semantic层：页面下拉菜单。 */
+  --layer-dropdown: var(--primitive-layer-30);
+  /* Semantic层：页面说明浮层；原生模态内遵循宿主隔离。 */
+  --layer-tooltip: var(--primitive-layer-40);
+  /* Semantic层：页面通知，不参与焦点或 Escape 栈。 */
+  --layer-toast: var(--primitive-layer-50);
+  /* Semantic层：模态 CSS 层；浏览器 top layer 仍由 showModal 管理。 */
+  --layer-modal: var(--primitive-layer-60);
+  /* Semantic层：抽屉与弹窗同属模态档。 */
+  --layer-drawer: var(--layer-modal);
+  /* Semantic层：仅助手内边距，不受页面密度覆盖。 */
+  --space-assistant-inset: var(--primitive-space-20);
+  /* Semantic层：仅助手底部输入区上留白。 */
+  --space-assistant-footer-top: var(--primitive-space-40);
+  /* Semantic层：仅助手输入框与提示文案间距。 */
+  --space-assistant-disclaimer: var(--primitive-space-12);
+}
+
+/* 来源：packages/ui/src/tokens/typography.css；声明值及顺序保持源码。 */
+/* 七档文字配方必须按字号、行高、字重整组消费。 */
+html.ce-iframe-root {
+  /* Semantic层：display 完整文字配方中的 font-size。 */
+  --typography-display-font-size: var(--primitive-font-28);
+  /* Semantic层：display 完整文字配方中的 line-height。 */
+  --typography-display-line-height: var(--primitive-font-36);
+  /* Semantic层：display 完整文字配方中的 font-weight。 */
+  --typography-display-font-weight: var(--primitive-weight-600);
+  /* Semantic层：page-title 完整文字配方中的 font-size。 */
+  --typography-page-title-font-size: var(--primitive-font-20);
+  /* Semantic层：page-title 完整文字配方中的 line-height。 */
+  --typography-page-title-line-height: var(--primitive-font-28);
+  /* Semantic层：page-title 完整文字配方中的 font-weight。 */
+  --typography-page-title-font-weight: var(--primitive-weight-600);
+  /* Semantic层：card-title 完整文字配方中的 font-size。 */
+  --typography-card-title-font-size: var(--primitive-font-16);
+  /* Semantic层：card-title 完整文字配方中的 line-height。 */
+  --typography-card-title-line-height: var(--primitive-font-24);
+  /* Semantic层：card-title 完整文字配方中的 font-weight。 */
+  --typography-card-title-font-weight: var(--primitive-weight-600);
+  /* Semantic层：section-title 完整文字配方中的 font-size。 */
+  --typography-section-title-font-size: var(--primitive-font-14);
+  /* Semantic层：section-title 完整文字配方中的 line-height。 */
+  --typography-section-title-line-height: var(--primitive-font-22);
+  /* Semantic层：section-title 完整文字配方中的 font-weight。 */
+  --typography-section-title-font-weight: var(--primitive-weight-600);
+  /* Semantic层：body 完整文字配方中的 font-size。 */
+  --typography-body-font-size: var(--primitive-font-14);
+  /* Semantic层：body 完整文字配方中的 line-height。 */
+  --typography-body-line-height: var(--primitive-font-22);
+  /* Semantic层：body 完整文字配方中的 font-weight。 */
+  --typography-body-font-weight: var(--primitive-weight-400);
+  /* Semantic层：caption 完整文字配方中的 font-size。 */
+  --typography-caption-font-size: var(--primitive-font-12);
+  /* Semantic层：caption 完整文字配方中的 line-height。 */
+  --typography-caption-line-height: var(--primitive-font-20);
+  /* Semantic层：caption 完整文字配方中的 font-weight。 */
+  --typography-caption-font-weight: var(--primitive-weight-400);
+  /* Semantic层：micro 完整文字配方中的 font-size。 */
+  --typography-micro-font-size: var(--primitive-font-11);
+  /* Semantic层：micro 完整文字配方中的 line-height。 */
+  --typography-micro-line-height: var(--primitive-font-20);
+  /* Semantic层：micro 完整文字配方中的 font-weight。 */
+  --typography-micro-font-weight: var(--primitive-weight-400);
+}
+
+/* 用户指定 Figma 卡片的独立配方，保留既有七档排版不变。 */
+html.ce-iframe-root {
+  /* Semantic层：metric-value 的 font-size，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-value-font-size: var(--primitive-font-24);
+  /* Semantic层：metric-value 的 line-height，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-value-line-height: var(--primitive-font-32);
+  /* Semantic层：metric-value 的 font-weight，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-value-font-weight: var(--primitive-weight-500);
+  /* Semantic层：metric-title 的 font-size，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-title-font-size: var(--primitive-font-14);
+  /* Semantic层：metric-title 的 line-height，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-title-line-height: var(--primitive-font-22);
+  /* Semantic层：metric-title 的 font-weight，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-title-font-weight: var(--primitive-weight-500);
+  /* Semantic层：metric-caption 的 font-size，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-caption-font-size: var(--primitive-font-12);
+  /* Semantic层：metric-caption 的 line-height，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-caption-line-height: var(--primitive-font-20);
+  /* Semantic层：metric-caption 的 font-weight，来自本次明确指定的 Figma 节点。 */
+  --typography-metric-caption-font-weight: var(--primitive-weight-500);
+  /* Semantic层：modal-title 的完整文字配方，按弹窗设计要求使用 16/24/500。 */
+  --typography-modal-title-font-size: var(--primitive-font-16);
+  /* Semantic层：modal-title 的完整文字配方，按弹窗设计要求使用 16/24/500。 */
+  --typography-modal-title-line-height: var(--primitive-font-24);
+  /* Semantic层：modal-title 的完整文字配方，按弹窗设计要求使用 16/24/500。 */
+  --typography-modal-title-font-weight: var(--primitive-weight-500);
+}
+
+/* 来源：packages/ui/src/tokens/themes.css；声明值及顺序保持源码。 */
+/* 主题只切换 Semantic 映射；解析系统偏好与持久化由应用负责。 */
+html.ce-iframe-root[data-theme="dark"] {
+  /* Semantic层：仅普通主按钮的暗色默认背景。 */
+  --action-button-primary-background: var(--primitive-feedback-info-icon-dark);
+  /* Semantic层：暗色信息弹窗专用图标色。 */
+  --message-info-icon: var(--primitive-feedback-info-icon-dark);
+  /* Semantic层：暗色危险弹窗专用图标色。 */
+  --message-danger-icon: var(--primitive-feedback-error-icon-dark);
+  /* Semantic层：仅主按钮暗色文字使用 90% 白色。 */
+  --action-button-primary-foreground: var(--primitive-color-white-90);
+  /* Semantic层：Alert/Toast 暗色信息图标。 */
+  --feedback-info-icon: var(--primitive-feedback-info-icon-dark);
+  /* Semantic层：Alert/Toast 暗色成功图标。 */
+  --feedback-success-icon: var(--primitive-feedback-success-icon-dark);
+  /* Semantic层：Alert/Toast 暗色警告图标。 */
+  --feedback-warning-icon: var(--primitive-feedback-warning-icon-dark);
+  /* Semantic层：Alert/Toast 暗色错误图标。 */
+  --feedback-error-icon: var(--primitive-feedback-error-icon-dark);
+  /* Semantic层：暗色反馈提示底色。 */
+  --feedback-info-background: var(--primitive-feedback-info-dark);
+  /* Semantic层：暗色成功提示底色。 */
+  --feedback-success-background: var(--primitive-feedback-success-dark);
+  /* Semantic层：暗色警告提示底色。 */
+  --feedback-warning-background: var(--primitive-feedback-warning-dark);
+  /* Semantic层：暗色错误提示底色。 */
+  --feedback-error-background: var(--primitive-feedback-error-dark);
+  /* Semantic层：暗色额度展示 info 沿用可读的状态色。 */
+  --usage-info: var(--status-info-foreground);
+  /* Semantic层：暗色额度展示 warning 沿用可读的状态色。 */
+  --usage-warning: var(--status-warning-foreground);
+  /* Semantic层：暗色额度展示 warning-border 沿用可读的状态色。 */
+  --usage-warning-border: var(--status-warning-border);
+  /* Semantic层：暗色额度展示 warning-background 沿用可读的状态色。 */
+  --usage-warning-background: var(--status-warning-background);
+  /* Semantic层：暗色额度展示 error 沿用可读的状态色。 */
+  --usage-error: var(--status-error-foreground);
+  /* Semantic层：暗色额度展示 error-border 沿用可读的状态色。 */
+  --usage-error-border: var(--status-error-border);
+  /* Semantic层：暗色额度展示 error-background 沿用可读的状态色。 */
+  --usage-error-background: var(--status-error-background);
+
+  /* Semantic层：暗色下默认蓝主题方案的主色与预览。 */
+  --theme-color-default: var(--primitive-color-blue-dark);
+  /* Semantic层：暗色下紫色主题方案的主色与预览。 */
+  --theme-color-purple: var(--primitive-color-purple-dark);
+  /* Semantic层：暗色下绿色主题方案的主色与预览。 */
+  --theme-color-green: var(--primitive-color-green-dark);
+
+  /* Semantic层：暗色 background-primary 角色。 */
+  --background-primary: var(--primitive-color-dark-surface);
+  /* Semantic层：暗色 background-secondary 角色。 */
+  --background-secondary: var(--primitive-color-dark-shell);
+  /* Semantic层：暗色内容详情块沿用已有深色底，不照搬亮色浅灰。 */
+  --background-subtle: var(--primitive-color-dark-shell);
+  /* Semantic层：暗色次要操作背景沿用深色交互底。 */
+  --background-control-subtle: var(--primitive-color-dark-hover);
+  /* Semantic层：暗色分类强调色较浅，实心标签使用深色文字。 */
+  --category-filled-foreground: var(--primitive-color-dark-surface);
+  /* Semantic层：暗色 background-tertiary 角色。 */
+  --background-tertiary: var(--primitive-color-dark-hover);
+  /* Semantic层：暗色 background-header 角色。 */
+  --background-header: var(--primitive-color-dark-header);
+  /* Semantic层：暗色 background-active 角色。 */
+  --background-active: var(--primitive-color-dark-active);
+  /* Semantic层：暗色 background-hover 角色。 */
+  --background-hover: var(--primitive-color-dark-hover);
+  /* Semantic层：暗色 background-navigation-hover 角色。 */
+  --background-navigation-hover: var(--primitive-color-dark-navigation-hover);
+  /* Semantic层：暗色 background-avatar 角色。 */
+  --background-avatar: var(--primitive-color-dark-avatar);
+  /* Semantic层：暗色 background-badge 角色。 */
+  --background-badge: var(--primitive-color-dark-badge);
+  /* Semantic层：暗色 background-overlay 角色。 */
+  --background-overlay: var(--primitive-color-overlay-dark);
+  /* Semantic层：暗色资源预览角标半透明底。 */
+  --background-media-badge: var(--primitive-color-overlay-dark);
+  /* Semantic层：暗色 background-disabled 角色。 */
+  --background-disabled: var(--primitive-color-dark-shell);
+  /* Semantic层：暗色 text-primary 角色。 */
+  --text-primary: var(--primitive-color-dark-text);
+  /* Semantic层：暗色 text-secondary 角色。 */
+  --text-secondary: var(--primitive-color-dark-secondary);
+  /* Semantic层：暗色弹窗取消按钮使用白色 70%。 */
+  --modal-cancel-foreground: var(--primitive-color-white-70);
+  /* Semantic层：暗色弹窗危险确认按钮保持设计红色。 */
+  --modal-danger-confirm-background: var(--primitive-feedback-error-icon-dark);
+  /* Semantic层：暗色 text-muted 角色。 */
+  --text-muted: var(--primitive-color-dark-secondary);
+  /* Semantic层：暗色 text-disabled 角色。 */
+  --text-disabled: var(--primitive-color-dark-disabled);
+  /* Semantic层：暗色执行步骤圆点，保持可见且弱于正文。 */
+  --foreground-step-marker: var(--primitive-color-dark-disabled);
+  /* Semantic层：暗色 text-badge 角色。 */
+  --text-badge: var(--primitive-color-dark-badge-text);
+  /* Semantic层：暗色 border-default 角色。 */
+  --border-default: var(--primitive-color-dark-border);
+  /* Semantic层：暗色 border-divider 角色。 */
+  --border-divider: var(--primitive-color-dark-divider);
+  /* Semantic层：暗色 border-control 角色。 */
+  --border-control: var(--primitive-color-dark-control-border);
+  /* Semantic层：暗色 scrollbar-thumb 角色。 */
+  --scrollbar-thumb: var(--primitive-color-dark-scrollbar);
+  /* Semantic层：暗色 surface-main-panel-glass 角色。 */
+  --surface-main-panel-glass: var(--primitive-color-glass-dark);
+  /* Semantic层：暗色 brand-professional-text 角色。 */
+  --brand-professional-text: var(--primitive-color-purple-dark);
+  /* Semantic层：暗色共享浮层阴影。 */
+  --shadow-overlay: var(--primitive-shadow-overlay-dark);
+  /* Semantic层：暗色主面板轻阴影。 */
+  --shadow-main-panel: var(--primitive-shadow-main-dark);
+  /* Semantic层：暗色内容卡片表面投影。 */
+  --shadow-surface: var(--primitive-shadow-surface-dark);
+  /* Semantic层：暗色分类 neutral 的 foreground。 */
+  --category-neutral-foreground: var(
+    --primitive-category-neutral-dark-foreground
+  );
+  /* Semantic层：暗色分类 neutral 的 background。 */
+  --category-neutral-background: var(
+    --primitive-category-neutral-dark-background
+  );
+  /* Semantic层：暗色分类 neutral 的 border。 */
+  --category-neutral-border: var(--primitive-category-neutral-dark-border);
+  /* Semantic层：暗色分类 red 的 foreground。 */
+  --category-red-foreground: var(--primitive-color-danger-dark);
+  /* Semantic层：暗色分类 red 的 background。 */
+  --category-red-background: var(--primitive-category-red-dark-background);
+  /* Semantic层：暗色分类 red 的 border。 */
+  --category-red-border: var(--primitive-category-red-dark-border);
+  /* Semantic层：暗色分类 green 的 foreground。 */
+  --category-green-foreground: var(--primitive-color-green-dark);
+  /* Semantic层：暗色分类 green 的 background。 */
+  --category-green-background: var(--primitive-color-green-dark-tint);
+  /* Semantic层：暗色分类 green 的 border。 */
+  --category-green-border: var(--primitive-color-green-dark-active);
+  /* Semantic层：暗色分类 cyan 的 foreground。 */
+  --category-cyan-foreground: var(--primitive-category-cyan-dark-foreground);
+  /* Semantic层：暗色分类 cyan 的 background。 */
+  --category-cyan-background: var(--primitive-category-cyan-dark-background);
+  /* Semantic层：暗色分类 cyan 的 border。 */
+  --category-cyan-border: var(--primitive-category-cyan-dark-border);
+  /* Semantic层：暗色分类 orange 的 foreground。 */
+  --category-orange-foreground: var(
+    --primitive-category-orange-dark-foreground
+  );
+  /* Semantic层：暗色分类 orange 的 background。 */
+  --category-orange-background: var(
+    --primitive-category-orange-dark-background
+  );
+  /* Semantic层：暗色分类 orange 的 border。 */
+  --category-orange-border: var(--primitive-category-orange-dark-border);
+  /* Semantic层：暗色分类 orange-red 的 foreground。 */
+  --category-orange-red-foreground: var(
+    --primitive-category-orange-red-dark-foreground
+  );
+  /* Semantic层：暗色分类 orange-red 的 background。 */
+  --category-orange-red-background: var(
+    --primitive-category-orange-red-dark-background
+  );
+  /* Semantic层：暗色分类 orange-red 的 border。 */
+  --category-orange-red-border: var(
+    --primitive-category-orange-red-dark-border
+  );
+  /* Semantic层：暗色分类 gold 的 foreground。 */
+  --category-gold-foreground: var(--primitive-category-gold-dark-foreground);
+  /* Semantic层：暗色分类 gold 的 background。 */
+  --category-gold-background: var(--primitive-category-gold-dark-background);
+  /* Semantic层：暗色分类 gold 的 border。 */
+  --category-gold-border: var(--primitive-category-gold-dark-border);
+  /* Semantic层：暗色分类 purple 的 foreground。 */
+  --category-purple-foreground: var(--primitive-color-purple-dark);
+  /* Semantic层：暗色分类 purple 的 background。 */
+  --category-purple-background: var(--primitive-color-purple-dark-tint);
+  /* Semantic层：暗色分类 purple 的 border。 */
+  --category-purple-border: var(--primitive-color-purple-dark-active);
+  /* Semantic层：暗色分类 magenta 的 foreground。 */
+  --category-magenta-foreground: var(
+    --primitive-category-magenta-dark-foreground
+  );
+  /* Semantic层：暗色分类 magenta 的 background。 */
+  --category-magenta-background: var(
+    --primitive-category-magenta-dark-background
+  );
+  /* Semantic层：暗色分类 magenta 的 border。 */
+  --category-magenta-border: var(--primitive-category-magenta-dark-border);
+  /* Semantic层：暗色分类 indigo 的 foreground。 */
+  --category-indigo-foreground: var(
+    --primitive-category-indigo-dark-foreground
+  );
+  /* Semantic层：暗色分类 indigo 的 background。 */
+  --category-indigo-background: var(
+    --primitive-category-indigo-dark-background
+  );
+  /* Semantic层：暗色分类 indigo 的 border。 */
+  --category-indigo-border: var(--primitive-category-indigo-dark-border);
+  /* Semantic层：暗色分类 blue 的 foreground。 */
+  --category-blue-foreground: var(--primitive-category-blue-dark-foreground);
+  /* Semantic层：暗色分类 blue 的 background。 */
+  --category-blue-background: var(--primitive-category-blue-dark-background);
+  /* Semantic层：暗色分类 blue 的 border。 */
+  --category-blue-border: var(--primitive-category-blue-dark-border);
+  /* Semantic层：暗色资源占用条图片分段仍用原型色，保证分类可辨。 */
+  --storage-image: var(--primitive-storage-image);
+  /* Semantic层：暗色资源占用条文件分段仍用原型色。 */
+  --storage-file: var(--primitive-storage-file);
+  /* Semantic层：暗色资源占用条视频分段仍用原型色。 */
+  --storage-video: var(--primitive-storage-video);
+  /* Semantic层：暗色可用空间改用暗色悬停底，避免浅灰条发白。 */
+  --storage-free: var(--primitive-color-dark-hover);
+  /* Semantic层：暗色 info 反馈的 foreground。 */
+  --status-info-foreground: var(--primitive-category-blue-dark-foreground);
+  /* Semantic层：暗色 info 反馈的 background。 */
+  --status-info-background: var(--primitive-category-blue-dark-background);
+  /* Semantic层：暗色 info 反馈的 border。 */
+  --status-info-border: var(--primitive-category-blue-dark-border);
+  /* Semantic层：暗色 success 反馈的 foreground。 */
+  --status-success-foreground: var(--primitive-color-green-dark);
+  /* Semantic层：暗色 success 反馈的 background。 */
+  --status-success-background: var(--primitive-color-green-dark-tint);
+  /* Semantic层：暗色 success 反馈的 border。 */
+  --status-success-border: var(--primitive-color-green-dark-active);
+  /* Semantic层：暗色 warning 反馈的 foreground。 */
+  --status-warning-foreground: var(--primitive-category-gold-dark-foreground);
+  /* Semantic层：暗色 warning 反馈的 background。 */
+  --status-warning-background: var(--primitive-category-gold-dark-background);
+  /* Semantic层：暗色 warning 反馈的 border。 */
+  --status-warning-border: var(--primitive-category-gold-dark-border);
+  /* Semantic层：暗色 error 反馈的 foreground。 */
+  --status-error-foreground: var(--primitive-color-danger-dark);
+  /* Semantic层：暗色 error 反馈的 background。 */
+  --status-error-background: var(--primitive-category-red-dark-background);
+  /* Semantic层：暗色 error 反馈的 border。 */
+  --status-error-border: var(--primitive-category-red-dark-border);
+}
+html.ce-iframe-root[data-theme="dark"] {
+  /* Semantic层：blue 主操作 background 暗色。 */
+  --action-primary-background: var(--theme-color-default);
+  /* Semantic层：blue 主操作 hover 暗色。 */
+  --action-primary-hover: var(--primitive-color-blue-dark-hover);
+  /* Semantic层：blue 主操作 active 暗色。 */
+  --action-primary-active: var(--primitive-color-blue-dark-active);
+  /* Semantic层：主操作文字在该主题下保持对比度。 */
+  --action-primary-foreground: var(--primitive-color-ink);
+  /* Semantic层：blue 交互强调与键盘焦点。 */
+  --action-accent: var(--theme-color-default);
+  /* Semantic层：blue 交互强调与键盘焦点。 */
+  --focus-ring: var(--theme-color-default);
+  /* Semantic层：blue 浅层选中背景。 */
+  --action-subtle-background: var(--primitive-color-blue-dark-tint);
+}
+html.ce-iframe-root[data-color-scheme="purple"] {
+  /* Semantic层：purple 主操作 background 亮色。 */
+  --action-primary-background: var(--theme-color-purple);
+  /* Semantic层：purple 主操作 hover 亮色。 */
+  --action-primary-hover: var(--primitive-color-purple-hover);
+  /* Semantic层：purple 主操作 active 亮色。 */
+  --action-primary-active: var(--primitive-color-purple-active);
+  /* Semantic层：主操作文字在该主题下保持对比度。 */
+  --action-primary-foreground: var(--primitive-color-white);
+  /* Semantic层：purple 交互强调与键盘焦点。 */
+  --action-accent: var(--theme-color-purple);
+  /* Semantic层：purple 交互强调与键盘焦点。 */
+  --focus-ring: var(--theme-color-purple);
+  /* Semantic层：purple 浅层选中背景。 */
+  --action-subtle-background: var(--primitive-color-purple-tint);
+}
+html.ce-iframe-root[data-theme="dark"][data-color-scheme="purple"] {
+  /* Semantic层：purple 主操作 background 暗色。 */
+  --action-primary-background: var(--theme-color-purple);
+  /* Semantic层：purple 主操作 hover 暗色。 */
+  --action-primary-hover: var(--primitive-color-purple-dark-hover);
+  /* Semantic层：purple 主操作 active 暗色。 */
+  --action-primary-active: var(--primitive-color-purple-dark-active);
+  /* Semantic层：主操作文字在该主题下保持对比度。 */
+  --action-primary-foreground: var(--primitive-color-ink);
+  /* Semantic层：purple 交互强调与键盘焦点。 */
+  --action-accent: var(--theme-color-purple);
+  /* Semantic层：purple 交互强调与键盘焦点。 */
+  --focus-ring: var(--theme-color-purple);
+  /* Semantic层：purple 浅层选中背景。 */
+  --action-subtle-background: var(--primitive-color-purple-dark-tint);
+}
+html.ce-iframe-root[data-color-scheme="green"] {
+  /* Semantic层：green 主操作 background 亮色。 */
+  --action-primary-background: var(--theme-color-green);
+  /* Semantic层：green 主操作 hover 亮色。 */
+  --action-primary-hover: var(--primitive-color-green-hover);
+  /* Semantic层：green 主操作 active 亮色。 */
+  --action-primary-active: var(--primitive-color-green-active);
+  /* Semantic层：主操作文字在该主题下保持对比度。 */
+  --action-primary-foreground: var(--primitive-color-white);
+  /* Semantic层：green 交互强调与键盘焦点。 */
+  --action-accent: var(--theme-color-green);
+  /* Semantic层：green 交互强调与键盘焦点。 */
+  --focus-ring: var(--theme-color-green);
+  /* Semantic层：green 浅层选中背景。 */
+  --action-subtle-background: var(--primitive-color-green-tint);
+}
+html.ce-iframe-root[data-theme="dark"][data-color-scheme="green"] {
+  /* Semantic层：green 主操作 background 暗色。 */
+  --action-primary-background: var(--theme-color-green);
+  /* Semantic层：green 主操作 hover 暗色。 */
+  --action-primary-hover: var(--primitive-color-green-dark-hover);
+  /* Semantic层：green 主操作 active 暗色。 */
+  --action-primary-active: var(--primitive-color-green-dark-active);
+  /* Semantic层：主操作文字在该主题下保持对比度。 */
+  --action-primary-foreground: var(--primitive-color-ink);
+  /* Semantic层：green 交互强调与键盘焦点。 */
+  --action-accent: var(--theme-color-green);
+  /* Semantic层：green 交互强调与键盘焦点。 */
+  --focus-ring: var(--theme-color-green);
+  /* Semantic层：green 浅层选中背景。 */
+  --action-subtle-background: var(--primitive-color-green-dark-tint);
+}
+html.ce-iframe-root[data-density="compact"] {
+  /* Semantic层：紧凑密度 space-control-inline 的唯一尺寸覆盖。 */
+  --space-control-inline: var(--primitive-space-12);
+  /* Semantic层：紧凑密度 space-form-fields 的唯一尺寸覆盖。 */
+  --space-form-fields: var(--primitive-space-16);
+  /* Semantic层：紧凑密度 space-table-cell-block 的唯一尺寸覆盖。 */
+  --space-table-cell-block: var(--primitive-space-8);
+  /* Semantic层：紧凑密度 space-surface-content 的唯一尺寸覆盖。 */
+  --space-surface-content: var(--primitive-space-16);
+  /* Semantic层：紧凑密度 size-label-default 的唯一尺寸覆盖。 */
+  --size-label-default: var(--primitive-space-20);
+  /* Semantic层：紧凑密度 space-label-default-inline 的唯一尺寸覆盖。 */
+  --space-label-default-inline: var(--primitive-space-4);
+}
+@media (max-width: 760px) {
+  html.ce-iframe-root {
+    /* Semantic层：窄屏状态页面安全内边距。 */
+    --space-state-inset: var(--primitive-space-20);
+    /* Semantic层：窄屏页面 space-page-inline，不受密度影响。 */
+    --space-page-inline: var(--primitive-space-16);
+    /* Semantic层：窄屏页面 space-page-heading-after，不受密度影响。 */
+    --space-page-heading-after: var(--primitive-space-20);
+    /* Semantic层：窄屏页面 space-module-stack，不受密度影响。 */
+    --space-module-stack: var(--primitive-space-24);
+  }
+}
+@media (max-width: 520px) {
+  html.ce-iframe-root {
+    /* Semantic层：窄屏内容卡片内边距，紧凑密度不继续缩小。 */
+    --space-surface-content: var(--primitive-space-16);
+  }
+}
+
+html.ce-iframe-root[data-theme="dark"] {
+  /* Semantic层：危险动作独立于个人交互主色，前景与背景成对覆盖。 */
+  --action-danger-background: var(--primitive-feedback-error-icon-dark);
+  /* Semantic层：危险操作暗色前景。 */
+  --action-danger-foreground: var(--primitive-color-ink);
+  /* Semantic层：危险操作暗色悬停。 */
+  --action-danger-hover: var(--primitive-color-danger-dark-hover);
+  /* Semantic层：危险操作暗色按下。 */
+  --action-danger-active: var(--primitive-category-red-dark-border);
+  /* Semantic层：危险操作暗色文本与焦点。 */
+  --action-danger-accent: var(--primitive-color-danger-dark);
+}
+
+/* 来源：packages/ui/src/tokens/components.css；声明值及顺序保持源码。 */
+/* 组件 Token 只引用 Semantic，尺寸和外观由所属组件选择器组合。 */
+html.ce-iframe-root {
+  /* Component层：额度卡片 info 配色。 */
+  --quota-info: var(--usage-info);
+  /* Component层：额度卡片 warning 配色。 */
+  --quota-warning: var(--usage-warning);
+  /* Component层：额度卡片 warning-border 配色。 */
+  --quota-warning-border: var(--usage-warning-border);
+  /* Component层：额度卡片 warning-background 配色。 */
+  --quota-warning-background: var(--usage-warning-background);
+  /* Component层：额度卡片 error 配色。 */
+  --quota-error: var(--usage-error);
+  /* Component层：额度卡片 error-border 配色。 */
+  --quota-error-border: var(--usage-error-border);
+  /* Component层：额度卡片 error-background 配色。 */
+  --quota-error-background: var(--usage-error-background);
+
+  /* Component层：button 的 border-width 角色。 */
+  --button-border-width: var(--border-width-default);
+  /* Component层：button 的 focus-ring 角色。 */
+  --button-focus-ring: var(--focus-ring);
+  /* Component层：button 的 focus-width 角色。 */
+  --button-focus-width: var(--outline-width-focus);
+  /* Component层：button 的 focus-offset 角色。 */
+  --button-focus-offset: var(--outline-offset-focus);
+  /* Component层：input 的 border-width 角色。 */
+  --input-border-width: var(--border-width-default);
+  /* Component层：input 的 focus-ring 角色。 */
+  --input-focus-ring: var(--focus-ring);
+  /* Component层：input 的 focus-width 角色。 */
+  --input-focus-width: var(--outline-width-focus);
+  /* Component层：input 焦点轮廓内收，与边框合为单圈且不改变尺寸。 */
+  --input-focus-offset: calc(-1 * var(--outline-width-focus));
+  /* Component层：segmented 的 border-width 角色。 */
+  --segmented-border-width: var(--border-width-default);
+  /* Component层：segmented 的 focus-ring 角色。 */
+  --segmented-focus-ring: var(--focus-ring);
+  /* Component层：segmented 的 focus-width 角色。 */
+  --segmented-focus-width: var(--outline-width-focus);
+  /* Component层：segmented 的 focus-offset 角色。 */
+  --segmented-focus-offset: var(--outline-offset-focus);
+  /* Component层：table 的 border-width 角色。 */
+  --table-border-width: var(--border-width-default);
+  /* Component层：table 的 focus-ring 角色。 */
+  --table-focus-ring: var(--focus-ring);
+  /* Component层：table 的 focus-width 角色。 */
+  --table-focus-width: var(--outline-width-focus);
+  /* Component层：table 的 focus-offset 角色。 */
+  --table-focus-offset: calc(-1 * var(--outline-width-focus));
+  /* Component层：dialog 的 border-width 角色。 */
+  --dialog-border-width: var(--border-width-default);
+  /* Component层：dialog 的 focus-ring 角色。 */
+  --dialog-focus-ring: var(--focus-ring);
+  /* Component层：dialog 的 focus-width 角色。 */
+  --dialog-focus-width: var(--outline-width-focus);
+  /* Component层：dialog 的 focus-offset 角色。 */
+  --dialog-focus-offset: var(--outline-offset-focus);
+  /* Component层：button 的完整 body 文字配方。 */
+  --button-font-size: var(--typography-body-font-size);
+  /* Component层：button 的完整 body 文字配方。 */
+  --button-line-height: var(--typography-body-line-height);
+  /* Component层：button 的完整 body 文字配方。 */
+  --button-font-weight: var(--typography-body-font-weight);
+  /* Component层：input 的完整 body 文字配方。 */
+  --input-font-size: var(--typography-body-font-size);
+  /* Component层：input 的完整 body 文字配方。 */
+  --input-line-height: var(--typography-body-line-height);
+  /* Component层：input 的完整 body 文字配方。 */
+  --input-font-weight: var(--typography-body-font-weight);
+  /* Component层：segmented 的完整 body 文字配方。 */
+  --segmented-font-size: var(--typography-body-font-size);
+  /* Component层：segmented 的完整 body 文字配方。 */
+  --segmented-line-height: var(--typography-body-line-height);
+  /* Component层：segmented 的完整 body 文字配方。 */
+  --segmented-font-weight: var(--typography-body-font-weight);
+  /* Component层：table 的完整 body 文字配方。 */
+  --table-font-size: var(--typography-body-font-size);
+  /* Component层：table 的完整 body 文字配方。 */
+  --table-line-height: var(--typography-body-line-height);
+  /* Component层：table 的完整 body 文字配方。 */
+  --table-font-weight: var(--typography-body-font-weight);
+  /* Component层：form 的完整 body 文字配方。 */
+  --form-font-size: var(--typography-body-font-size);
+  /* Component层：form 的完整 body 文字配方。 */
+  --form-line-height: var(--typography-body-line-height);
+  /* Component层：form 的完整 body 文字配方。 */
+  --form-font-weight: var(--typography-body-font-weight);
+  /* Component层：dialog 的完整 body 文字配方。 */
+  --dialog-font-size: var(--typography-body-font-size);
+  /* Component层：dialog 的完整 body 文字配方。 */
+  --dialog-line-height: var(--typography-body-line-height);
+  /* Component层：dialog 的完整 body 文字配方。 */
+  --dialog-font-weight: var(--typography-body-font-weight);
+  /* Component层：alert 的完整 body 文字配方。 */
+  --alert-font-size: var(--typography-body-font-size);
+  /* Component层：alert 的完整 body 文字配方。 */
+  --alert-line-height: var(--typography-body-line-height);
+  /* Component层：alert 的完整 body 文字配方。 */
+  --alert-font-weight: var(--typography-body-font-weight);
+  /* Component层：tag 的完整 caption 文字配方。 */
+  --tag-font-size: var(--typography-caption-font-size);
+  /* Component层：tag 的完整 caption 文字配方。 */
+  --tag-line-height: var(--typography-caption-line-height);
+  /* Component层：tag 的完整 caption 文字配方。 */
+  --tag-font-weight: var(--typography-caption-font-weight);
+  /* Component层：card 的完整 body 文字配方。 */
+  --card-font-size: var(--typography-body-font-size);
+  /* Component层：card 的完整 body 文字配方。 */
+  --card-line-height: var(--typography-body-line-height);
+  /* Component层：card 的完整 body 文字配方。 */
+  --card-font-weight: var(--typography-body-font-weight);
+  /* Component层：alert-title 的完整 section-title 文字配方。 */
+  --alert-title-font-size: var(--typography-card-title-font-size);
+  /* Component层：alert-title 的完整 section-title 文字配方。 */
+  --alert-title-line-height: var(--typography-card-title-line-height);
+  /* Component层：alert-title 的完整 section-title 文字配方。 */
+  --alert-title-font-weight: var(--typography-card-title-font-weight);
+  /* Component层：form-label 的完整 section-title 文字配方。 */
+  --form-label-font-size: var(--typography-section-title-font-size);
+  /* Component层：form-label 的完整 section-title 文字配方。 */
+  --form-label-line-height: var(--typography-section-title-line-height);
+  /* Component层：form-label 的完整 section-title 文字配方。 */
+  --form-label-font-weight: var(--typography-section-title-font-weight);
+  /* Component层：form-description 的完整 caption 文字配方。 */
+  --form-description-font-size: var(--typography-caption-font-size);
+  /* Component层：form-description 的完整 caption 文字配方。 */
+  --form-description-line-height: var(--typography-caption-line-height);
+  /* Component层：form-description 的完整 caption 文字配方。 */
+  --form-description-font-weight: var(--typography-caption-font-weight);
+  /* Component层：dialog-title 的完整 modal-title 文字配方。 */
+  --dialog-title-font-size: var(--typography-modal-title-font-size);
+  /* Component层：dialog-title 的完整 modal-title 文字配方。 */
+  --dialog-title-line-height: var(--typography-modal-title-line-height);
+  /* Component层：dialog-title 的完整 modal-title 文字配方。 */
+  --dialog-title-font-weight: var(--typography-modal-title-font-weight);
+  /* Component层：modal-title 的完整 modal-title 文字配方。 */
+  --modal-title-font-size: var(--typography-modal-title-font-size);
+  /* Component层：modal-title 的完整 modal-title 文字配方。 */
+  --modal-title-line-height: var(--typography-modal-title-line-height);
+  /* Component层：modal-title 的完整 modal-title 文字配方。 */
+  --modal-title-font-weight: var(--typography-modal-title-font-weight);
+  /* Component层：table-heading 的完整 section-title 文字配方。 */
+  --table-heading-font-size: var(--typography-section-title-font-size);
+  /* Component层：table-heading 的完整 section-title 文字配方。 */
+  --table-heading-line-height: var(--typography-section-title-line-height);
+  /* Component层：table-heading 的完整 section-title 文字配方。 */
+  --table-heading-font-weight: var(--typography-section-title-font-weight);
+  /* Component层：button-height 对应的组件视觉或几何角色。 */
+  --button-height: var(--size-control-regular);
+  /* Component层：button-padding-inline 对应的组件视觉或几何角色。 */
+  --button-padding-inline: var(--space-control-inline);
+  /* Component层：button-radius 对应的组件视觉或几何角色。 */
+  --button-radius: var(--radius-control);
+  /* Component层：button-icon-size 对应的组件视觉或几何角色。 */
+  --button-icon-size: var(--size-control-icon);
+  /* Component层：button-content-gap 对应的组件视觉或几何角色。 */
+  --button-content-gap: var(--space-icon-text);
+  /* Component层：button-background 对应的组件视觉或几何角色。 */
+  --button-background: var(--background-secondary);
+  /* Component层：button-foreground 对应的组件视觉或几何角色。 */
+  --button-foreground: var(--text-primary);
+  /* Component层：button-border-color 对应的组件视觉或几何角色。 */
+  --button-border-color: var(--border-transparent);
+  /* Component层：button-hover-background 对应的组件视觉或几何角色。 */
+  --button-hover-background: var(--background-hover);
+  /* Component层：button-hover-foreground 对应的组件视觉或几何角色。 */
+  --button-hover-foreground: var(--text-primary);
+  /* Component层：button-hover-border 对应的组件视觉或几何角色。 */
+  --button-hover-border: var(--border-transparent);
+  /* Component层：button-active-background 对应的组件视觉或几何角色。 */
+  --button-active-background: var(--background-tertiary);
+  /* Component层：button-active-foreground 对应的组件视觉或几何角色。 */
+  --button-active-foreground: var(--text-primary);
+  /* Component层：button-active-border 对应的组件视觉或几何角色。 */
+  --button-active-border: var(--border-transparent);
+  /* Component层：button-disabled-background 对应的组件视觉或几何角色。 */
+  --button-disabled-background: var(--background-disabled);
+  /* Component层：button-disabled-foreground 对应的组件视觉或几何角色。 */
+  --button-disabled-foreground: var(--text-disabled);
+  /* Component层：button-disabled-border 对应的组件视觉或几何角色。 */
+  --button-disabled-border: var(--border-transparent);
+  /* Component层：button-loading-indicator 对应的组件视觉或几何角色。 */
+  --button-loading-indicator: var(--action-accent);
+  /* Component层：button-motion 对应的组件视觉或几何角色。 */
+  --button-motion: var(--motion-fast);
+  /* Component层：button-loading-duration 对应的组件视觉或几何角色。 */
+  --button-loading-duration: var(--motion-loading);
+  /* Component层：spinner 图形尺寸，与控件图标对齐。 */
+  --spinner-size: var(--size-control-icon);
+  /* Component层：spinner 条形颜色，跟随当前主题交互色。 */
+  --spinner-color: var(--action-primary-background);
+  /* Component层：spinner 条形脉动时长。 */
+  --spinner-duration: var(--motion-loading);
+  /* Component层：外部 color 未覆盖时的按钮自定义主色回退。 */
+  --button-custom-color: var(--action-accent);
+  /* Component层：外部 colorText 未覆盖时的实心按钮文字色回退。 */
+  --button-custom-foreground: var(--action-button-primary-foreground);
+  /* Component层：input-height 对应的组件视觉或几何角色。 */
+  --input-height: var(--size-control-regular);
+  /* Component层：input-padding-inline 对应的组件视觉或几何角色。 */
+  --input-padding-inline: var(--space-input-inline);
+  /* Component层：input-padding-block 对应的组件视觉或几何角色。 */
+  --input-padding-block: var(--space-control-block);
+  /* Component层：input-radius 对应的组件视觉或几何角色。 */
+  --input-radius: var(--radius-control);
+  /* Component层：input-background 对应的组件视觉或几何角色。 */
+  --input-background: var(--background-primary);
+  /* Component层：input-foreground 对应的组件视觉或几何角色。 */
+  --input-foreground: var(--text-primary);
+  /* Component层：input-placeholder 对应的组件视觉或几何角色。 */
+  --input-placeholder: var(--text-secondary);
+  /* Component层：input-border-color 对应的组件视觉或几何角色。 */
+  --input-border-color: var(--border-control);
+  /* Component层：input-hover-border 对应的组件视觉或几何角色。 */
+  --input-hover-border: var(--action-accent);
+  /* Component层：input-disabled-background 对应的组件视觉或几何角色。 */
+  --input-disabled-background: var(--background-disabled);
+  /* Component层：input-disabled-foreground 对应的组件视觉或几何角色。 */
+  --input-disabled-foreground: var(--text-disabled);
+  /* Component层：input-error-border 对应的组件视觉或几何角色。 */
+  --input-error-border: var(--status-error-border);
+  /* Component层：input-readonly-background 对应的组件视觉或几何角色。 */
+  --input-readonly-background: var(--background-secondary);
+  /* Component层：card-background 对应的组件视觉或几何角色。 */
+  --card-background: var(--background-primary);
+  /* Component层：card-text-color 对应的卡片文字角色。 */
+  --card-text-color: var(--text-primary);
+  /* Component层：card-border-color 对应的组件视觉或几何角色。 */
+  --card-border-color: var(--border-default);
+  /* Component层：card-border-width 对应的组件视觉或几何角色。 */
+  --card-border-width: var(--border-width-default);
+  /* Component层：card-padding 对应的组件视觉或几何角色。 */
+  --card-padding: var(--space-surface-content);
+  /* Component层：card-radius 对应的组件视觉或几何角色。 */
+  --card-radius: var(--radius-surface);
+  /* Component层：card-min-height 对应的组件视觉或几何角色。 */
+  --card-min-height: var(--size-zero);
+  /* Component层：card-content-gap 对应的组件视觉或几何角色。 */
+  --card-content-gap: var(--space-content-group);
+  /* Component层：alert-background 对应的组件视觉或几何角色。 */
+  --alert-background: var(--feedback-info-background);
+  /* Component层：alert-title-color 对应的组件视觉或几何角色。 */
+  --alert-title-color: var(--text-primary);
+  /* Component层：alert-text-color 对应的组件视觉或几何角色。 */
+  --alert-text-color: var(--text-primary);
+  /* Component层：alert-icon-color 对应的组件视觉或几何角色。 */
+  --alert-icon-color: var(--feedback-info-icon);
+  /* Component层：accent 外观正文继续使用反馈前景色，不跟随装饰图标调色。 */
+  --alert-accent-color: var(--status-info-foreground);
+  /* Component层：alert-radius 对应的组件视觉或几何角色。 */
+  --alert-radius: var(--radius-control);
+  /* Component层：alert-padding-inline 对应的组件视觉或几何角色。 */
+  --alert-padding-inline: var(--space-feedback-inline);
+  /* Component层：alert-padding-block 对应的组件视觉或几何角色。 */
+  --alert-padding-block: var(--space-feedback-inline);
+  /* Component层：alert-content-gap 对应的组件视觉或几何角色。 */
+  --alert-content-gap: var(--space-icon-text);
+  /* Component层：alert-icon-size 对应的组件视觉或几何角色。 */
+  --alert-icon-size: var(--size-feedback-icon);
+  /* Component层：错误默认图标内部关闭字形尺寸。 */
+  --alert-error-glyph-size: var(--space-icon-text);
+  /* Component层：alert-action-gap 对应的组件视觉或几何角色。 */
+  --alert-action-gap: var(--space-icon-text);
+  /* Component层：alert-description-gap 对应的组件视觉或几何角色。 */
+  --alert-description-gap: var(--space-description);
+  /* Component层：Alert 受控退出使用共享浮层动效节奏。 */
+  --alert-motion: var(--motion-overlay);
+  /* Component层：tag-background 对应的组件视觉或几何角色。 */
+  --tag-background: var(--category-neutral-background);
+  /* Component层：tag-text-color 对应的组件视觉或几何角色。 */
+  --tag-text-color: var(--category-neutral-foreground);
+  /* Component层：tag-border-color 对应的组件视觉或几何角色。 */
+  --tag-border-color: var(--category-neutral-border);
+  /* Component层：tag-border-width 对应的组件视觉或几何角色。 */
+  --tag-border-width: var(--border-width-default);
+  /* Component层：tag-height 对应的组件视觉或几何角色。 */
+  --tag-height: var(--size-label-default);
+  /* Component层：tag-padding-inline 对应的组件视觉或几何角色。 */
+  --tag-padding-inline: var(--space-label-default-inline);
+  /* Component层：tag-padding-block 对应的组件视觉或几何角色。 */
+  --tag-padding-block: var(--space-label-block);
+  /* Component层：tag-radius 对应的组件视觉或几何角色。 */
+  --tag-radius: var(--radius-label);
+  /* Component层：外部 color 未覆盖时的标签自定义主色回退。 */
+  --tag-custom-color: var(--category-neutral-foreground);
+  /* Component层：segmented-background 对应的组件视觉或几何角色。 */
+  --segmented-background: var(--background-secondary);
+  /* Component层：segmented-foreground 对应的组件视觉或几何角色。 */
+  --segmented-foreground: var(--text-secondary);
+  /* Component层：segmented-border-color 对应的组件视觉或几何角色。 */
+  --segmented-border-color: var(--border-control);
+  /* Component层：segmented-height 对应的组件视觉或几何角色。 */
+  --segmented-height: var(--size-control-regular);
+  /* Component层：segmented-inset 对应的组件视觉或几何角色。 */
+  --segmented-inset: var(--space-segment-inset);
+  /* Component层：segmented-option-height 对应的组件视觉或几何角色。 */
+  --segmented-option-height: var(--size-segment-option);
+  /* Component层：segmented-option-padding 对应的组件视觉或几何角色。 */
+  --segmented-option-padding: var(--space-segment-inline);
+  /* Component层：segmented-radius 对应的组件视觉或几何角色。 */
+  --segmented-radius: var(--radius-control);
+  /* Component层：segmented-option-radius 对应的组件视觉或几何角色。 */
+  --segmented-option-radius: var(--radius-label);
+  /* Component层：segmented-selected-background 对应的组件视觉或几何角色。 */
+  --segmented-selected-background: var(--background-primary);
+  /* Component层：segmented-selected-foreground 对应的组件视觉或几何角色。 */
+  --segmented-selected-foreground: var(--action-accent);
+  /* Component层：segmented-hover-background 对应的组件视觉或几何角色。 */
+  --segmented-hover-background: var(--background-hover);
+  /* Component层：segmented-disabled-foreground 对应的组件视觉或几何角色。 */
+  --segmented-disabled-foreground: var(--text-disabled);
+  /* Component层：form-fields-gap 对应的组件视觉或几何角色。 */
+  --form-fields-gap: var(--space-form-fields);
+  /* Component层：form-field-gap 对应的组件视觉或几何角色。 */
+  --form-field-gap: var(--space-description);
+  /* Component层：form-label-color 对应的组件视觉或几何角色。 */
+  --form-label-color: var(--text-primary);
+  /* Component层：form-description-color 对应的组件视觉或几何角色。 */
+  --form-description-color: var(--text-secondary);
+  /* Component层：form-error-color 对应的组件视觉或几何角色。 */
+  --form-error-color: var(--status-error-foreground);
+  /* Component层：table-header-height 对应的组件视觉或几何角色。 */
+  --table-header-height: var(--size-table-header);
+  /* Component层：table-header-padding-block 对应的组件视觉或几何角色。 */
+  --table-header-padding-block: var(--space-table-header-block);
+  /* Component层：table-cell-padding-inline 对应的组件视觉或几何角色。 */
+  --table-cell-padding-inline: var(--space-table-cell-inline);
+  /* Component层：table-cell-padding-block 对应的组件视觉或几何角色。 */
+  --table-cell-padding-block: var(--space-table-cell-block);
+  /* Component层：table-icon-slot-single 对应的组件视觉或几何角色。 */
+  --table-icon-slot-single: var(--size-table-icon-slot-single);
+  /* Component层：table-icon-slot-double 对应的组件视觉或几何角色。 */
+  --table-icon-slot-double: var(--size-table-icon-slot-double);
+  /* Component层：table-icon-gap 对应的组件视觉或几何角色。 */
+  --table-icon-gap: var(--space-icon-text-tight);
+  /* Component层：table-icon-size 对应的组件视觉或几何角色。 */
+  --table-icon-size: var(--size-control-icon);
+  /* Component层：table-background 对应的组件视觉或几何角色。 */
+  --table-background: var(--background-primary);
+  /* Component层：table-header-background 对应的组件视觉或几何角色。 */
+  --table-header-background: var(--background-secondary);
+  /* Component层：table-hover-background 对应的组件视觉或几何角色。 */
+  --table-hover-background: var(--background-hover);
+  /* Component层：table-foreground 对应的组件视觉或几何角色。 */
+  --table-foreground: var(--text-primary);
+  /* Component层：table-border-color 对应的组件视觉或几何角色。 */
+  --table-border-color: var(--border-default);
+  /* Component层：table-radius 对应的组件视觉或几何角色。 */
+  --table-radius: var(--radius-control);
+  /* Component层：table-scrollbar 对应的组件视觉或几何角色。 */
+  --table-scrollbar: var(--scrollbar-thumb);
+  /* Component层：data-list 的完整正文文字配方。 */
+  --data-list-font-size: var(--typography-body-font-size);
+  /* Component层：data-list 的完整正文文字配方。 */
+  --data-list-line-height: var(--typography-body-line-height);
+  /* Component层：data-list 的完整正文文字配方。 */
+  --data-list-font-weight: var(--typography-body-font-weight);
+  /* Component层：data-list-heading 的完整二级标题文字配方。 */
+  --data-list-heading-font-size: var(--typography-section-title-font-size);
+  /* Component层：data-list-heading 的完整二级标题文字配方。 */
+  --data-list-heading-line-height: var(--typography-section-title-line-height);
+  /* Component层：data-list-heading 的完整二级标题文字配方。 */
+  --data-list-heading-font-weight: var(--typography-section-title-font-weight);
+  /* Component层：data-list 的内容前景色。 */
+  --data-list-foreground: var(--text-primary);
+  /* Component层：data-list 的辅助前景色。 */
+  --data-list-secondary-foreground: var(--text-secondary);
+  /* Component层：data-list 的容器背景。 */
+  --data-list-background: var(--background-primary);
+  /* Component层：data-list 的边框颜色。 */
+  --data-list-border-color: var(--border-default);
+  /* Component层：data-list 的常规边框宽度。 */
+  --data-list-border-width: var(--border-width-default);
+  /* Component层：data-list 的圆角。 */
+  --data-list-radius: var(--radius-surface);
+  /* Component层：data-list 的选中行背景。 */
+  --data-list-selected-background: var(--action-subtle-background);
+  /* Component层：data-list 的悬停行背景。 */
+  --data-list-hover-background: var(--background-hover);
+  /* Component层：data-list 的焦点描边。 */
+  --data-list-focus-ring: var(--focus-ring);
+  /* Component层：data-list 的操作强调色。 */
+  --data-list-action-foreground: var(--action-accent);
+  /* Component层：pagination 的完整最小提示文字配方。 */
+  --pagination-font-size: var(--typography-micro-font-size);
+  /* Component层：pagination 的完整最小提示文字配方。 */
+  --pagination-line-height: var(--typography-micro-line-height);
+  /* Component层：pagination 的完整最小提示文字配方。 */
+  --pagination-font-weight: var(--typography-micro-font-weight);
+  /* Component层：pagination 默认 xs 档控件高度。 */
+  --pagination-control-size: var(--size-control-xs);
+  /* Component层：pagination 默认 xs 档按钮水平内边距。 */
+  --pagination-control-padding-inline: var(--space-control-xs-inline);
+  /* Component层：pagination 的辅助前景色。 */
+  --pagination-foreground: var(--text-secondary);
+  /* Component层：pagination 摘要总数的正文色。 */
+  --pagination-summary-foreground: var(--text-primary);
+  /* Component层：pagination 页码无描边，颜色保持透明契约。 */
+  --pagination-border-color: var(--border-transparent);
+  /* Component层：pagination 页码无描边宽度。 */
+  --pagination-border-width: var(--size-zero);
+  /* Component层：pagination 的页码透明底。 */
+  --pagination-background: var(--background-transparent);
+  /* Component层：pagination 当前页的浅主色底。 */
+  --pagination-current-background: var(--action-subtle-background);
+  /* Component层：pagination 当前页的主色文字。 */
+  --pagination-current-foreground: var(--action-accent);
+  /* Component层：pagination 悬停页码的浅灰底。 */
+  --pagination-hover-background: var(--background-subtle);
+  /* Component层：pagination 悬停页码保持次级文字色。 */
+  --pagination-hover-foreground: var(--text-secondary);
+  /* Component层：pagination 悬停前后页箭头的主色。 */
+  --pagination-step-hover-foreground: var(--action-accent);
+  /* Component层：pagination 禁用页码文字色。 */
+  --pagination-disabled-foreground: var(--text-disabled);
+  /* Component层：pagination 整体禁用时当前页的浅灰底。 */
+  --pagination-disabled-current-background: var(--background-subtle);
+  /* Component层：pagination 整体禁用时当前页的弱化文字色。 */
+  --pagination-disabled-current-foreground: var(--text-disabled);
+  /* Component层：pagination 页码小圆角。 */
+  --pagination-radius: var(--radius-field);
+  /* Component层：pagination 页码间距。 */
+  --pagination-item-gap: var(--space-icon-text);
+  /* Component层：pagination 页码颜色与背景过渡。 */
+  --pagination-motion: var(--motion-fast);
+  /* Component层：pagination 的焦点描边。 */
+  --pagination-focus-ring: var(--focus-ring);
+  /* Component层：pagination 前后页箭头尺寸。 */
+  --pagination-icon-size: var(--size-control-icon);
+  /* Component层：dialog-background 对应的组件视觉或几何角色。 */
+  --dialog-background: var(--background-primary);
+  /* Component层：dialog-foreground 对应的组件视觉或几何角色。 */
+  --dialog-foreground: var(--text-primary);
+  /* Component层：dialog-description-color 对应的组件视觉或几何角色。 */
+  --dialog-description-color: var(--text-secondary);
+  /* Component层：dialog-border-color 对应的组件视觉或几何角色。 */
+  --dialog-border-color: var(--border-default);
+  /* Component层：dialog-radius 对应的组件视觉或几何角色。 */
+  --dialog-radius: var(--radius-surface);
+  /* Component层：dialog-padding 对应的组件视觉或几何角色。 */
+  --dialog-padding: var(--space-dialog-inset);
+  /* Component层：dialog-content-gap 对应的组件视觉或几何角色。 */
+  --dialog-content-gap: var(--space-content-group);
+  /* Component层：dialog-action-gap 对应的组件视觉或几何角色。 */
+  --dialog-action-gap: var(--space-icon-text);
+  /* Component层：dialog-shadow 对应的组件视觉或几何角色。 */
+  --dialog-shadow: var(--shadow-overlay);
+  /* Component层：dialog-backdrop 对应的组件视觉或几何角色。 */
+  --dialog-backdrop: var(--background-overlay);
+}
+html.ce-iframe-root .ce-pagination[data-size="sm"] {
+  /* Component层：pagination sm 档完整正文文字配方。 */
+  --pagination-font-size: var(--typography-body-font-size);
+  /* Component层：pagination sm 档完整正文文字配方。 */
+  --pagination-line-height: var(--typography-body-line-height);
+  /* Component层：pagination sm 档完整正文文字配方。 */
+  --pagination-font-weight: var(--typography-body-font-weight);
+  /* Component层：pagination sm 档正方形控件边长。 */
+  --pagination-control-size: var(--size-control-regular);
+  /* Component层：pagination sm 档正方形按钮无水平内边距。 */
+  --pagination-control-padding-inline: var(--size-zero);
+}
+html.ce-iframe-root .ce-button[data-variant="primary"] {
+  /* Component层：当前变体的 button-background 组件角色。 */
+  --button-background: var(--action-button-primary-background);
+  /* Component层：当前变体的 button-foreground 组件角色。 */
+  --button-foreground: var(--action-button-primary-foreground);
+  /* Component层：当前变体的 button-border-color 组件角色。 */
+  --button-border-color: var(--border-transparent);
+  /* Component层：当前变体的 button-hover-background 组件角色。 */
+  --button-hover-background: var(--action-primary-hover);
+  /* Component层：当前变体的 button-hover-foreground 组件角色。 */
+  --button-hover-foreground: var(--action-button-primary-foreground);
+  /* Component层：当前变体的 button-active-background 组件角色。 */
+  --button-active-background: var(--action-primary-active);
+  /* Component层：当前变体的 button-active-foreground 组件角色。 */
+  --button-active-foreground: var(--action-button-primary-foreground);
+  /* Component层：当前变体的 button-loading-indicator 组件角色。 */
+  --button-loading-indicator: var(--action-button-primary-foreground);
+}
+html.ce-iframe-root .ce-button[data-variant="outline"] {
+  /* Component层：当前变体的 button-background 组件角色。 */
+  --button-background: var(--background-transparent);
+  /* Component层：当前变体的 button-foreground 组件角色。 */
+  --button-foreground: var(--action-accent);
+  /* Component层：当前变体的 button-border-color 组件角色。 */
+  --button-border-color: var(--action-accent);
+  /* Component层：当前变体的 button-hover-background 组件角色。 */
+  --button-hover-background: var(--action-subtle-background);
+  /* Component层：当前变体的 button-hover-foreground 组件角色。 */
+  --button-hover-foreground: var(--action-accent);
+  /* Component层：当前变体的 button-hover-border 组件角色。 */
+  --button-hover-border: var(--action-accent);
+  /* Component层：当前变体的 button-active-background 组件角色。 */
+  --button-active-background: var(--background-hover);
+  /* Component层：当前变体的 button-active-foreground 组件角色。 */
+  --button-active-foreground: var(--action-accent);
+  /* Component层：当前变体的 button-active-border 组件角色。 */
+  --button-active-border: var(--action-accent);
+  /* Component层：当前变体的 button-disabled-background 组件角色。 */
+  --button-disabled-background: var(--background-transparent);
+  /* Component层：当前变体的 button-disabled-border 组件角色。 */
+  --button-disabled-border: var(--border-default);
+}
+html.ce-iframe-root .ce-button[data-variant="text"] {
+  /* Component层：当前变体的 button-background 组件角色。 */
+  --button-background: var(--background-transparent);
+  /* Component层：当前变体的 button-foreground 组件角色。 */
+  --button-foreground: var(--action-accent);
+  /* Component层：当前变体的 button-border-color 组件角色。 */
+  --button-border-color: var(--border-transparent);
+  /* Component层：当前变体的 button-hover-background 组件角色。 */
+  --button-hover-background: var(--action-subtle-background);
+  /* Component层：当前变体的 button-hover-foreground 组件角色。 */
+  --button-hover-foreground: var(--action-accent);
+  /* Component层：当前变体的 button-hover-border 组件角色。 */
+  --button-hover-border: var(--border-transparent);
+  /* Component层：当前变体的 button-active-background 组件角色。 */
+  --button-active-background: var(--background-hover);
+  /* Component层：当前变体的 button-active-foreground 组件角色。 */
+  --button-active-foreground: var(--action-accent);
+  /* Component层：当前变体的 button-active-border 组件角色。 */
+  --button-active-border: var(--border-transparent);
+  /* Component层：当前变体的 button-disabled-background 组件角色。 */
+  --button-disabled-background: var(--background-transparent);
+  /* Component层：当前变体的 button-disabled-border 组件角色。 */
+  --button-disabled-border: var(--border-transparent);
+}
+html.ce-iframe-root .ce-button[data-variant="dashed"] {
+  /* Component层：当前变体的 button-background 组件角色。 */
+  --button-background: var(--background-transparent);
+  /* Component层：当前变体的 button-border-color 组件角色。 */
+  --button-border-color: var(--border-control);
+  /* Component层：当前变体的 button-hover-border 组件角色。 */
+  --button-hover-border: var(--action-accent);
+  /* Component层：当前变体的 button-active-border 组件角色。 */
+  --button-active-border: var(--action-accent);
+  /* Component层：当前变体的 button-disabled-background 组件角色。 */
+  --button-disabled-background: var(--background-transparent);
+  /* Component层：当前变体的 button-disabled-border 组件角色。 */
+  --button-disabled-border: var(--border-default);
+}
+/* DropdownSelect 的公共无边框外观集中覆盖 Button 组件角色，业务文件不重复归属组件 Token。 */
+html.ce-iframe-root
+  .ce-button.ce-dropdown-select__trigger[data-trigger-appearance="borderless"] {
+  /* Component层：无边框下拉触发器的默认边框。 */
+  --button-border-color: var(--border-transparent);
+  /* Component层：无边框下拉触发器的悬停背景。 */
+  --button-hover-background: var(--background-transparent);
+  /* Component层：无边框下拉触发器的悬停边框。 */
+  --button-hover-border: var(--border-transparent);
+  /* Component层：无边框下拉触发器的按下背景。 */
+  --button-active-background: var(--background-transparent);
+  /* Component层：无边框下拉触发器的按下边框。 */
+  --button-active-border: var(--border-transparent);
+  /* Component层：无边框下拉触发器禁用时的边框。 */
+  --button-disabled-border: var(--border-transparent);
+}
+html.ce-iframe-root .ce-button[data-size="xs"] {
+  /* Component层：当前变体的 button-height 组件角色。 */
+  --button-height: var(--size-control-xs);
+  /* Component层：当前变体的 button-padding-inline 组件角色。 */
+  --button-padding-inline: var(--space-control-xs-inline);
+  /* Component层：当前变体的 button-font-size 组件角色。 */
+  --button-font-size: var(--typography-caption-font-size);
+  /* Component层：当前变体的 button-line-height 组件角色。 */
+  --button-line-height: var(--typography-caption-line-height);
+  /* Component层：当前变体的 button-font-weight 组件角色。 */
+  --button-font-weight: var(--typography-caption-font-weight);
+}
+html.ce-iframe-root .ce-tag[data-size="xs"] {
+  /* Component层：当前变体的 tag-height 组件角色。 */
+  --tag-height: var(--size-label-xs);
+  /* Component层：当前变体的 tag-padding-inline 组件角色。 */
+  --tag-padding-inline: var(--space-label-xs-inline);
+}
+html.ce-iframe-root .ce-button[data-size="sm"] {
+  /* Component层：当前变体的 button-height 组件角色。 */
+  --button-height: var(--size-control-sm);
+  /* Component层：当前变体的 button-padding-inline 组件角色。 */
+  --button-padding-inline: var(--space-control-sm-inline);
+  /* Component层：当前变体的 button-font-size 组件角色。 */
+  --button-font-size: var(--typography-caption-font-size);
+  /* Component层：当前变体的 button-line-height 组件角色。 */
+  --button-line-height: var(--typography-caption-line-height);
+  /* Component层：当前变体的 button-font-weight 组件角色。 */
+  --button-font-weight: var(--typography-caption-font-weight);
+}
+html.ce-iframe-root .ce-tag[data-size="sm"] {
+  /* Component层：当前变体的 tag-height 组件角色。 */
+  --tag-height: var(--size-label-sm);
+  /* Component层：当前变体的 tag-padding-inline 组件角色。 */
+  --tag-padding-inline: var(--space-label-sm-inline);
+}
+html.ce-iframe-root .ce-button[data-size="md"] {
+  /* Component层：当前变体的 button-height 组件角色。 */
+  --button-height: var(--size-control-md);
+  /* Component层：当前变体的 button-padding-inline 组件角色。 */
+  --button-padding-inline: var(--space-control-md-inline);
+  /* Component层：当前变体的 button-font-size 组件角色。 */
+  --button-font-size: var(--typography-body-font-size);
+  /* Component层：当前变体的 button-line-height 组件角色。 */
+  --button-line-height: var(--typography-body-line-height);
+  /* Component层：当前变体的 button-font-weight 组件角色。 */
+  --button-font-weight: var(--typography-body-font-weight);
+}
+html.ce-iframe-root .ce-tag[data-size="md"] {
+  /* Component层：当前变体的 tag-height 组件角色。 */
+  --tag-height: var(--size-label-md);
+  /* Component层：当前变体的 tag-padding-inline 组件角色。 */
+  --tag-padding-inline: var(--space-label-md-inline);
+}
+html.ce-iframe-root .ce-button[data-size="lg"] {
+  /* Component层：当前变体的 button-height 组件角色。 */
+  --button-height: var(--size-control-lg);
+  /* Component层：当前变体的 button-padding-inline 组件角色。 */
+  --button-padding-inline: var(--space-control-lg-inline);
+  /* Component层：当前变体的 button-font-size 组件角色。 */
+  --button-font-size: var(--typography-body-font-size);
+  /* Component层：当前变体的 button-line-height 组件角色。 */
+  --button-line-height: var(--typography-body-line-height);
+  /* Component层：当前变体的 button-font-weight 组件角色。 */
+  --button-font-weight: var(--typography-body-font-weight);
+}
+html.ce-iframe-root .ce-tag[data-size="lg"] {
+  /* Component层：当前变体的 tag-height 组件角色。 */
+  --tag-height: var(--size-label-lg);
+  /* Component层：当前变体的 tag-padding-inline 组件角色。 */
+  --tag-padding-inline: var(--space-label-lg-inline);
+}
+html.ce-iframe-root .ce-button[data-shape="round"] {
+  /* Component层：当前变体的 button-radius 组件角色。 */
+  --button-radius: var(--radius-pill);
+}
+html.ce-iframe-root .ce-card[data-variant="metric"] {
+  /* Component层：当前变体的 card-padding 组件角色。 */
+  --card-padding: var(--space-surface-metric);
+  /* Component层：当前变体的 card-radius 组件角色。 */
+  --card-radius: var(--radius-metric);
+  /* Component层：当前变体的 card-min-height 组件角色。 */
+  --card-min-height: var(--size-metric-min-height);
+}
+html.ce-iframe-root .ce-alert[data-variant="neutral"] {
+  /* Component层：普通说明使用页面基础背景，不带反馈状态色。 */
+  --alert-background: var(--background-primary);
+  /* Component层：普通说明图标使用次要文字色。 */
+  --alert-icon-color: var(--text-secondary);
+  /* Component层：普通说明 accent 正文使用次要文字色。 */
+  --alert-accent-color: var(--text-secondary);
+  /* Component层：普通说明正文使用次要文字色。 */
+  --alert-text-color: var(--text-secondary);
+}
+html.ce-iframe-root .ce-alert[data-variant="info"] {
+  /* Component层：当前变体的 alert-background 组件角色。 */
+  --alert-background: var(--feedback-info-background);
+  /* Component层：当前变体的 alert-icon-color 组件角色。 */
+  --alert-icon-color: var(--feedback-info-icon);
+  /* Component层：当前变体的 alert-accent-color 组件角色。 */
+  --alert-accent-color: var(--status-info-foreground);
+}
+html.ce-iframe-root .ce-alert[data-variant="success"] {
+  /* Component层：当前变体的 alert-background 组件角色。 */
+  --alert-background: var(--feedback-success-background);
+  /* Component层：当前变体的 alert-icon-color 组件角色。 */
+  --alert-icon-color: var(--feedback-success-icon);
+  /* Component层：当前变体的 alert-accent-color 组件角色。 */
+  --alert-accent-color: var(--status-success-foreground);
+}
+html.ce-iframe-root .ce-alert[data-variant="warning"] {
+  /* Component层：当前变体的 alert-background 组件角色。 */
+  --alert-background: var(--feedback-warning-background);
+  /* Component层：当前变体的 alert-icon-color 组件角色。 */
+  --alert-icon-color: var(--feedback-warning-icon);
+  /* Component层：当前变体的 alert-accent-color 组件角色。 */
+  --alert-accent-color: var(--status-warning-foreground);
+}
+html.ce-iframe-root .ce-alert[data-variant="error"] {
+  /* Component层：当前变体的 alert-background 组件角色。 */
+  --alert-background: var(--feedback-error-background);
+  /* Component层：当前变体的 alert-icon-color 组件角色。 */
+  --alert-icon-color: var(--feedback-error-icon);
+  /* Component层：当前变体的 alert-accent-color 组件角色。 */
+  --alert-accent-color: var(--status-error-foreground);
+}
+
+html.ce-iframe-root .ce-alert {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  color: var(--alert-text-color);
+  background: var(--alert-background);
+  border: 0;
+  border-radius: var(--alert-radius);
+  opacity: 1;
+  transition:
+    grid-template-rows var(--alert-motion),
+    opacity var(--alert-motion);
+}
+
+html.ce-iframe-root .ce-alert[data-appearance="accent"] {
+  color: var(--alert-accent-color);
+  border-radius: 0;
+}
+
+html.ce-iframe-root .ce-alert[data-state="closing"] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+html.ce-iframe-root .ce-alert__motion-content {
+  min-height: 0;
+}
+
+html.ce-iframe-root .ce-alert__layout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--alert-content-gap);
+  padding: var(--alert-padding-block) var(--alert-padding-inline);
+}
+
+html.ce-iframe-root .ce-alert__icon-slot {
+  display: inline-grid;
+  width: var(--alert-icon-size);
+  height: var(--alert-icon-size);
+  place-items: center;
+  color: var(--alert-icon-color);
+}
+
+html.ce-iframe-root .ce-alert__content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+html.ce-iframe-root .ce-alert__title {
+  color: var(--alert-title-color);
+  font-size: var(--alert-title-font-size);
+  line-height: var(--alert-title-line-height);
+  font-weight: var(--alert-title-font-weight);
+}
+
+html.ce-iframe-root .ce-alert__body {
+  color: inherit;
+  font-size: var(--alert-font-size);
+  line-height: var(--alert-line-height);
+  font-weight: var(--alert-font-weight);
+}
+
+html.ce-iframe-root .ce-alert[data-has-title="true"] .ce-alert__body {
+  margin-top: var(--alert-description-gap);
+}
+
+html.ce-iframe-root .ce-alert__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--alert-action-gap);
+}
+
+html.ce-iframe-root .ce-alert__close {
+  flex: none;
+  color: var(--alert-text-color);
+  cursor: pointer;
+}
+
+html.ce-iframe-root .ce-alert__close[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: var(--opacity-disabled);
+}
+
+html.ce-iframe-root .ce-alert__close:focus-visible {
+  outline: var(--outline-width-focus) solid var(--focus-ring);
+  outline-offset: var(--outline-offset-focus);
+}
+
+@media (max-width: 520px) {
+  html.ce-iframe-root .ce-alert__layout {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  html.ce-iframe-root .ce-alert__actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.ce-iframe-root .ce-alert {
+    transition: none;
+  }
+}
+html.ce-iframe-root .ce-tag[data-tone="neutral"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-neutral-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-neutral-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-neutral-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="red"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-red-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-red-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-red-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="green"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-green-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-green-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-green-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="cyan"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-cyan-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-cyan-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-cyan-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="orange"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-orange-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-orange-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-orange-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="orange-red"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-orange-red-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-orange-red-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-orange-red-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="gold"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-gold-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-gold-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-gold-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="purple"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-purple-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-purple-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-purple-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="magenta"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-magenta-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-magenta-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-magenta-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="indigo"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-indigo-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-indigo-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-indigo-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="blue"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--category-blue-background);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--category-blue-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--category-blue-border);
+}
+html.ce-iframe-root .ce-tag[data-tone="neutral"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-neutral-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="red"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-red-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="green"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-green-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="cyan"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-cyan-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="orange"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-orange-foreground);
+}
+html.ce-iframe-root
+  .ce-tag[data-tone="orange-red"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-orange-red-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="gold"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-gold-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="purple"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-purple-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="magenta"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-magenta-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="indigo"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-indigo-foreground);
+}
+html.ce-iframe-root .ce-tag[data-tone="blue"][data-variant="filled"] {
+  /* Component层：实心标签直接引用分类强调色，适配亮暗映射。 */
+  --tag-background: var(--category-blue-foreground);
+}
+html.ce-iframe-root .ce-tag[data-variant="filled"] {
+  /* Component层：文字使用亮暗主题各自的实心分类前景色。 */
+  --tag-text-color: var(--category-filled-foreground);
+}
+html.ce-iframe-root .ce-tag[data-variant="text"],
+html.ce-iframe-root .ce-tag[data-variant="outline"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--background-transparent);
+}
+html.ce-iframe-root .ce-tag[data-preset="professional-filled"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--brand-professional-gradient);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--brand-professional-foreground);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--border-transparent);
+}
+html.ce-iframe-root .ce-tag[data-preset="professional-text"] {
+  /* Component层：当前变体的 tag-background 组件角色。 */
+  --tag-background: var(--background-transparent);
+  /* Component层：当前变体的 tag-text-color 组件角色。 */
+  --tag-text-color: var(--brand-professional-text);
+  /* Component层：当前变体的 tag-border-color 组件角色。 */
+  --tag-border-color: var(--border-transparent);
+}
+
+html.ce-iframe-root {
+  /* Component层：modal-background 组件契约。 */
+  --modal-background: var(--background-primary);
+  /* Component层：modal-foreground 组件契约。 */
+  --modal-foreground: var(--text-primary);
+  /* Component层：modal-border 组件契约。 */
+  --modal-border: var(--border-default);
+  /* Component层：modal-radius 组件契约。 */
+  --modal-radius: var(--radius-control);
+  /* Component层：modal-shadow 组件契约。 */
+  --modal-shadow: var(--shadow-overlay);
+  /* Component层：modal-backdrop 组件契约。 */
+  --modal-backdrop: var(--background-overlay);
+  /* Component层：modal-backdrop-blur 组件契约。 */
+  --modal-backdrop-blur: var(--blur-overlay);
+  /* Component层：modal-inset 组件契约。 */
+  --modal-inset: var(--space-dialog-inset);
+  /* Component层：modal-header-height 组件契约。 */
+  --modal-header-height: var(--size-overlay-header);
+  /* Component层：modal-header-block 组件契约。 */
+  --modal-header-block: var(--space-toolbar);
+  /* Component层：modal-header-inline 组件契约。 */
+  --modal-header-inline: var(--space-dialog-inset);
+  /* Component层：modal-content-inline 组件契约。 */
+  --modal-content-inline: var(--space-overlay-content-inline);
+  /* Component层：modal-content-block 组件契约。 */
+  --modal-content-block: var(--space-overlay-content-block);
+  /* Component层：modal-footer-block 组件契约。 */
+  --modal-footer-block: var(--space-overlay-footer);
+  /* Component层：modal-action-gap 组件契约。 */
+  --modal-action-gap: var(--space-toolbar);
+  /* Component层：modal-action-min-inline 组件契约。 */
+  --modal-action-min-inline: var(--size-action-min-inline);
+  /* Component层：modal-close-size 组件契约。 */
+  --modal-close-size: var(--size-control-regular);
+  /* Component层：modal-close-color 组件契约。 */
+  --modal-close-color: var(--text-secondary);
+  /* Component层：modal-cancel-color 组件契约。 */
+  --modal-cancel-color: var(--modal-cancel-foreground);
+  /* Component层：modal-danger-confirm-color 组件契约。 */
+  --modal-danger-confirm-color: var(--modal-danger-confirm-background);
+  /* Component层：modal-close-hover 组件契约。 */
+  --modal-close-hover: var(--background-hover);
+  /* Component层：modal-message-inline 组件契约。 */
+  --modal-message-inline: var(--space-message-inline);
+  /* Component层：modal-message-block 组件契约。 */
+  --modal-message-block: var(--space-message-block);
+  /* Component层：modal-message-radius 组件契约。 */
+  --modal-message-radius: var(--radius-metric);
+  /* Component层：drawer-background 组件契约。 */
+  --drawer-background: var(--background-primary);
+  /* Component层：drawer-foreground 组件契约。 */
+  --drawer-foreground: var(--text-primary);
+  /* Component层：drawer-border 组件契约。 */
+  --drawer-border: var(--border-default);
+  /* Component层：drawer-header-gap 组件契约。 */
+  --drawer-header-gap: var(--space-toolbar);
+  /* Component层：drawer-content-block 组件契约。 */
+  --drawer-content-block: var(--space-toolbar);
+  /* Component层：drawer-content-inline 组件契约。 */
+  --drawer-content-inline: var(--space-content-group);
+  /* Component层：drawer-footer-inset 组件契约。 */
+  --drawer-footer-inset: var(--space-overlay-footer);
+  /* Component层：drawer-action-gap 组件契约。 */
+  --drawer-action-gap: var(--space-icon-text);
+  /* Component层：drawer-motion 组件契约。 */
+  --drawer-motion: var(--motion-overlay);
+  /* Component层：drawer-backdrop 组件契约。 */
+  --drawer-backdrop: var(--background-overlay);
+  /* Component层：drawer-backdrop-blur 组件契约。 */
+  --drawer-backdrop-blur: var(--blur-overlay);
+  /* Component层：drawer-close-size 组件契约。 */
+  --drawer-close-size: var(--size-control-regular);
+  /* Component层：drawer-close-icon-size 组件契约。 */
+  --drawer-close-icon-size: var(--size-control-icon);
+  /* Component层：drawer-close-color 组件契约。 */
+  --drawer-close-color: var(--text-secondary);
+}
+html.ce-iframe-root .ce-button[data-tone="danger"] {
+  /* Component层：危险按钮 foreground。 */
+  --button-foreground: var(--action-danger-accent);
+  /* Component层：危险按钮 hover-foreground。 */
+  --button-hover-foreground: var(--action-danger-accent);
+  /* Component层：危险按钮 active-foreground。 */
+  --button-active-foreground: var(--action-danger-accent);
+  /* Component层：危险按钮 hover-background。 */
+  --button-hover-background: var(--action-danger-subtle-background);
+  /* Component层：危险按钮 active-background。 */
+  --button-active-background: var(--action-danger-subtle-background);
+  /* Component层：危险按钮 hover-border。 */
+  --button-hover-border: var(--action-danger-accent);
+  /* Component层：危险按钮 active-border。 */
+  --button-active-border: var(--action-danger-accent);
+  /* Component层：危险按钮 focus-ring。 */
+  --button-focus-ring: var(--action-danger-accent);
+  /* Component层：危险按钮 loading-indicator。 */
+  --button-loading-indicator: var(--action-danger-accent);
+}
+html.ce-iframe-root
+  .ce-button[data-tone="danger"][data-variant="primary"] {
+  /* Component层：危险按钮 background。 */
+  --button-background: var(--action-danger-background);
+  /* Component层：危险按钮 foreground。 */
+  --button-foreground: var(--action-danger-foreground);
+  /* Component层：危险按钮 hover-background。 */
+  --button-hover-background: var(--action-danger-hover);
+  /* Component层：危险按钮 hover-foreground。 */
+  --button-hover-foreground: var(--action-danger-foreground);
+  /* Component层：危险按钮 active-background。 */
+  --button-active-background: var(--action-danger-active);
+  /* Component层：危险按钮 active-foreground。 */
+  --button-active-foreground: var(--action-danger-foreground);
+  /* Component层：危险按钮 hover-border。 */
+  --button-hover-border: var(--border-transparent);
+  /* Component层：危险按钮 active-border。 */
+  --button-active-border: var(--border-transparent);
+  /* Component层：危险按钮 loading-indicator。 */
+  --button-loading-indicator: var(--action-danger-foreground);
+}
+html.ce-iframe-root
+  .ce-button[data-tone="danger"][data-variant="outline"] {
+  /* Component层：危险按钮 border-color。 */
+  --button-border-color: var(--action-danger-accent);
+}
+html.ce-iframe-root .ce-button[data-tone="danger"][data-variant="text"] {
+  /* Component层：危险按钮 hover-border。 */
+  --button-hover-border: var(--border-transparent);
+  /* Component层：危险按钮 active-border。 */
+  --button-active-border: var(--border-transparent);
+}
+
+/* B：公共组件外观快照；仅提供视觉，交互由原生 HTML 与接入方实现。 */
+
+/* 来源：packages/ui/src/styles/components.css；选择器和动画名称限定为 iframe 命名空间。 */
+/* 公共组件只使用自己的组件 Token；原生能力与语义由来源组件保留。 */
+html.ce-iframe-root .ce-button,
+html.ce-iframe-root .ce-input,
+html.ce-iframe-root .ce-tag,
+html.ce-iframe-root .ce-card {
+  box-sizing: border-box;
+  font-family: var(--font-family-ui);
+}
+
+html.ce-iframe-root .ce-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--button-height);
+  max-width: 100%;
+  padding: 0 var(--button-padding-inline);
+  border: var(--button-border-width) solid var(--button-border-color);
+  border-radius: var(--button-radius);
+  background: var(--button-background);
+  color: var(--button-foreground);
+  font-size: var(--button-font-size);
+  line-height: var(--button-line-height);
+  font-weight: var(--button-font-weight);
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  transition:
+    background var(--button-motion),
+    color var(--button-motion),
+    border-color var(--button-motion);
+}
+html.ce-iframe-root .ce-button[data-variant="dashed"] {
+  border-style: dashed;
+}
+html.ce-iframe-root .ce-button:hover:not(:disabled) {
+  background: var(--button-hover-background);
+  color: var(--button-hover-foreground);
+  border-color: var(--button-hover-border);
+}
+html.ce-iframe-root .ce-button:active:not(:disabled) {
+  background: var(--button-active-background);
+  color: var(--button-active-foreground);
+  border-color: var(--button-active-border);
+}
+html.ce-iframe-root .ce-button:focus-visible {
+  outline: var(--button-focus-width) solid var(--button-focus-ring);
+  outline-offset: var(--button-focus-offset);
+}
+html.ce-iframe-root .ce-button:disabled {
+  background: var(--button-disabled-background);
+  color: var(--button-disabled-foreground);
+  border-color: var(--button-disabled-border);
+  cursor: not-allowed;
+}
+html.ce-iframe-root .ce-button__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--button-content-gap);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html.ce-iframe-root .ce-button__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--button-icon-size);
+  height: var(--button-icon-size);
+}
+html.ce-iframe-root .ce-button[data-icon-only="true"] {
+  width: var(--button-height);
+  padding: 0;
+  flex: none;
+}
+html.ce-iframe-root .ce-button__spinner {
+  box-sizing: border-box;
+  display: inline-flex;
+  position: static;
+  flex: none;
+  width: var(--button-icon-size);
+  height: var(--button-icon-size);
+  color: var(--button-loading-indicator);
+}
+
+/* 外部 color 只覆盖颜色角色；尺寸、排版、圆角和状态结构继续由组件统一维护。 */
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="primary"],
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="secondary"] {
+  background: var(--button-custom-color);
+  color: var(--button-custom-foreground);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="primary"]:hover:not(
+    :disabled
+  ),
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="secondary"]:hover:not(
+    :disabled
+  ) {
+  background: color-mix(
+    in srgb,
+    var(--button-custom-color) 88%,
+    var(--text-primary)
+  );
+  color: var(--button-custom-foreground);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="primary"]:active:not(
+    :disabled
+  ),
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="secondary"]:active:not(
+    :disabled
+  ) {
+  background: color-mix(
+    in srgb,
+    var(--button-custom-color) 76%,
+    var(--text-primary)
+  );
+  color: var(--button-custom-foreground);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="outline"],
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="dashed"] {
+  color: var(--button-custom-color);
+  border-color: var(--button-custom-color);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="text"] {
+  color: var(--button-custom-color);
+  border-color: var(--border-transparent);
+  background: var(--background-transparent);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="outline"]:hover:not(
+    :disabled
+  ),
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="dashed"]:hover:not(
+    :disabled
+  ) {
+  color: var(--button-custom-color);
+  border-color: var(--button-custom-color);
+  background: color-mix(
+    in srgb,
+    var(--button-custom-color) 10%,
+    var(--background-transparent)
+  );
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="text"]:hover:not(
+    :disabled
+  ) {
+  color: var(--button-custom-color);
+  border-color: var(--border-transparent);
+  background: color-mix(
+    in srgb,
+    var(--button-custom-color) 10%,
+    var(--background-transparent)
+  );
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="outline"]:active:not(
+    :disabled
+  ),
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="dashed"]:active:not(
+    :disabled
+  ) {
+  color: var(--button-custom-color);
+  border-color: var(--button-custom-color);
+  background: color-mix(
+    in srgb,
+    var(--button-custom-color) 18%,
+    var(--background-transparent)
+  );
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="text"]:active:not(
+    :disabled
+  ) {
+  color: var(--button-custom-color);
+  border-color: var(--border-transparent);
+  background: color-mix(
+    in srgb,
+    var(--button-custom-color) 18%,
+    var(--background-transparent)
+  );
+}
+html.ce-iframe-root .ce-button[data-custom-color="true"]:disabled {
+  background: color-mix(
+    in srgb,
+    var(--button-custom-color) 28%,
+    var(--background-disabled)
+  );
+  color: color-mix(
+    in srgb,
+    var(--button-custom-color) 48%,
+    var(--text-disabled)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--button-custom-color) 42%,
+    var(--border-transparent)
+  );
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="outline"]:disabled,
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="dashed"]:disabled {
+  background: var(--background-transparent);
+  border-color: var(--border-default);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="text"]:disabled {
+  background: var(--background-transparent);
+  border-color: var(--border-transparent);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"]
+  .ce-button__spinner {
+  color: var(--button-custom-color);
+}
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="primary"]
+  .ce-button__spinner,
+html.ce-iframe-root
+  .ce-button[data-custom-color="true"][data-variant="secondary"]
+  .ce-button__spinner {
+  color: var(--button-custom-foreground);
+}
+@keyframes ce-spinner-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleY(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+html.ce-iframe-root .ce-spinner {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8%;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  color: var(--spinner-color);
+  vertical-align: middle;
+}
+
+html.ce-iframe-root .ce-spinner--ring .ce-spinner__ring {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ce-spinner-rotate 700ms linear infinite;
+}
+
+@keyframes ce-spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+
+html.ce-iframe-root .ce-spinner__bar {
+  width: 12%;
+  height: 72%;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  transform-origin: center;
+  animation: ce-spinner-pulse var(--spinner-duration) ease-in-out
+    infinite;
+  animation-delay: -360ms;
+}
+
+html.ce-iframe-root .ce-spinner__bar:nth-child(2) {
+  animation-delay: -270ms;
+}
+
+html.ce-iframe-root .ce-spinner__bar:nth-child(3) {
+  animation-delay: -180ms;
+}
+
+html.ce-iframe-root .ce-spinner__bar:nth-child(4) {
+  animation-delay: -90ms;
+}
+
+html.ce-iframe-root .ce-spinner__bar:nth-child(5) {
+  animation-delay: 0ms;
+}
+
+html.ce-iframe-root .ce-input {
+  display: inline-block;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--input-height);
+  padding: var(--input-padding-block) var(--input-padding-inline);
+  border: var(--input-border-width) solid var(--input-border-color);
+  border-radius: var(--input-radius);
+  background: var(--input-background);
+  color: var(--input-foreground);
+  font-size: var(--input-font-size);
+  line-height: var(--input-line-height);
+  font-weight: var(--input-font-weight);
+}
+html.ce-iframe-root .ce-input::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+/* 错误边框不被悬停覆盖；聚焦时以同色加粗轮廓标识当前位置。 */
+html.ce-iframe-root
+  .ce-input:hover:not(:disabled):not([readonly]):not(
+    [aria-invalid="true"],
+    [aria-invalid="grammar"],
+    [aria-invalid="spelling"]
+  ) {
+  border-color: var(--input-hover-border);
+}
+html.ce-iframe-root .ce-input[readonly] {
+  background: var(--input-readonly-background);
+}
+html.ce-iframe-root .ce-input:disabled {
+  background: var(--input-disabled-background);
+  color: var(--input-disabled-foreground);
+  cursor: not-allowed;
+}
+html.ce-iframe-root .ce-input:focus-visible {
+  border-color: var(--input-focus-ring);
+  outline: var(--input-focus-width) solid var(--input-focus-ring);
+  outline-offset: var(--input-focus-offset);
+}
+/* 内收轮廓覆盖边框，错误态必须同时保留轮廓和边框的错误色。 */
+html.ce-iframe-root .ce-input[aria-invalid="true"],
+html.ce-iframe-root .ce-input[aria-invalid="grammar"],
+html.ce-iframe-root .ce-input[aria-invalid="spelling"] {
+  border-color: var(--input-error-border);
+  outline-color: var(--input-error-border);
+}
+
+html.ce-iframe-root .ce-card {
+  min-width: 0;
+  min-height: var(--card-min-height);
+  padding: var(--card-padding);
+  border-radius: var(--card-radius);
+  background: var(--card-background);
+  color: var(--card-text-color);
+  box-shadow: inset 0 0 0 var(--card-border-width) var(--card-border-color);
+  font-size: var(--card-font-size);
+  line-height: var(--card-line-height);
+  font-weight: var(--card-font-weight);
+  overflow-wrap: anywhere;
+}
+/* 卡片只拥有自己的内边距；信息分组由显式容器提供，避免子节点重复叠加 margin。 */
+html.ce-iframe-root .ce-card__groups {
+  display: grid;
+  gap: var(--card-content-gap);
+  min-width: 0;
+}
+/* 单行提示高 40px；带标题时上下留白 16px。长消息保持可读换行。 */
+
+html.ce-iframe-root .ce-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--tag-height);
+  padding: var(--tag-padding-block) var(--tag-padding-inline);
+  border-radius: var(--tag-radius);
+  background: var(--tag-background);
+  color: var(--tag-text-color);
+  font-size: var(--tag-font-size);
+  line-height: var(--tag-line-height);
+  font-weight: var(--tag-font-weight);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+/* 内描边不占据文字盒模型，xs 的 20px 行高不会因边框被裁切或撑高。 */
+html.ce-iframe-root .ce-tag[data-variant="outline"],
+html.ce-iframe-root .ce-tag[data-variant="soft-outline"] {
+  box-shadow: inset 0 0 0 var(--tag-border-width) var(--tag-border-color);
+}
+html.ce-iframe-root .ce-tag[data-custom-color="true"] {
+  color: var(--tag-custom-color);
+  background: color-mix(
+    in srgb,
+    var(--tag-custom-color) 12%,
+    var(--background-transparent)
+  );
+}
+html.ce-iframe-root
+  .ce-tag[data-custom-color="true"][data-variant="text"],
+html.ce-iframe-root
+  .ce-tag[data-custom-color="true"][data-variant="outline"] {
+  background: var(--background-transparent);
+}
+html.ce-iframe-root
+  .ce-tag[data-custom-color="true"][data-variant="outline"],
+html.ce-iframe-root
+  .ce-tag[data-custom-color="true"][data-variant="soft-outline"] {
+  box-shadow: inset 0 0 0 var(--tag-border-width) var(--tag-custom-color);
+}
+/* 原生 radio 保留分组、方向键与表单语义，只在视觉上隐藏。 */
+@media (prefers-reduced-motion: reduce) {
+  html.ce-iframe-root .ce-button {
+    transition: none;
+  }
+  html.ce-iframe-root .ce-spinner__bar {
+    animation: none;
+    opacity: 0.7;
+    transform: scaleY(0.65);
+  }
+}
+
+/* 标签式按钮通过原生 aria-pressed 表达选中，避免业务再覆盖按钮背景和描边。 */
+html.ce-iframe-root
+  .ce-button[data-variant="outline"][aria-pressed="true"]:not(
+    :disabled
+  ) {
+  color: var(--action-accent);
+  background: var(--action-subtle-background);
+  border-color: var(--action-accent);
+}
+html.ce-iframe-root
+  .ce-button[data-variant="outline"][data-tone="danger"][aria-pressed="true"]:not(
+    :disabled
+  ) {
+  color: var(--status-error-foreground);
+  background: var(--status-error-background);
+  border-color: var(--status-error-border);
+}
+/* ActionCard 与 Button 共用交互，独立内容轨道允许标题、描述和只读预览垂直排列。 */
+
+/* Figma 列表筛选：32px 总高、26px 选项与两侧 3px 留白。 */
+/* 白色选中块两侧不显示分隔线；仅连接相邻的未选中项。 */
+
+/* 来源：packages/ui/src/styles/native.css；选择器和动画名称限定为 iframe 命名空间。 */
+/* Form/Table/Dialog 只提供原生结构样式，不包含状态、校验、排序或弹窗管理。 */
+html.ce-iframe-root .ce-form {
+  display: grid;
+  gap: var(--form-fields-gap);
+  min-width: 0;
+  font-size: var(--form-font-size);
+  line-height: var(--form-line-height);
+  font-weight: var(--form-font-weight);
+}
+html.ce-iframe-root .ce-field {
+  display: grid;
+  gap: var(--form-field-gap);
+  min-width: 0;
+}
+html.ce-iframe-root .ce-field-label {
+  color: var(--form-label-color);
+  font-size: var(--form-label-font-size);
+  line-height: var(--form-label-line-height);
+  font-weight: var(--form-label-font-weight);
+}
+html.ce-iframe-root .ce-field-description,
+html.ce-iframe-root .ce-field-error {
+  margin: 0;
+  color: var(--form-description-color);
+  font-size: var(--form-description-font-size);
+  line-height: var(--form-description-line-height);
+  font-weight: var(--form-description-font-weight);
+  overflow-wrap: anywhere;
+}
+html.ce-iframe-root .ce-field-error {
+  color: var(--form-error-color);
+}
+
+html.ce-iframe-root .ce-table-frame {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  border: var(--table-border-width) solid var(--table-border-color);
+  border-radius: var(--table-radius);
+  background: var(--table-background);
+}
+html.ce-iframe-root .ce-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-color: var(--table-scrollbar) var(--table-background);
+}
+html.ce-iframe-root .ce-table-scroll:focus-visible {
+  outline: var(--table-focus-width) solid var(--table-focus-ring);
+  outline-offset: var(--table-focus-offset);
+}
+html.ce-iframe-root .ce-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--table-foreground);
+  font-size: var(--table-font-size);
+  line-height: var(--table-line-height);
+  font-weight: var(--table-font-weight);
+}
+html.ce-iframe-root .ce-table th,
+html.ce-iframe-root .ce-table td {
+  box-sizing: border-box;
+  padding: var(--table-cell-padding-block) var(--table-cell-padding-inline);
+  border-bottom: var(--table-border-width) solid var(--table-border-color);
+  text-align: left;
+  vertical-align: middle;
+}
+html.ce-iframe-root .ce-table th {
+  height: var(--table-header-height);
+  padding-block: var(--table-header-padding-block);
+  background: var(--table-header-background);
+  font-size: var(--table-heading-font-size);
+  line-height: var(--table-heading-line-height);
+  font-weight: var(--table-heading-font-weight);
+}
+html.ce-iframe-root .ce-table th:hover {
+  background: var(--table-hover-background);
+}
+html.ce-iframe-root .ce-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+html.ce-iframe-root .ce-table [data-numeric] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+/* 只在单元格内部建立两轨；th/td 继续使用原生 table-cell，确保列布局与语义不变。 */
+html.ce-iframe-root .ce-table-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+}
+html.ce-iframe-root .ce-table-cell__content {
+  min-width: 0;
+}
+html.ce-iframe-root
+  .ce-table
+  [data-icon-slots="1"]
+  .ce-table-cell {
+  grid-template-columns: minmax(0, 1fr) var(--table-icon-slot-single);
+}
+html.ce-iframe-root
+  .ce-table
+  [data-icon-slots="2"]
+  .ce-table-cell {
+  grid-template-columns: minmax(0, 1fr) var(--table-icon-slot-double);
+}
+html.ce-iframe-root .ce-table-cell__icons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--table-icon-gap);
+  min-height: var(--table-icon-size);
+}
+
+html.ce-iframe-root .ce-dialog {
+  box-sizing: border-box;
+  max-width: calc(100% - 2 * var(--dialog-padding));
+  padding: var(--dialog-padding);
+  border: var(--dialog-border-width) solid var(--dialog-border-color);
+  border-radius: var(--dialog-radius);
+  background: var(--dialog-background);
+  color: var(--dialog-foreground);
+  box-shadow: var(--dialog-shadow);
+  font-size: var(--dialog-font-size);
+  line-height: var(--dialog-line-height);
+  font-weight: var(--dialog-font-weight);
+}
+html.ce-iframe-root .ce-dialog::backdrop {
+  background: var(--dialog-backdrop);
+}
+html.ce-iframe-root .ce-dialog:focus-visible {
+  outline: var(--dialog-focus-width) solid var(--dialog-focus-ring);
+  outline-offset: var(--dialog-focus-offset);
+}
+html.ce-iframe-root .ce-dialog__title {
+  margin: 0 0 var(--dialog-content-gap);
+  font-size: var(--dialog-title-font-size);
+  line-height: var(--dialog-title-line-height);
+  font-weight: var(--dialog-title-font-weight);
+}
+html.ce-iframe-root .ce-dialog__description {
+  margin: 0;
+  color: var(--dialog-description-color);
+}
+html.ce-iframe-root .ce-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--dialog-action-gap);
+  margin-top: var(--dialog-content-gap);
+}
+
+/* 来源：packages/ui/src/styles/empty.css；选择器和动画名称限定为 iframe 命名空间。 */
+html.ce-iframe-root .ce-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: var(--space-empty-block) var(--space-empty-inline);
+  color: var(--text-primary);
+  font-family: inherit;
+  text-align: center;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+html.ce-iframe-root .ce-empty-icon {
+  display: grid;
+  place-items: center;
+  width: var(--size-empty-illustration);
+  height: var(--size-empty-illustration);
+  max-width: 100%;
+  margin-bottom: var(--space-toolbar);
+}
+
+html.ce-iframe-root .ce-empty-icon > * {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+html.ce-iframe-root .ce-empty-title {
+  max-width: 100%;
+  font-size: var(--typography-card-title-font-size);
+  line-height: var(--typography-card-title-line-height);
+  font-weight: var(--typography-card-title-font-weight);
+}
+
+html.ce-iframe-root .ce-empty-description {
+  max-width: 100%;
+  margin-top: var(--space-icon-text);
+  color: var(--text-secondary);
+  font-size: var(--typography-body-font-size);
+  line-height: var(--typography-body-line-height);
+  font-weight: var(--typography-body-font-weight);
+}
+
+html.ce-iframe-root .ce-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-toolbar);
+  max-width: 100%;
+  margin-top: var(--space-content-group);
+}
+
+html.ce-iframe-root .ce-empty-actions > * {
+  max-width: 100%;
+}
+
+/* 来源：packages/ui/src/styles/skeleton.css；选择器和动画名称限定为 iframe 命名空间。 */
+/* 骨架复用主题表面颜色；仅变化透明度，避免动画引起重排或主题闪烁。 */
+html.ce-iframe-root .ce-skeleton {
+  display: block;
+  width: 100%;
+  height: var(--typography-body-line-height);
+  max-width: 100%;
+  background: var(--background-control-subtle);
+  border-radius: var(--radius-control);
+  animation: ce-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+html.ce-iframe-root .ce-skeleton[data-shape="circle"] {
+  border-radius: var(--radius-avatar);
+  aspect-ratio: 1;
+}
+
+@keyframes ce-skeleton-pulse {
+  50% {
+    opacity: var(--opacity-disabled);
+  }
+}
+
+/* 尊重系统的减少动态效果设置，保留静态占位以稳定页面布局。 */
+@media (prefers-reduced-motion: reduce) {
+  html.ce-iframe-root .ce-skeleton {
+    animation: none;
+  }
+}
+
+/* 来源：packages/ui/src/components/pagination/pagination.css；选择器和动画名称限定为 iframe 命名空间。 */
+html.ce-iframe-root .ce-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-toolbar);
+  padding: var(--space-table-header-block) var(--space-table-cell-inline);
+  color: var(--pagination-foreground);
+  font-size: var(--pagination-font-size);
+  line-height: var(--pagination-line-height);
+  font-weight: var(--pagination-font-weight);
+}
+html.ce-iframe-root .ce-pagination__summary {
+  color: var(--pagination-summary-foreground);
+  font-size: var(--pagination-font-size);
+  line-height: var(--pagination-line-height);
+  font-weight: var(--pagination-font-weight);
+}
+html.ce-iframe-root .ce-pagination__pages,
+html.ce-iframe-root .ce-pagination__item {
+  display: flex;
+  align-items: center;
+  gap: var(--pagination-item-gap);
+}
+html.ce-iframe-root .ce-pagination button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 多位页码按内容扩宽，避免继承弹窗正文的任意换行。 */
+  width: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: var(--pagination-control-size);
+  height: var(--pagination-control-size);
+  padding: 0 var(--pagination-control-padding-inline);
+  border: var(--pagination-border-width) solid var(--pagination-border-color);
+  border-radius: var(--pagination-radius);
+  background: var(--pagination-background);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    color var(--pagination-motion),
+    background-color var(--pagination-motion);
+}
+html.ce-iframe-root
+  .ce-pagination
+  button:hover:not(:disabled):not([aria-current="page"]) {
+  background: var(--pagination-hover-background);
+  color: var(--pagination-hover-foreground);
+}
+html.ce-iframe-root .ce-pagination__step:hover:not(:disabled) {
+  color: var(--pagination-step-hover-foreground);
+}
+html.ce-iframe-root .ce-pagination__chevron {
+  display: block;
+  width: var(--pagination-icon-size);
+  height: var(--pagination-icon-size);
+}
+html.ce-iframe-root .ce-pagination button[aria-current="page"] {
+  background: var(--pagination-current-background);
+  border-color: var(--pagination-border-color);
+  color: var(--pagination-current-foreground);
+}
+html.ce-iframe-root .ce-pagination button:disabled {
+  background: var(--pagination-background);
+  color: var(--pagination-disabled-foreground);
+  cursor: not-allowed;
+}
+html.ce-iframe-root .ce-pagination button[aria-current="page"]:disabled {
+  background: var(--pagination-disabled-current-background);
+  color: var(--pagination-disabled-current-foreground);
+}
+html.ce-iframe-root .ce-pagination button:focus-visible {
+  outline: var(--outline-width-focus) solid var(--pagination-focus-ring);
+  outline-offset: var(--outline-offset-focus);
+}
+html.ce-iframe-root .ce-pagination__ellipsis {
+  color: var(--pagination-foreground);
+}
+

@@ -1,0 +1,345 @@
+@import './tokens.css';
+@import './page-spacing.css';
+@import './page-header.css';
+
+:root {
+  font-family: var(--font-family-ui);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  color: var(--text-primary);
+  background: var(--background-page);
+  color-scheme: light;
+}
+
+html.ce-iframe-root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--font-family-ui);
+  background: var(--background-page);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Keep detail actions visually consistent across native-table and DataList tables. */
+html.ce-iframe-root .ce-button.geo-table-detail-button[data-variant] {
+  --button-background: var(--background-secondary);
+  --button-foreground: var(--text-primary);
+  --button-border-color: var(--border-transparent);
+  --button-hover-background: var(--background-control-hover);
+  --button-hover-foreground: var(--text-primary);
+  --button-hover-border: var(--border-default);
+  --button-active-background: var(--background-control-hover);
+  --button-active-foreground: var(--text-primary);
+  --button-active-border: var(--border-default);
+  --button-height: 32px;
+  --button-font-size: 14px;
+  --button-line-height: 20px;
+  --button-font-weight: 400;
+  min-width: 84px;
+  padding-inline: 12px;
+  border-radius: 8px;
+}
+
+html.ce-iframe-root button.geo-table-detail-button {
+  display: inline-flex;
+  min-width: 84px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--background-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-family-ui);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), box-shadow var(--motion-fast);
+}
+
+html.ce-iframe-root .ce-button.geo-table-detail-button:hover:not(:disabled),
+html.ce-iframe-root button.geo-table-detail-button:hover:not(:disabled) {
+  background: var(--background-control-hover);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  box-shadow: inset 0 0 0 1px var(--border-default);
+}
+
+html.ce-iframe-root .ce-button.geo-table-detail-button:active:not(:disabled),
+html.ce-iframe-root button.geo-table-detail-button:active:not(:disabled) {
+  background: var(--background-control-hover);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+html.ce-iframe-root .ce-button.geo-table-detail-button:focus-visible,
+html.ce-iframe-root button.geo-table-detail-button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+html.ce-iframe-root button.geo-table-detail-button:disabled {
+  color: var(--text-disabled);
+  background: var(--background-disabled);
+  cursor: not-allowed;
+}
+
+input:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: var(--input-focus-offset, -2px);
+}
+
+.onboarding-steps {
+  margin-bottom: var(--space-module-stack);
+}
+
+.knowledge-notice {
+  margin-bottom: var(--space-module-stack);
+  --alert-padding-block: var(--space-icon-text);
+  --alert-padding-inline: var(--space-surface-content);
+  --alert-content-gap: var(--space-icon-text);
+  --alert-icon-size: 28px;
+  --alert-title-font-size: var(--typography-section-title-font-size);
+  --alert-title-line-height: var(--typography-section-title-line-height);
+  --alert-description-gap: var(--space-icon-text-tight);
+  --alert-font-size: var(--typography-body-font-size);
+  --alert-line-height: var(--typography-body-line-height);
+}
+
+.knowledge-notice__source {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--feedback-success-background);
+  color: var(--feedback-success-icon);
+  font-weight: 600;
+}
+
+/* 双写类名提高特异性，覆盖 ce 快照 .ce-alert 的无边框默认值，使提示条与面板同为卡片语言。 */
+html.ce-iframe-root .knowledge-notice.knowledge-notice {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-card);
+}
+
+html.ce-iframe-root .knowledge-notice .ce-alert__icon-slot {
+  border-radius: var(--radius-control);
+  background: var(--feedback-success-background);
+  color: var(--feedback-success-icon);
+}
+
+html.ce-iframe-root .knowledge-notice .ce-alert__body {
+  display: none;
+}
+
+.knowledge-panel {
+  overflow: hidden;
+  background: var(--background-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-card);
+}
+
+.knowledge-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-surface-content);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.knowledge-card__title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.knowledge-panel__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-section-title);
+  line-height: 24px;
+  font-weight: var(--weight-medium);
+}
+
+.knowledge-panel__status {
+  flex: 0 0 auto;
+}
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-surface-content);
+}
+
+.knowledge-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-surface-content);
+  background: var(--background-primary);
+  border: 1px solid var(--color-border-brand);
+  border-radius: var(--radius-card);
+  transition: border-color var(--motion-fast), background-color var(--motion-fast);
+}
+
+.knowledge-card:hover {
+  background: var(--background-hover);
+  border-color: var(--action-accent);
+}
+
+.knowledge-card__index {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--action-accent);
+  background: var(--action-subtle-background);
+  border-radius: var(--radius-control);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-body);
+  font-weight: var(--weight-semibold);
+}
+
+.knowledge-card__body {
+  min-width: 0;
+}
+
+.knowledge-card__body h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--font-size-section-title);
+  line-height: 24px;
+  font-weight: var(--weight-medium);
+}
+
+.knowledge-card__summary {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+.knowledge-card__edit {
+  align-self: start;
+}
+
+.bottom-action-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--background-primary) 94%, transparent);
+  border-top: 1px solid var(--border-default);
+  backdrop-filter: blur(12px);
+}
+
+.bottom-action-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 56px;
+  margin: 0 auto;
+  padding: 12px var(--space-page-inline);
+}
+
+.bottom-action-bar__progress {
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+}
+
+.bottom-action-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (max-width: 760px) {
+  .knowledge-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .knowledge-panel__header,
+  .bottom-action-bar__inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .knowledge-panel__header {
+    gap: var(--space-2);
+  }
+
+  .knowledge-grid {
+    padding: var(--space-4);
+  }
+
+  .knowledge-card {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: var(--space-4);
+  }
+
+  .knowledge-card__edit {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .bottom-action-bar__inner {
+    gap: var(--space-2);
+    padding: 12px var(--space-page-inline);
+  }
+
+  .bottom-action-bar__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .bottom-action-bar__actions .bottom-action-bar__next {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+

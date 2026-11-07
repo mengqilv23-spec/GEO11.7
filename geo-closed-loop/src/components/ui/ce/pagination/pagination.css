@@ -1,0 +1,80 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-toolbar);
+  padding: var(--space-table-header-block) var(--space-table-cell-inline);
+  color: var(--pagination-foreground);
+  font-size: var(--pagination-font-size);
+  line-height: var(--pagination-line-height);
+  font-weight: var(--pagination-font-weight);
+}
+.pagination__summary {
+  color: var(--pagination-summary-foreground);
+  font-size: var(--pagination-font-size);
+  line-height: var(--pagination-line-height);
+  font-weight: var(--pagination-font-weight);
+}
+.pagination__pages,
+.pagination__item {
+  display: flex;
+  align-items: center;
+  gap: var(--pagination-item-gap);
+}
+.pagination button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 多位页码按内容扩宽，避免继承弹窗正文的任意换行。 */
+  width: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: var(--pagination-control-size);
+  height: var(--pagination-control-size);
+  padding: 0 var(--pagination-control-padding-inline);
+  border: var(--pagination-border-width) solid var(--pagination-border-color);
+  border-radius: var(--pagination-radius);
+  background: var(--pagination-background);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    color var(--pagination-motion),
+    background-color var(--pagination-motion);
+}
+.pagination button:hover:not(:disabled):not([aria-current='page']) {
+  background: var(--pagination-hover-background);
+  color: var(--pagination-hover-foreground);
+}
+.pagination__step:hover:not(:disabled) {
+  color: var(--pagination-step-hover-foreground);
+}
+.pagination__chevron {
+  display: block;
+  width: var(--pagination-icon-size);
+  height: var(--pagination-icon-size);
+}
+.pagination button[aria-current='page'] {
+  background: var(--pagination-current-background);
+  border-color: var(--pagination-border-color);
+  color: var(--pagination-current-foreground);
+}
+.pagination button:disabled {
+  background: var(--pagination-background);
+  color: var(--pagination-disabled-foreground);
+  cursor: not-allowed;
+}
+.pagination button[aria-current='page']:disabled {
+  background: var(--pagination-disabled-current-background);
+  color: var(--pagination-disabled-current-foreground);
+}
+.pagination button:focus-visible {
+  outline: var(--outline-width-focus) solid var(--pagination-focus-ring);
+  outline-offset: var(--outline-offset-focus);
+}
+.pagination__ellipsis {
+  color: var(--pagination-foreground);
+}
+

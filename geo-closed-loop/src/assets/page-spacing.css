@@ -1,0 +1,18 @@
+.onboarding-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 20px var(--space-page-inline) 104px;
+  color: var(--text-primary);
+  background: var(--background-page);
+}
+
+.onboarding-page__inner {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .onboarding-page {
+    padding: 20px var(--space-page-inline) 112px;
+  }
+}
+
