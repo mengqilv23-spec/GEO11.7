@@ -99,6 +99,30 @@ describe('optimization content task table', () => {
 
     wrapper.unmount()
   })
+
+  it('removes deferred tasks from pending cards and exposes a dedicated deferred filter', async () => {
+    const task = { ...initialTasks[0]!, id: 'TASK-DEFERRED', name: '已暂不处理任务', progress: 'human' as const }
+    ensureWorkflow(task).deferredTask = {
+      stage: 'human',
+      stageLabel: '运营专业审核',
+      reason: '资料待补充',
+      explanation: '等待客户补充材料。',
+      actor: '专家',
+      time: new Date().toISOString(),
+    }
+    const tasks = [task]
+    const wrapper = mount(OptimizationContent, {
+      props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
+    })
+
+    expect(wrapper.find('.geo-action-card').exists()).toBe(false)
+    expect(wrapper.get('.geo-optimization-no-pending').text()).toBe('当前暂无待处理任务')
+    expect(wrapper.get('tbody').text()).toContain('已暂不处理')
+    await wrapper.get('input[value="deferred"]').trigger('change')
+    expect(wrapper.get('tbody').text()).toContain('已暂不处理任务')
+
+    wrapper.unmount()
+  })
 })
 
 

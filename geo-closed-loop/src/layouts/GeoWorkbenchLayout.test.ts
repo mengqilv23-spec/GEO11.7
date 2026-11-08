@@ -181,6 +181,45 @@ it('separates product versions from roles and keeps changes scoped to the two re
 })
 
 
+it('lets the agent customer ignore a strategy without a reason or explanation', async () => {
+  localStorage.clear()
+  const probe = defineComponent({
+    setup() {
+      const context = inject(geoWorkbenchRouteContextKey)!
+      return () => h('button', { 'data-test': 'open-strategy', 'onClick': () => context.openStrategy(context.strategies.find(item => item.id === 'GS11')!) }, '打开候选策略')
+    },
+  })
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: probe }] })
+  await router.push('/diagnosis')
+  await router.isReady()
+  const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
+    GeoWorkbenchToolbar: { emits: ['update:serviceMode'], template: '<button data-test="select-client" @click="$emit(\'update:serviceMode\', \'agent\')">客户版</button>' },
+    GeoSectionNav: true,
+    RouterLink: true,
+    GeoDrawer: { props: ['open', 'title', 'subtitle', 'eyebrow', 'size', 'titleFirst'], template: '<div v-if="open" class="test-drawer"><header><h2>{{ title }}</h2></header><slot /><footer><slot name="footer" /></footer></div>' },
+  } } })
+
+  await wrapper.get('[data-test="select-client"]').trigger('click')
+  await wrapper.get('[data-test="open-strategy"]').trigger('click')
+  await flushPromises()
+  const ignoreButton = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '不处理')
+  expect(ignoreButton).toBeTruthy()
+  await ignoreButton!.trigger('click')
+  await flushPromises()
+
+  const confirmButton = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '确认不处理')
+  expect(confirmButton).toBeTruthy()
+  await confirmButton!.trigger('click')
+  await flushPromises()
+
+  const state = JSON.parse(localStorage.getItem('geo-workbench:agent')!)
+  const strategy = state.strategies.find((item: { id: string }) => item.id === 'GS11')
+  expect(strategy.ignored).toBe(true)
+  expect(strategy.reviewNote).toBeUndefined()
+  wrapper.unmount()
+  localStorage.clear()
+})
+
 it.each(['client', 'managed'])('runs direct technical repairs without human approval in %s version', async (version) => {
   localStorage.clear()
   vi.useFakeTimers()

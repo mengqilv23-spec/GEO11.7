@@ -44,7 +44,7 @@ export function findingStatusLabel(finding: AuditFinding, strategies: readonly S
   }
   if (task) return task.completionOutcome === 'expired-unexecuted' ? '任务已关闭' : task.progress === 'done' ? '已完成处理' : `已生成任务 · ${taskStageLabel(task)}`
   if (finding.status === '已修复') return '已完成处理'
-  return clientMode ? '待客户确认' : '待专家审核'
+  return clientMode ? '待确认' : '待专家审核'
 }
 
 export function findingRouteLabel(finding: AuditFinding, _clientMode = false) {

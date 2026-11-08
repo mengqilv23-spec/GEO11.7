@@ -312,6 +312,6 @@ export function nextProgress(progress: TaskProgress): TaskProgress {
 }
 
 export function progressLabel(progress: TaskProgress) {
-  return { brief: '待确认 Brief', todo: '待执行', running: '执行中', client_content_review: '待客户确认文案', human: '待人工处理', client_review: '待客户审核', publish: '待发布确认', site_submit: '待提交 AI 建站', site_submitted: '待官网审核', site_running: 'AI 建站执行中', site_returned: '官网已返回处理结果', site_verifying: 'GEO 验证中', site_publish: '发布门禁确认', site_failed: '验证未通过', recheck: '待复测', done: '已完成' }[progress]
+  return { brief: '待确认 Brief', todo: '待执行', running: '执行中', client_content_review: '待确认文案', human: '待人工处理', client_review: '待客户审核', publish: '待发布确认', site_submit: '待提交 AI 建站', site_submitted: '待官网审核', site_running: 'AI 建站执行中', site_returned: '官网已返回处理结果', site_verifying: 'GEO 验证中', site_publish: '发布门禁确认', site_failed: '验证未通过', recheck: '待复测', done: '已完成' }[progress]
 }
 

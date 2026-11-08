@@ -1,8 +1,8 @@
 import type { GeoTask, ServiceMode, Strategy } from '../data/geo-data'
-import { taskStageLabel } from './task-workflow'
+import { isTaskDeferred, isTaskIgnored, taskStageLabel } from './task-workflow'
 
 export function pendingReviewLabel(mode: ServiceMode) {
-  return mode === 'agent' ? '待客户确认' : '待专家审核'
+  return mode === 'agent' ? '待确认' : '待专家审核'
 }
 
 export function taskForStrategy(strategy: Strategy, tasks: readonly GeoTask[]) {
@@ -20,6 +20,8 @@ export function strategyReviewStatus(strategy: Strategy, tasks: readonly GeoTask
   if (task) {
     if (task.completionOutcome === 'expired-unexecuted') return '任务已关闭'
     if (task.progress === 'done') return '已完成'
+    if (isTaskIgnored(task)) return '已忽略'
+    if (isTaskDeferred(task)) return '已暂不处理'
     return `已生成任务 · ${taskStageLabel(task, mode)}`
   }
   if (strategy.confirmed) return '已通过'

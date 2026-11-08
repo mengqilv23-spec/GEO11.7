@@ -3,7 +3,7 @@ import type { GeoTask, Strategy, TaskFilter, UserRole, ServiceMode } from '../..
 import type { DataListColumn } from '../../ui/ce/data-list/types'
 import { computed, shallowRef, watch } from 'vue'
 import { displayObjectCodes } from '../../../data/geo-data'
-import { isTaskIgnored, reviewOwner } from '../../../workflows/task-workflow'
+import { isTaskDeferred, isTaskIgnored, reviewOwner } from '../../../workflows/task-workflow'
 import { isDirectRepairTask } from '../../../workflows/direct-repair'
 import Button from '../../ui/ce/button/Button.vue'
 import ActionCard from '../../ui/ce/card/ActionCard.vue'
@@ -17,7 +17,7 @@ import '../../../styles/optimization-page.css'
 const props = defineProps<{ tasks: GeoTask[], allTasks: GeoTask[], strategies?: Strategy[], filter: TaskFilter, role: UserRole, serviceMode?: ServiceMode }>()
 const emit = defineEmits<{ setFilter: [filter: TaskFilter], openTask: [task: GeoTask], openFlow: [] }>()
 
-type BucketFilter = 'all' | 'brief' | 'content' | 'review' | 'website' | 'changes' | 'publish' | 'done'
+type BucketFilter = 'all' | 'brief' | 'content' | 'review' | 'website' | 'changes' | 'publish' | 'ignored' | 'deferred' | 'done'
 const taskTypes: Array<{ id: TaskFilter, label: string }> = [
   { id: 'all', label: '全部任务' },
   { id: 'web', label: '官网内容' },
@@ -37,6 +37,8 @@ const taskStatusOptions: Array<{ value: BucketFilter, label: string }> = [
   { value: 'website', label: '官网处理中' },
   { value: 'changes', label: '待修改' },
   { value: 'publish', label: '待发布确认' },
+  { value: 'ignored', label: '已忽略' },
+  { value: 'deferred', label: '已暂不处理' },
   { value: 'done', label: '已完结' },
 ]
 const taskColumns: DataListColumn<unknown>[] = [
@@ -58,7 +60,9 @@ const taskTableLabels = {
   selectRow: (label: string) => `选择任务 ${label}`,
 }
 function keyStatus(task: GeoTask): Exclude<BucketFilter, 'all'> {
-  if (isTaskIgnored(task) || ['recheck', 'done'].includes(task.progress)) return 'done'
+  if (isTaskIgnored(task)) return 'ignored'
+  if (['recheck', 'done'].includes(task.progress)) return 'done'
+  if (isTaskDeferred(task)) return 'deferred'
   if (task.progress === 'brief') return 'brief'
   if (task.type === 'repair') return 'website'
   if (['todo', 'running'].includes(task.progress)) return 'content'
@@ -80,7 +84,7 @@ function taskPageSummary({ total, page, pages }: { total: number, page: number, 
   return `共 ${total} 条 · 第 ${page} / ${pages} 页`
 }
 function needsMyAction(task: GeoTask) {
-  if (isTaskIgnored(task) || isDirectRepairTask(task) || task.progress === 'done') return false
+  if (isTaskIgnored(task) || isTaskDeferred(task) || isDirectRepairTask(task) || task.progress === 'done') return false
   const mode = props.serviceMode ?? 'managed'
   const owner = mode === 'agent' ? 'client' : 'ops'
   if (task.progress === 'brief') {

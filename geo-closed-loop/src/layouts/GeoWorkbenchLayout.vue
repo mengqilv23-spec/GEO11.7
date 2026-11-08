@@ -532,19 +532,22 @@ function startIgnoreStrategy() {
 }
 function ignoreStrategy(strategy: Strategy) {
   if (!canReviewStrategy(strategy)) return
-  if (!reviewCategory.value) {
+  const requiresDetails = serviceMode.value === 'managed'
+  if (requiresDetails && !reviewCategory.value) {
     notify('请选择忽略原因')
     return
   }
-  if (!reviewText.value.trim()) {
+  if (requiresDetails && !reviewText.value.trim()) {
     notify('请填写忽略原因')
     return
   }
+  const detail = [reviewCategory.value.trim(), reviewText.value.trim()].filter(Boolean).join('：')
   strategy.ignored = true
-  strategy.reviewNote = `${reviewCategory.value}：${reviewText.value.trim()}`
+  if (detail) strategy.reviewNote = detail
+  else delete strategy.reviewNote
   reviewNotes[strategy.id] ??= []
-  reviewNotes[strategy.id].push({ role: role.value, name: role.value === 'ops' ? '专家' : '客户', time: '刚刚', text: `忽略候选策略 · ${strategy.reviewNote}` })
-  notify('已记录忽略原因，来源诊断仍保留')
+  reviewNotes[strategy.id].push({ role: role.value, name: role.value === 'ops' ? '专家' : '客户', time: '刚刚', text: detail ? `忽略候选策略 · ${detail}` : '已记录不处理候选策略' })
+  notify(detail ? '已记录忽略原因，来源诊断仍保留' : '已记录不处理，来源诊断仍保留')
   strategyIgnoreMode.value = false
   reviewCategory.value = ''
   reviewText.value = ''
@@ -692,21 +695,29 @@ function processFinding(finding: AuditFinding, showNotification = true) {
 }
 function deferFinding(finding: AuditFinding) {
   if (!canApproveFinding(finding)) return
-  if (!deferReason.value) {
-    notify(serviceMode.value === 'agent' ? '请选择不处理原因' : '请选择暂不修复原因')
+  const requiresDetails = serviceMode.value === 'managed'
+  if (requiresDetails && !deferReason.value) {
+    notify('请选择暂不修复原因')
     return
   }
-  if (!reviewText.value.trim()) {
-    notify(serviceMode.value === 'agent' ? '请填写不处理说明' : '请填写暂不修复说明')
+  if (requiresDetails && !reviewText.value.trim()) {
+    notify('请填写暂不修复说明')
     return
   }
+  const detail = [deferReason.value.trim(), reviewText.value.trim()].filter(Boolean).join('：')
   finding.status = '暂不修复'
-  finding.decisionReason = `${deferReason.value}：${reviewText.value.trim()}`
-  finding.feedback = `${role.value === 'ops' ? '专家' : '客户'} · ${finding.decisionReason}`
+  if (detail) {
+    finding.decisionReason = detail
+    finding.feedback = `${role.value === 'ops' ? '专家' : '客户'} · ${detail}`
+  }
+  else {
+    delete finding.decisionReason
+    finding.feedback = `${role.value === 'ops' ? '专家' : '客户'} · 未填写原因`
+  }
   reviewText.value = ''
   deferReason.value = ''
   deferMode.value = false
-  notify('本轮事项已终止，已保留原因。')
+  notify(detail ? '本轮事项已终止，已保留原因。' : '本轮事项已终止。')
   drawer.type = null
 }
 function startDeferFinding() {
@@ -997,14 +1008,14 @@ provide(geoWorkbenchRouteContextKey, {
               <p v-else class="geo-strategy-evidence__note">尚未匹配到可核对的正向覆盖差距，请先核查关联主题。</p>
             </div>
           </section>
-          <section v-if="strategyIgnoreMode && canReviewStrategy(drawer.item as Strategy)" class="geo-strategy-ignore-form" aria-label="忽略策略原因">
+          <section v-if="strategyIgnoreMode && canReviewStrategy(drawer.item as Strategy)" class="geo-strategy-ignore-form" :aria-label="serviceMode === 'agent' ? '不处理策略' : '忽略策略原因'">
             <label class="geo-form-label">
-              {{ serviceMode === 'agent' ? '不处理原因' : '忽略原因' }}
+              {{ serviceMode === 'agent' ? '不处理原因' : '忽略原因' }} <span v-if="serviceMode === 'managed'" aria-hidden="true">*</span><small v-else class="geo-muted">可选</small>
               <span class="geo-workbench-control">
-                <DropdownSelect v-model="reviewCategory" :options="reviewCategoryOptions" v-bind="{ ariaLabel: '请选择忽略原因' }" />
+                <DropdownSelect v-model="reviewCategory" :options="reviewCategoryOptions" v-bind="{ ariaLabel: serviceMode === 'agent' ? '请选择不处理原因' : '请选择忽略原因' }" />
               </span>
             </label>
-            <Textarea id="strategy-ignore-comment" v-model="reviewText" class="geo-review-textarea" placeholder="补充说明" :rows="3" />
+            <Textarea id="strategy-ignore-comment" v-model="reviewText" class="geo-review-textarea" :placeholder="serviceMode === 'agent' ? '可选：补充说明' : '补充说明'" :rows="3" />
           </section>
         </div>
       </template>
@@ -1056,14 +1067,14 @@ provide(geoWorkbenchRouteContextKey, {
         <div v-if="deferMode" class="geo-detail-section geo-defer-form">
           <strong>{{ serviceMode === 'agent' ? '不处理说明' : '暂不修复说明' }}</strong>
           <label class="geo-form-label">
-            {{ serviceMode === 'agent' ? '不处理原因' : '暂不修复原因' }} <span aria-hidden="true">*</span>
+            {{ serviceMode === 'agent' ? '不处理原因' : '暂不修复原因' }} <span v-if="serviceMode === 'managed'" aria-hidden="true">*</span><small v-else class="geo-muted">可选</small>
             <span class="geo-workbench-control">
-              <DropdownSelect v-model="deferReason" :options="deferReasonOptions" v-bind="{ ariaLabel: '请选择暂不修复原因' }" />
+              <DropdownSelect v-model="deferReason" :options="deferReasonOptions" v-bind="{ ariaLabel: serviceMode === 'agent' ? '请选择不处理原因' : '请选择暂不修复原因' }" />
             </span>
           </label>
           <label class="geo-form-label">
-            {{ serviceMode === 'agent' ? '不处理说明' : '暂不修复说明' }} <span aria-hidden="true">*</span>
-            <Textarea id="finding-defer-comment" v-model="reviewText" class="geo-review-textarea" placeholder="例如：官网下周整体改版，本周暂不单独处理。" :rows="5" />
+            {{ serviceMode === 'agent' ? '不处理说明' : '暂不修复说明' }} <span v-if="serviceMode === 'managed'" aria-hidden="true">*</span><small v-else class="geo-muted">可选</small>
+            <Textarea id="finding-defer-comment" v-model="reviewText" class="geo-review-textarea" :placeholder="serviceMode === 'agent' ? '可选：补充说明，便于后续追溯。' : '例如：官网下周整体改版，本周暂不单独处理。'" :rows="5" />
           </label>
         </div>
       </template>

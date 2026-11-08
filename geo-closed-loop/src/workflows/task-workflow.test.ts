@@ -1,6 +1,6 @@
 import type { GeoTask } from '../data/geo-data'
 import { describe, expect, it } from 'vitest'
-import { advanceAutomatic, applyAction, canEditBrief, ensureWorkflow, getTaskBucket, hasAutomaticStep, isTaskIgnored, knowledgeLibrary, reviewOwner, taskStageLabel } from './task-workflow'
+import { advanceAutomatic, applyAction, canEditBrief, canPrepareBrief, deferredTaskFor, ensureWorkflow, getTaskBucket, hasAutomaticStep, isTaskDeferred, isTaskIgnored, knowledgeLibrary, reviewOwner, taskStageLabel } from './task-workflow'
 
 function makeTask(type: GeoTask['type'], progress: GeoTask['progress']): GeoTask {
   return {
@@ -226,10 +226,10 @@ describe('prototype task ownership and backend-driven repair status', () => {
 
     expect(flow.ignoredTask).toMatchObject({
       stage: 'human',
-      stageLabel: '运营专业审核',
+      stageLabel: '专家专业审核',
       reason: '事实 / 证据不足',
       explanation: '当前阶段资料不足。',
-      actor: '运营',
+      actor: '专家',
     })
     expect(getTaskBucket(task)).toBe('ignored')
     expect(taskStageLabel(task)).toBe('已忽略')
@@ -371,6 +371,112 @@ describe('customer-only review journeys', () => {
     expect(hasAutomaticStep(task, 'agent')).toBe(false)
     expect(advanceAutomatic(task, 'agent')).toBe(false)
     expect(task.workflow!.ignoredTask?.actor).toBe('客户')
+  })
+
+  it('lets the agent customer ignore without a reason or explanation', () => {
+    const task = makeTask('web', 'brief')
+    const flow = ensureWorkflow(task)
+
+    expect(applyAction(task, 'client', 'agent', 'ignore_task')).toBeNull()
+
+    expect(flow.ignoredTask).toMatchObject({ reason: '', explanation: '', actor: '客户' })
+    expect(flow.ignoredBrief).toMatchObject({ reason: '', explanation: '' })
+    expect(flow.reviews.at(-1)?.note).toBe('忽略本次审核事项')
+    expect(getTaskBucket(task)).toBe('ignored')
+  })
+})
+
+describe('deferring and resuming a task step', () => {
+  it('keeps the current progress, removes the task from execution, and records the decision', () => {
+    const task = makeTask('web', 'human')
+    const flow = ensureWorkflow(task)
+
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '资料待补充', note: '等待客户补充认证材料。' })).toBeNull()
+
+    expect(flow.deferredTask).toMatchObject({
+      stage: 'human',
+      stageLabel: '专家专业审核',
+      reason: '资料待补充',
+      explanation: '等待客户补充认证材料。',
+      actor: '专家',
+    })
+    expect(isTaskDeferred(task)).toBe(true)
+    expect(isTaskIgnored(task)).toBe(false)
+    expect(task.progress).toBe('human')
+    expect(deferredTaskFor(task)?.stageLabel).toBe('专家专业审核')
+    expect(getTaskBucket(task)).toBe('deferred')
+    expect(taskStageLabel(task)).toBe('已暂不处理')
+    expect(hasAutomaticStep(task)).toBe(false)
+    expect(advanceAutomatic(task)).toBe(false)
+  })
+
+  it('requires the current step owner and, in managed mode, a reason plus explanation', () => {
+    const task = makeTask('web', 'human')
+    ensureWorkflow(task)
+
+    expect(applyAction(task, 'client', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toContain('当前步骤负责人')
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他' })).toContain('暂不处理说明')
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { note: '说明' })).toContain('暂不处理原因')
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toBeNull()
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '再次提交' })).toContain('已暂不处理')
+  })
+
+  it('blocks other actions until the step is resumed, then keeps the same progress', () => {
+    const task = makeTask('web', 'human')
+    ensureWorkflow(task)
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '暂缓处理。' })).toBeNull()
+
+    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toContain('请先恢复处理')
+    expect(applyAction(task, 'ops', 'managed', 'resume_task')).toBeNull()
+
+    expect(task.workflow!.deferredTask).toBeUndefined()
+    expect(isTaskDeferred(task)).toBe(false)
+    expect(task.progress).toBe('human')
+    expect(getTaskBucket(task)).toBe('review')
+    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
+  })
+
+  it('can still be terminally ignored after deferring', () => {
+    const task = makeTask('web', 'human')
+    const flow = ensureWorkflow(task)
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '先暂缓。' })).toBeNull()
+
+    expect(applyAction(task, 'ops', 'managed', 'ignore_task', { ignoreReason: '不再执行', note: '确认不处理。' })).toBeNull()
+
+    expect(flow.deferredTask).toBeUndefined()
+    expect(flow.ignoredTask).toMatchObject({ stage: 'human', stageLabel: '专家专业审核', reason: '不再执行' })
+    expect(isTaskDeferred(task)).toBe(false)
+    expect(isTaskIgnored(task)).toBe(true)
+    expect(getTaskBucket(task)).toBe('ignored')
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toContain('已忽略')
+  })
+
+  it('lets the agent customer defer without a reason or explanation and resume later', () => {
+    const task = makeTask('web', 'brief')
+    const flow = ensureWorkflow(task)
+
+    expect(applyAction(task, 'client', 'agent', 'defer_task')).toBeNull()
+
+    expect(flow.deferredTask).toMatchObject({ stage: 'brief', stageLabel: 'Task Brief 确认', reason: '', explanation: '', actor: '客户' })
+    expect(isTaskDeferred(task)).toBe(true)
+    expect(canPrepareBrief(task, 'client', 'agent')).toBe(false)
+    expect(canEditBrief(task, 'client', 'agent')).toBe(false)
+    expect(getTaskBucket(task)).toBe('deferred')
+    expect(applyAction(task, 'client', 'agent', 'confirm_brief')).toContain('请先恢复处理')
+    expect(applyAction(task, 'client', 'agent', 'resume_task')).toBeNull()
+    expect(isTaskDeferred(task)).toBe(false)
+    expect(canPrepareBrief(task, 'client', 'agent')).toBe(true)
+    expect(task.progress).toBe('brief')
+  })
+
+  it('rejects deferring or resuming a completed task and resuming a task that is not deferred', () => {
+    const active = makeTask('web', 'human')
+    ensureWorkflow(active)
+    expect(applyAction(active, 'ops', 'managed', 'resume_task')).toContain('未暂不处理')
+
+    const completed = makeTask('web', 'done')
+    ensureWorkflow(completed)
+    expect(applyAction(completed, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toContain('已完成')
   })
 })
 

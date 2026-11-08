@@ -46,6 +46,7 @@ export interface IgnoredTask extends IgnoredBrief {
   stage: TaskProgress
   stageLabel: string
 }
+export type DeferredTask = IgnoredTask
 export interface TaskWorkflow {
   brief: TaskBrief
   briefStatus: 'ready' | 'changes_requested' | 'agent_reworking' | 'confirmed'
@@ -59,11 +60,12 @@ export interface TaskWorkflow {
   reviews: Array<{ time: string, actor: string, note: string }>
   ignoredBrief?: IgnoredBrief
   ignoredTask?: IgnoredTask
+  deferredTask?: DeferredTask
   site: { requirements: string, attempts: number, simulateFailure: boolean, preview: string, result: string, targetSite?: string, targetPage?: string, changeType?: string, factBoundary?: string, acceptance?: string }
   url: string
 }
-export type TaskBucket = 'brief' | 'brief_changes' | 'executing' | 'review' | 'website' | 'done' | 'ignored'
-export type WorkflowAction = 'save_brief' | 'update_web_supplement' | 'confirm_brief' | 'ignore_brief' | 'ignore_task' | 'request_brief_changes' | 'rework_brief' | 'save_output' | 'request_output_changes' | 'request_preview_changes' | 'approve_ops' | 'approve_client' | 'submit_site' | 'retry_site' | 'publish' | 'complete_recheck'
+export type TaskBucket = 'brief' | 'brief_changes' | 'executing' | 'review' | 'website' | 'done' | 'ignored' | 'deferred'
+export type WorkflowAction = 'save_brief' | 'update_web_supplement' | 'confirm_brief' | 'ignore_brief' | 'ignore_task' | 'defer_task' | 'resume_task' | 'request_brief_changes' | 'rework_brief' | 'save_output' | 'request_output_changes' | 'request_preview_changes' | 'approve_ops' | 'approve_client' | 'submit_site' | 'retry_site' | 'publish' | 'complete_recheck'
 export interface WorkflowPayload {
   note?: string
   ignoreReason?: string
@@ -255,11 +257,11 @@ export function validPublishUrl(value: string) {
   }
 }
 export function canEditBrief(task: GeoTask, role: UserRole, mode: ServiceMode) {
-  return task.progress === 'brief' && !isTaskIgnored(task) && task.workflow?.briefStatus === 'ready' && role === 'ops' && mode === 'managed'
+  return task.progress === 'brief' && !isTaskIgnored(task) && !isTaskDeferred(task) && task.workflow?.briefStatus === 'ready' && role === 'ops' && mode === 'managed'
 }
 export function canPrepareBrief(task: GeoTask, role: UserRole, mode: ServiceMode) {
   return mode === 'agent'
-    ? task.progress === 'brief' && !isTaskIgnored(task) && task.workflow?.briefStatus === 'ready' && role === 'client'
+    ? task.progress === 'brief' && !isTaskIgnored(task) && !isTaskDeferred(task) && task.workflow?.briefStatus === 'ready' && role === 'client'
     : canEditBrief(task, role, mode)
 }
 export function reviewOwner(task: GeoTask, mode: ServiceMode): UserRole {
@@ -290,6 +292,12 @@ export function ignoredTaskFor(task: GeoTask): IgnoredTask | undefined {
 export function isTaskIgnored(task: GeoTask): boolean {
   return Boolean(ignoredTaskFor(task))
 }
+export function deferredTaskFor(task: GeoTask): DeferredTask | undefined {
+  return task.workflow?.deferredTask
+}
+export function isTaskDeferred(task: GeoTask): boolean {
+  return Boolean(deferredTaskFor(task))
+}
 /** Pure validation: UI visibility never substitutes for action authorization. */
 export function validateAction(task: GeoTask, role: UserRole, mode: ServiceMode, action: WorkflowAction, payload: WorkflowPayload = {}): string | null {
   if (isDirectRepairTask(task)) return '官网技术直接处理由 AI 建站自动执行，无需人工操作'
@@ -299,6 +307,8 @@ export function validateAction(task: GeoTask, role: UserRole, mode: ServiceMode,
     return '任务尚未初始化'
   if (mode === 'agent' && role !== 'client')
     return 'Agent 模式下请使用客户角色'
+  if (isTaskDeferred(task) && action !== 'resume_task' && action !== 'ignore_task')
+    return action === 'defer_task' ? '本次审核事项已暂不处理' : '本次审核事项已暂不处理，请先恢复处理'
   const briefEditable = canPrepareBrief(task, role, mode)
   const reviewing = ['client_content_review', 'human', 'client_review'].includes(stage) && reviewOwner(task, mode) === role
   const preparingContent = role === 'client' && ['todo', 'running'].includes(stage)
@@ -326,7 +336,27 @@ export function validateAction(task: GeoTask, role: UserRole, mode: ServiceMode,
       return '本次审核事项已忽略'
     if (!briefEditable)
       return '仅专家可忽略待确认的 Brief'
+    if (mode === 'agent')
+      return null
     return !payload.ignoreReason?.trim() ? '请选择忽略原因' : !payload.note?.trim() ? '请填写忽略说明' : null
+  }
+  if (action === 'defer_task') {
+    if (isTaskIgnored(task))
+      return '本次审核事项已忽略，不能暂不处理'
+    if (stage === 'done')
+      return '任务已完成，不能暂不处理'
+    if (ignoreOwner(task, mode) !== role)
+      return `仅当前步骤负责人（${ignoreOwner(task, mode) === 'ops' ? '专家' : '客户'}）可暂不处理当前步骤`
+    if (mode === 'agent')
+      return null
+    return !payload.ignoreReason?.trim() ? '请选择暂不处理原因' : !payload.note?.trim() ? '请填写暂不处理说明' : null
+  }
+  if (action === 'resume_task') {
+    if (!isTaskDeferred(task))
+      return '本次审核事项未暂不处理'
+    if (ignoreOwner(task, mode) !== role)
+      return `仅当前步骤负责人（${ignoreOwner(task, mode) === 'ops' ? '专家' : '客户'}）可恢复处理当前步骤`
+    return null
   }
   if (action === 'ignore_task') {
     if (isTaskIgnored(task))
@@ -335,6 +365,8 @@ export function validateAction(task: GeoTask, role: UserRole, mode: ServiceMode,
       return '任务已完成，不能再忽略'
     if (ignoreOwner(task, mode) !== role)
       return `仅当前步骤负责人（${ignoreOwner(task, mode) === 'ops' ? '专家' : '客户'}）可忽略当前步骤`
+    if (mode === 'agent')
+      return null
     return !payload.ignoreReason?.trim() ? '请选择忽略原因' : !payload.note?.trim() ? '请填写忽略说明' : null
   }
   if (action === 'request_brief_changes')
@@ -401,10 +433,21 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       flow.briefStatus = 'confirmed'
       task.progress = task.executionKind === 'verification' ? 'human' : 'todo'
       break
+    case 'defer_task': {
+      const reason = payload.ignoreReason?.trim() || ''
+      flow.deferredTask = { stage: task.progress, stageLabel: task.progress === 'brief' ? 'Task Brief 确认' : taskStageLabel(task, mode), reason, explanation: note, actor, time: now() }
+      break
+    }
+    case 'resume_task':
+      flow.deferredTask = undefined
+      break
     case 'ignore_brief':
     case 'ignore_task': {
-      const ignored = { stage: task.progress, stageLabel: task.progress === 'brief' ? 'Task Brief 确认' : taskStageLabel(task), reason: payload.ignoreReason!.trim(), explanation: note, actor, time: now() }
+      const reason = payload.ignoreReason?.trim() || ''
+      const stageLabel = flow.deferredTask?.stageLabel ?? (task.progress === 'brief' ? 'Task Brief 确认' : taskStageLabel(task, mode))
+      const ignored = { stage: task.progress, stageLabel, reason, explanation: note, actor, time: now() }
       flow.ignoredTask = ignored
+      flow.deferredTask = undefined
       if (task.progress === 'brief')
         flow.ignoredBrief = { reason: ignored.reason, explanation: ignored.explanation, actor, time: ignored.time }
       break
@@ -466,14 +509,17 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       task.progress = 'done'
       break
   }
-  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: mode === 'agent' && task.type === 'web' ? `客户第${flow.customerRevisionRequests ?? 0}次要求 Agent 修改` : '要求 Agent 修改产物', request_preview_changes: '客户对发布预览提出修改，退回专家处理', approve_ops: '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', publish: '客户确认发布，任务完结；后台启动发布后效果验证', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
-  record(task, actor, `${labels[action]}${action === 'ignore_brief' || action === 'ignore_task' ? `：${payload.ignoreReason!.trim()}；${note}` : note ? `：${note}` : ''}`)
+  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', defer_task: '暂不处理本次审核事项', resume_task: '恢复处理本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: mode === 'agent' && task.type === 'web' ? `客户第${flow.customerRevisionRequests ?? 0}次要求 Agent 修改` : '要求 Agent 修改产物', request_preview_changes: '客户对发布预览提出修改，退回专家处理', approve_ops: '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', publish: '客户确认发布，任务完结；后台启动发布后效果验证', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
+  const detail = action === 'ignore_brief' || action === 'ignore_task' || action === 'defer_task'
+    ? [payload.ignoreReason?.trim(), note].filter(Boolean).join('；')
+    : note
+  record(task, actor, `${labels[action]}${detail ? `：${detail}` : ''}`)
   return null
 }
 export function hasAutomaticStep(task: GeoTask, mode: ServiceMode = 'managed') {
   if (isDirectRepairTask(task))
     return task.progress !== 'done'
-  if (isTaskIgnored(task))
+  if (isTaskIgnored(task) || isTaskDeferred(task))
     return false
   if (task.type === 'repair' && mode === 'managed')
     return false
@@ -482,6 +528,8 @@ export function hasAutomaticStep(task: GeoTask, mode: ServiceMode = 'managed') {
 /** One local demo step, called by a disposable timer. No external requests or publishing. */
 export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
   const flow = ensureWorkflow(task)
+  if (isTaskDeferred(task))
+    return false
   if (isDirectRepairTask(task)) {
     if (task.progress === 'done') return false
     flow.ignoredTask = undefined
@@ -536,7 +584,7 @@ export function expireUnsubmittedWebsiteTasks(tasks: GeoTask[]) {
   const expired: string[] = []
   for (const task of tasks) {
     if (task.origin === 'standalone' || task.type === 'external' || task.executionKind === 'verification') continue
-    if (task.progress === 'done' || submittedStages.includes(task.progress) || isTaskIgnored(task)) continue
+    if (task.progress === 'done' || submittedStages.includes(task.progress) || isTaskIgnored(task) || isTaskDeferred(task)) continue
     task.progress = 'done'
     task.completionOutcome = 'expired-unexecuted'
     record(task, '系统', '新一轮监测已生成；本任务在时限内未提交官网，按规则关闭，未执行优化。')
@@ -549,6 +597,8 @@ export function getTaskBucket(task: GeoTask): TaskBucket {
     return task.progress === 'done' ? 'done' : 'executing'
   if (isTaskIgnored(task))
     return 'ignored'
+  if (isTaskDeferred(task))
+    return 'deferred'
   if (task.progress === 'done')
     return 'done'
   if (task.progress === 'brief')
@@ -565,6 +615,8 @@ export function taskStageLabel(task: GeoTask, mode: ServiceMode = 'managed'): st
     return directRepairStatus(task.progress === 'done')
   if (isTaskIgnored(task))
     return '已忽略'
+  if (isTaskDeferred(task))
+    return '已暂不处理'
   if (task.progress === 'brief')
     return task.workflow?.briefStatus === 'agent_reworking' ? 'Agent 重整 Brief' : task.workflow?.briefStatus === 'changes_requested' ? 'Brief 待调整' : 'Brief 待确认'
   if (mode === 'agent' && task.type === 'web' && task.progress === 'running' && (task.workflow?.customerRevisionRequests ?? 0) > 0)
@@ -577,6 +629,8 @@ export function collaborationLabel(task: GeoTask, mode: ServiceMode = 'managed')
     return directRepairStatus(task.progress === 'done')
   if (isTaskIgnored(task))
     return '已忽略'
+  if (isTaskDeferred(task))
+    return '已暂不处理'
   if (task.progress === 'done')
     return '完成'
   if (hasAutomaticStep(task))

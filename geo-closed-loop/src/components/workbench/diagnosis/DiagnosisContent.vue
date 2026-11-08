@@ -283,7 +283,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
           </h2>
         </div><div class="geo-inline-tags">
           <Tag tone="red" variant="soft" size="sm">{{ abnormalFindings.length }} 异常</Tag>
-          <Tag tone="orange" variant="soft" size="sm">{{ serviceMode === 'agent' ? '待客户确认' : '待审核' }} {{ auditPendingReviewCount }}</Tag>
+          <Tag tone="orange" variant="soft" size="sm">{{ serviceMode === 'agent' ? '待确认' : '待审核' }} {{ auditPendingReviewCount }}</Tag>
           <Tag tone="green" variant="soft" size="sm">已通过 {{ auditApprovedCount }}</Tag>
           <Tag tone="neutral" variant="soft" size="sm">无需审核 {{ auditNoReviewCount }}</Tag>
         </div>
@@ -305,7 +305,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
         </select>
         <select v-model="statusFilter" class="geo-treatment-filter" aria-label="处理状态筛选">
           <option value="all">全部状态</option>
-          <option value="pending">{{ serviceMode === 'agent' ? '待客户确认' : '待审核' }}</option>
+          <option value="pending">{{ serviceMode === 'agent' ? '待确认' : '待审核' }}</option>
           <option value="approved">已通过</option>
           <option value="no-review">无需审核</option>
         </select>

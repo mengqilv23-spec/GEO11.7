@@ -224,7 +224,7 @@ defineExpose({ focusEditor })
 </script>
 
 <template>
-  <section class="task-rich-editor" :class="{ 'is-editable': editable, 'has-ai-dock': aiOptimize }" :aria-label="label">
+  <section class="task-rich-editor" :class="{ 'is-editable': editable, 'has-ai-dock': aiOptimize || Boolean($slots.aiDockBelow || $slots['ai-dock-below']) }" :aria-label="label">
     <div ref="editorRoot" class="task-rich-editor__writing">
       <div v-if="editable" class="task-rich-editor__toolbar" role="toolbar" aria-label="正文格式">
       <button
@@ -268,7 +268,7 @@ defineExpose({ focusEditor })
         <button type="button" aria-label="确认这条联网信息准确" @click="emit('confirm-external-claim', activeClaim.id); activeClaimId = null">确认准确</button>
       </div>
     </div>
-    <aside v-if="aiOptimize || $slots.aiDockBelow" class="task-rich-editor__ai-dock" :aria-label="aiOptimize ? 'AI 写作及质检' : 'AI 质检'">
+    <aside v-if="aiOptimize || $slots.aiDockBelow || $slots['ai-dock-below']" class="task-rich-editor__ai-dock" :aria-label="aiOptimize ? 'AI 写作及质检' : 'AI 质检'">
       <template v-if="aiOptimize">
       <header class="task-rich-editor__ai-dock-head">
         <strong>AI 写作</strong>
@@ -483,6 +483,12 @@ defineExpose({ focusEditor })
   color: #687790;
 }
 
+/* The task workspace is narrower than the viewport because of its sidebar.
+   Stack against the actual writing area, not just the browser width. */
+@container task-output (max-width: 1030px) {
+  .task-rich-editor.has-ai-dock { grid-template-columns:minmax(0,1fr); }
+  .task-rich-editor__ai-dock { position:static; }
+}
 @media (max-width: 1180px) {
   .task-rich-editor.has-ai-dock { grid-template-columns:minmax(0,1fr); }
   .task-rich-editor__ai-dock { position:static; }
