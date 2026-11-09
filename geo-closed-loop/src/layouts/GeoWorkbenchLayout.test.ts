@@ -79,7 +79,7 @@ describe('geoWorkbenchLayout icon migration', () => {
     expect(findingDrawer.get('header').element.firstElementChild?.tagName).toBe('H2')
     expect(findingDrawer.get('h2').text()).toBe('异常处理 · 专家作者档案待补')
     expect(findingDrawer.text()).toContain('⑤ 品牌实体')
-    expect(findingDrawer.text()).toContain('已生成任务')
+    expect(findingDrawer.text()).toContain('处理中')
     expect(findingDrawer.text()).toContain('2 位工程师已有内容贡献，但缺少可验证的专业背景、经验与作者介绍。')
     expect(findingDrawer.text()).toContain('需要确认专家范围、身份事实和对外介绍方式。')
     expect(findingDrawer.text()).not.toContain('后续流程')
@@ -118,14 +118,15 @@ describe('geoWorkbenchLayout icon migration', () => {
     expect(drawer.get('p').text()).toBe('')
     expect(drawer.get('h2').text()).toBe('交期页增加汽车工艺停机风险与服务问答')
     expect(drawer.findAll('.geo-strategy-detail-card__header').map(header => header.text())).toEqual([
-      '认知缺口策略已生成任务',
+      '认知缺口策略处理中',
       'Agent 建议方法',
+      '关联任务处理中',
       '策略依据',
     ])
     expect(drawer.get('.geo-strategy-evidence__platforms').text()).toContain('全部平台汇总')
     expect(drawer.get('.geo-strategy-evidence__platforms').text()).toContain('ChatGPT')
     expect(drawer.find('.geo-strategy-status').exists()).toBe(false)
-    expect(drawer.find('.geo-strategy-drawer__status').text()).toBe('已生成任务')
+    expect(drawer.find('.geo-strategy-drawer__status').text()).toBe('处理中')
     expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('策略类型官网内容')
     expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('目标人设汽车工艺、车间主管')
     expect(drawer.get('.geo-strategy-recommendation').text()).toBe('建议采用停机风险 Q&A、服务问答、买家场景补充等方式，完成本次官网内容优化。')
@@ -345,7 +346,8 @@ it.each(['managed', 'agent'] as const)('restores advice into %s without putting 
       const drawer = wrapper.get('.test-drawer')
       expect(drawer.text()).toContain(item.advice!)
       expect(drawer.text()).toContain(item.evidence!)
-      expect(drawer.text()).toContain('无需处理')
+      expect(drawer.text()).toContain('解决方案')
+      expect(drawer.text()).toContain('已完成')
       expect(drawer.findAll('footer button').map(button => button.text())).toEqual(['关闭'])
     }
     context!.openPending()

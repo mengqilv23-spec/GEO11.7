@@ -16,8 +16,8 @@ import { geoWorkbenchRouteContextKey } from '../composables/workbench-route-cont
 import { auditChecks, auditFindings, clientContentReviewFindings, supplementalBriefFindings, baselineMetrics, cloneGeoTask, displayObjectCodes, filterTasks, initialTasks, officialContentSnapshot, personas, prototypeTasks, strategies } from '../data/geo-data'
 import { createRepairTask, orchestrateStrategy } from '../services/geo-orchestration'
 import { useWorkbenchTasksStore } from '../stores/workbench-tasks'
-import { strategyReviewStatus } from '../workflows/review-status'
-import { findingHasTask, findingRouteLabel, findingStatusLabel as resolveFindingStatusLabel, findingTreatment, isAdviceFinding, isKnowledgeFinding, isReadOnlyFinding } from '../workflows/finding-treatment'
+import { diagnosisFindingStatus, diagnosisStrategyStatus } from '../workflows/diagnosis-status'
+import { findingHasTask, findingRouteLabel, findingTreatment, isAdviceFinding, isKnowledgeFinding, isReadOnlyFinding } from '../workflows/finding-treatment'
 import { isDirectRepairFinding, isDirectRepairTask } from '../workflows/direct-repair'
 import { advanceAutomatic, ensureWorkflow, knowledgeLibrary, taskStageLabel } from '../workflows/task-workflow'
 import { normalizeClientFindings, createClientFindingTask, strategyGapEvidence, strategyCoverageGapRefs, platformGapBreakdown, clientStrategyPlan, createVerificationTask } from '../workflows/client-diagnosis'
@@ -807,7 +807,7 @@ function drawerEyebrow() {
   return isAdviceFinding(drawer.item as AuditFinding) ? '仅提供建议' : `异常${Math.max(1, index + 1)}`
 }
 function strategyStatusLabel(strategy: Strategy) {
-  return strategyReviewStatus(strategy, tasks, serviceMode.value)
+  return diagnosisStrategyStatus(strategy, tasks)
 }
 function linkedTaskForStrategy(strategy: Strategy) {
   return tasks.find(task => task.strategy === strategy.id || task.relatedStrategies.includes(strategy.id))
@@ -847,7 +847,17 @@ function findingCheckLabel(finding: AuditFinding) {
   return `${circledNumbers[checkIndex] ?? ''} ${finding.check}`.trim()
 }
 function findingStatusLabel(finding: AuditFinding) {
-  return resolveFindingStatusLabel(finding, strategyState, tasks, serviceMode.value === 'agent')
+  return diagnosisFindingStatus(finding, strategyState, tasks)
+}
+function findingStatusClass(finding: AuditFinding) {
+  const status = findingStatusLabel(finding)
+  return {
+    'is-advice': isAdviceFinding(finding),
+    'is-review': status === '待审核',
+    'is-processing': status === '处理中',
+    'is-done': status === '已完成',
+    'is-deferred': finding.status === '暂不修复',
+  }
 }
 provide(geoWorkbenchRouteContextKey, {
   findings,
@@ -950,7 +960,7 @@ provide(geoWorkbenchRouteContextKey, {
           <section class="geo-strategy-detail-card">
             <header class="geo-strategy-detail-card__header">
               <strong>认知缺口策略</strong>
-              <span class="geo-strategy-drawer__status">{{ strategyStatusLabel(drawer.item as Strategy) }}</span>
+              <span class="geo-strategy-drawer__status" :class="{ 'is-task': strategyStatusLabel(drawer.item as Strategy) === '处理中', 'is-done': strategyStatusLabel(drawer.item as Strategy) === '已完成' }">{{ strategyStatusLabel(drawer.item as Strategy) }}</span>
             </header>
             <dl class="geo-strategy-detail-grid">
               <dt>优先级</dt><dd>
@@ -973,7 +983,7 @@ provide(geoWorkbenchRouteContextKey, {
           <section v-if="linkedTaskForStrategy(drawer.item as Strategy)" class="geo-strategy-detail-card geo-strategy-task-link">
             <header class="geo-strategy-detail-card__header">
               <strong>关联任务</strong>
-              <span class="geo-strategy-drawer__status is-task">{{ taskStageLabel(linkedTaskForStrategy(drawer.item as Strategy)!, serviceMode) }}</span>
+              <span class="geo-strategy-drawer__status" :class="{ 'is-task': strategyStatusLabel(drawer.item as Strategy) === '处理中', 'is-done': strategyStatusLabel(drawer.item as Strategy) === '已完成' }">{{ strategyStatusLabel(drawer.item as Strategy) }}</span>
             </header>
             <div class="geo-strategy-task-link__body">
               <div>
@@ -1030,7 +1040,7 @@ provide(geoWorkbenchRouteContextKey, {
             </dd>
             <template v-if="isReadOnlyFinding(drawer.item as AuditFinding)">
               <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
-              <dt>{{ isKnowledgeFinding(drawer.item as AuditFinding) ? '补充要求' : '参考建议' }}</dt><dd>{{ (drawer.item as AuditFinding).advice || (drawer.item as AuditFinding).routeReason }}</dd>
+              <dt>{{ isKnowledgeFinding(drawer.item as AuditFinding) ? '补充要求' : '解决方案' }}</dt><dd>{{ (drawer.item as AuditFinding).advice || (drawer.item as AuditFinding).routeReason }}</dd>
             </template>
             <template v-else-if="serviceMode === 'managed'">
               <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
@@ -1045,7 +1055,7 @@ provide(geoWorkbenchRouteContextKey, {
               <dd>{{ taskForFinding(drawer.item as AuditFinding)!.id }} · {{ taskStageLabel(taskForFinding(drawer.item as AuditFinding)!, serviceMode) }}</dd>
             </template>
             <dt>所属检查项</dt><dd>{{ findingCheckLabel(drawer.item as AuditFinding) }}</dd>
-            <dt>当前状态</dt><dd><span class="geo-finding-status" :class="{ 'is-advice': isAdviceFinding(drawer.item as AuditFinding), 'is-done': ['已生成任务', '已完成处理', 'AI建站处理中'].includes(findingStatusLabel(drawer.item as AuditFinding)), 'is-deferred': findingStatusLabel(drawer.item as AuditFinding) === '暂不修复' }">{{ findingStatusLabel(drawer.item as AuditFinding) }}</span></dd>
+            <dt>当前状态</dt><dd><span class="geo-finding-status" :class="findingStatusClass(drawer.item as AuditFinding)">{{ findingStatusLabel(drawer.item as AuditFinding) }}</span></dd>
             <dt v-if="(drawer.item as AuditFinding).decisionReason">
               {{ serviceMode === 'agent' ? '终止原因' : '暂缓原因' }}
             </dt><dd v-if="(drawer.item as AuditFinding).decisionReason">

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { strategyReviewStatus, strategyTaskActionLabel } from '../../../workflows/review-status'
-import { findingHasTask, findingRouteLabel, findingStatusLabel as resolveFindingStatusLabel, isAdviceFinding, isKnowledgeFinding, isReadOnlyFinding } from '../../../workflows/finding-treatment'
+import { strategyTaskActionLabel } from '../../../workflows/review-status'
+import { findingHasTask, findingRouteLabel, isAdviceFinding, isKnowledgeFinding, isReadOnlyFinding } from '../../../workflows/finding-treatment'
 import { isDirectRepairFinding } from '../../../workflows/direct-repair'
+import type { DiagnosisStatus } from '../../../workflows/diagnosis-status'
+import { diagnosisFindingStatus, diagnosisStrategyStatus } from '../../../workflows/diagnosis-status'
 import type { AuditCheck, AuditFinding, GeoTask, Persona, Strategy, StrategyLayer } from '../../../data/geo-data'
 import type { DataListColumn } from '../../ui/ce/data-list/types'
 import { storeToRefs } from 'pinia'
@@ -128,9 +130,7 @@ const visibleStrategies = computed(() => sortedStrategies.value.slice((queuePage
 const activeAuditCheck = computed(() => auditChecks.find(check => check.id === auditFilter.value))
 const filteredFindings = computed(() => props.findings.filter(finding => {
   if (activeAuditCheck.value && finding.check !== activeAuditCheck.value.label) return false
-  if (statusFilter.value === 'pending' && !['待处理', '待官网运营审核', '待专家审核', '已生成策略'].includes(finding.status)) return false
-  if (statusFilter.value === 'approved' && !findingHasApprovedReview(finding)) return false
-  if (statusFilter.value === 'no-review' && (!isDirectRepairFinding(finding) || isReadOnlyFinding(finding))) return false
+  if (statusFilter.value !== 'all' && findingStatusLabel(finding) !== statusFilter.value) return false
   if (treatmentFilter.value === 'knowledge') return isKnowledgeFinding(finding)
   if (treatmentFilter.value === 'advice') return isAdviceFinding(finding)
   if (treatmentFilter.value === 'repair') return isDirectRepairFinding(finding)
@@ -152,7 +152,17 @@ function findingActionLabel(finding: AuditFinding) {
   return canReview.value && !isDirectRepairFinding(finding) && ['待处理', '待官网运营审核', '待专家审核', '已生成策略'].includes(finding.status) ? props.serviceMode === 'agent' ? '确认处理' : '审核' : '查看详情'
 }
 function findingStatusLabel(finding: AuditFinding) {
-  return resolveFindingStatusLabel(finding, allStrategies.value, props.tasks ?? [], props.serviceMode === 'agent')
+  return diagnosisFindingStatus(finding, allStrategies.value, props.tasks ?? [])
+}
+function findingStatusClass(finding: AuditFinding) {
+  const status = findingStatusLabel(finding)
+  return {
+    'is-advice': isReadOnlyFinding(finding),
+    'is-review': status === '待审核',
+    'is-processing': status === '处理中',
+    'is-done': status === '已完成',
+    'is-deferred': finding.status === '暂不修复',
+  }
 }
 function findingCheckLabel(finding: AuditFinding) {
   const index = auditChecks.findIndex(check => check.label === finding.check)
@@ -162,7 +172,12 @@ function taskFor(strategy: Strategy) {
   return props.tasks?.find(task => task.strategy === strategy.id || task.relatedStrategies.includes(strategy.id))
 }
 function strategyCollaborationLabel(strategy: Strategy) {
-  return strategyReviewStatus(strategy, props.tasks ?? [], props.serviceMode)
+  return diagnosisStrategyStatus(strategy, props.tasks ?? [])
+}
+function strategyStatusTone(strategy: Strategy): 'neutral' | 'orange' | 'blue' | 'green' {
+  if (strategy.ignored || strategy.businessGapRecorded) return 'neutral'
+  const status = strategyCollaborationLabel(strategy)
+  return status === '待审核' ? 'orange' : status === '处理中' ? 'blue' : 'green'
 }
 function strategyTaskLabel(strategy: Strategy) {
   const task = taskFor(strategy)
@@ -176,16 +191,13 @@ function canReviewStrategy(strategy: Strategy) {
 }
 function resultForCheck(check: AuditCheck) { return props.serviceMode === 'agent' ? clientCheckResult(check, props.findings, props.tasks ?? []) : { state: check.passed ? '通过' : '异常', errors: check.passed ? 0 : 1, unknown: 0 } }
 const abnormalFindings = computed(() => props.findings.filter(finding => !isReadOnlyFinding(finding)))
-const findingsRequiringReview = computed(() => abnormalFindings.value.filter(finding => !isDirectRepairFinding(finding)))
-function findingHasApprovedReview(finding: AuditFinding) {
-  return finding.status === '已修复' || findingHasTask(finding, allStrategies.value, props.tasks ?? [], true)
+function countDiagnosisStatuses(statuses: DiagnosisStatus[]) {
+  const counts: Record<DiagnosisStatus, number> = { '待审核': 0, '处理中': 0, '已完成': 0 }
+  for (const status of statuses) counts[status] += 1
+  return counts
 }
-const auditPendingReviewCount = computed(() => findingsRequiringReview.value.filter(finding => (
-  ['待处理', '待官网运营审核', '待专家审核', '已生成策略'].includes(finding.status)
-  && !findingHasApprovedReview(finding)
-)).length)
-const auditApprovedCount = computed(() => findingsRequiringReview.value.filter(findingHasApprovedReview).length)
-const auditNoReviewCount = computed(() => abnormalFindings.value.filter(isDirectRepairFinding).length)
+const auditStatusCounts = computed(() => countDiagnosisStatuses(props.findings.map(findingStatusLabel)))
+const strategyStatusCounts = computed(() => countDiagnosisStatuses(allStrategies.value.map(strategy => strategyCollaborationLabel(strategy))))
 const showPassedOnly = computed(() => props.serviceMode === 'agent' && activeAuditCheck.value && resultForCheck(activeAuditCheck.value).state === '通过')
 
 watch(() => props.strategyLayer, () => queuePage.value = 1)
@@ -283,9 +295,9 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
           </h2>
         </div><div class="geo-inline-tags">
           <Tag tone="red" variant="soft" size="sm">{{ abnormalFindings.length }} 异常</Tag>
-          <Tag tone="orange" variant="soft" size="sm">{{ serviceMode === 'agent' ? '待确认' : '待审核' }} {{ auditPendingReviewCount }}</Tag>
-          <Tag tone="green" variant="soft" size="sm">已通过 {{ auditApprovedCount }}</Tag>
-          <Tag tone="neutral" variant="soft" size="sm">无需审核 {{ auditNoReviewCount }}</Tag>
+          <Tag tone="orange" variant="soft" size="sm">待审核 {{ auditStatusCounts['待审核'] }}</Tag>
+          <Tag tone="blue" variant="soft" size="sm">处理中 {{ auditStatusCounts['处理中'] }}</Tag>
+          <Tag tone="green" variant="soft" size="sm">已完成 {{ auditStatusCounts['已完成'] }}</Tag>
         </div>
       </header>
       <div class="geo-check-grid" role="tablist" aria-label="官网 GEO 检查项">
@@ -305,9 +317,9 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
         </select>
         <select v-model="statusFilter" class="geo-treatment-filter" aria-label="处理状态筛选">
           <option value="all">全部状态</option>
-          <option value="pending">{{ serviceMode === 'agent' ? '待确认' : '待审核' }}</option>
-          <option value="approved">已通过</option>
-          <option value="no-review">无需审核</option>
+          <option value="待审核">待审核</option>
+          <option value="处理中">处理中</option>
+          <option value="已完成">已完成</option>
         </select>
         <Button v-if="auditFilter !== 'all'" variant="text" size="sm" @click="clearAuditFilter">
           取消筛选
@@ -344,7 +356,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
               <span class="geo-chip" :class="findingFromRow(finding).priority === 'P0' ? 'geo-chip--danger' : ''">{{ findingFromRow(finding).priority }}</span>
             </template>
             <template #cell-status="{ item: finding }">
-              <span class="geo-finding-status" :class="{ 'is-advice': isAdviceFinding(findingFromRow(finding)), 'is-review': ['审核', '确认处理'].includes(findingActionLabel(findingFromRow(finding))), 'is-done': ['已生成任务', '已完成处理', 'AI建站处理中'].includes(findingStatusLabel(findingFromRow(finding))), 'is-deferred': findingStatusLabel(findingFromRow(finding)) === '暂不修复' }">{{ findingStatusLabel(findingFromRow(finding)) }}</span>
+              <span class="geo-finding-status" :class="findingStatusClass(findingFromRow(finding))">{{ findingStatusLabel(findingFromRow(finding)) }}</span>
             </template>
             <template #cell-actions="{ item: finding }">
               <Button class="geo-finding-detail-button geo-table-detail-button" :class="{ 'geo-review-button': ['审核', '确认处理'].includes(findingActionLabel(findingFromRow(finding))) }" variant="secondary" size="md" type="button" @click="emit('openAudit', findingFromRow(finding))">
@@ -399,6 +411,11 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
               <button type="button" class="geo-help" aria-label="候选策略说明">?</button>
             </Tooltip>
           </h2>
+        </div>
+        <div class="geo-inline-tags">
+          <Tag tone="orange" variant="soft" size="sm">待审核 {{ strategyStatusCounts['待审核'] }}</Tag>
+          <Tag tone="blue" variant="soft" size="sm">处理中 {{ strategyStatusCounts['处理中'] }}</Tag>
+          <Tag tone="green" variant="soft" size="sm">已完成 {{ strategyStatusCounts['已完成'] }}</Tag>
         </div>
       </header>
       <div class="geo-strategy-context" role="status">
@@ -456,7 +473,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
             <span v-else>策略依据：{{ displayObjectCodes(strategyFromRow(strategy).source) }} · {{ strategyFromRow(strategy).gapFacts?.verified ? '核查已完成' : '待核查正向覆盖证据' }}</span>
           </template>
           <template #cell-status="{ item: strategy }">
-            <Tag :class="{ 'geo-review-status': canReviewStrategy(strategyFromRow(strategy)) }" :tone="(strategyFromRow(strategy).ignored || strategyFromRow(strategy).businessGapRecorded) ? 'neutral' : strategyNeedsReview(strategyFromRow(strategy)) ? 'orange' : 'green'" variant="soft" size="sm">
+            <Tag :class="{ 'geo-review-status': canReviewStrategy(strategyFromRow(strategy)) }" :tone="strategyStatusTone(strategyFromRow(strategy))" variant="soft" size="sm">
               {{ strategyCollaborationLabel(strategyFromRow(strategy)) }}
             </Tag>
           </template>

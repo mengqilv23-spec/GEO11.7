@@ -120,7 +120,7 @@ describe('diagnosisContent icons', () => {
     wrapper.unmount()
   })
 
-  it.each(['agent', 'managed'] as const)('shows linked tasks as generated even with a legacy unconfirmed flag in %s', (mode) => {
+  it.each(['agent', 'managed'] as const)('shows linked tasks as processing even with a legacy unconfirmed flag in %s', (mode) => {
     const wrapper = mount(DiagnosisContent, {
       props: {
         findings: auditFindings,
@@ -139,10 +139,10 @@ describe('diagnosisContent icons', () => {
     })
 
     const linkedTask = wrapper.findAll('.geo-strategy-table tbody button').find(button => button.text() === '查看任务')
-    expect(wrapper.get('.geo-strategy-table tbody').text()).toContain('已生成任务')
+    expect(wrapper.get('.geo-strategy-table tbody').text()).toContain('处理中')
     expect(wrapper.get('.geo-strategy-table tbody').text()).not.toContain('待客户审核')
     expect(wrapper.findAll('.geo-strategy-table tbody button').some(button => button.text() === '审核')).toBe(false)
-    expect(wrapper.get('.geo-strategy-table tbody .ce-tag').attributes('data-tone')).toBe('green')
+    expect(wrapper.get('.geo-strategy-table tbody .ce-tag').attributes('data-tone')).toBe('blue')
     expect(linkedTask).toBeDefined()
     expect(linkedTask!.attributes('data-variant')).toBe('secondary')
     expect(linkedTask!.attributes('data-size')).toBe('md')
@@ -165,10 +165,10 @@ describe('advice-only findings in both products', () => {
     const rows = wrapper.findAll('.geo-finding-table tbody tr')
     expect(rows).toHaveLength(2)
     expect(rows.map(row => row.get('.geo-route-badge').text())).toEqual([
-      '官网结构 · 仅提供建议', '官网内容 · 仅提供建议',
+      '官网技术与结构 · 仅提供建议', '官网内容 · 仅提供建议',
     ])
     for (const row of rows) {
-      expect(row.get('.geo-finding-status').text()).toBe('无需处理')
+      expect(row.get('.geo-finding-status').text()).toBe('已完成')
       expect(row.get('button').text()).toBe('查看建议')
       const checkbox = row.find('input[type="checkbox"]')
       if (checkbox.exists()) expect(checkbox.attributes('disabled')).toBeDefined()
@@ -204,7 +204,7 @@ it('shows details instead of review when an existing strategy already has a Brie
   })
   const row = wrapper.get('.geo-finding-table tbody tr')
   expect(row.get('button').text()).toBe('查看详情')
-  expect(row.text()).toContain('已生成任务')
+  expect(row.text()).toContain('处理中')
   expect(row.get('input').attributes('disabled')).toBeDefined()
   expect(wrapper.find('.geo-finding-approve-button').exists()).toBe(false)
   wrapper.unmount()

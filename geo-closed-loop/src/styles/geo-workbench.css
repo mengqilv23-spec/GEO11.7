@@ -344,6 +344,7 @@ html.ce-iframe-root .geo-gap-row.ce-action-card:focus-visible { z-index: 1; outl
 .geo-strategy-detail-card__header strong { color: var(--geo-text); font-size: 14px; line-height: 20px; font-weight: 600; }
 .geo-strategy-drawer__status { flex: none; padding: 3px 8px; border-radius: 999px; color: var(--geo-warning); background: var(--geo-warning-soft); font-size: 12px; line-height: 18px; font-weight: 600; }
 .geo-strategy-drawer__status.is-task { color: var(--geo-brand); background: var(--geo-brand-soft); }
+.geo-strategy-drawer__status.is-done { color: var(--geo-success); background: var(--geo-success-soft); }
 .geo-strategy-task-link__body { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; }
 .geo-strategy-task-link__body > div { display: grid; min-width: 0; gap: 4px; }
 .geo-strategy-task-link__body strong { overflow: hidden; color: var(--geo-text); font-size: 14px; line-height: 22px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }

@@ -72,7 +72,7 @@ const resultIcon = computed(() => props.task.progress === 'site_failed' ? 'warni
           </dd>
         </div>
         <div class="tw-repair-field tw-repair-field--wide">
-          <dt>异常说明</dt><dd>{{ description }}</dd>
+          <dt>问题描述</dt><dd>{{ description }}</dd>
         </div>
         <div class="tw-repair-field tw-repair-field--wide">
           <dt>为什么这样处理</dt><dd>{{ repairReason }}</dd>
@@ -82,7 +82,7 @@ const resultIcon = computed(() => props.task.progress === 'site_failed' ? 'warni
       <section class="tw-repair-scope" data-test="repair-description">
         <header class="tw-repair-scope__heading">
           <div>
-            <h3>官网结构与技术方案</h3>
+            <h3>技术方案及内容</h3>
           </div>
         </header>
         <div class="tw-repair-section__body">
