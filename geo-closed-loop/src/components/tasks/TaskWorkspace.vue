@@ -99,7 +99,7 @@ function openVerificationFollowup() {
   }
 }
 const tab = shallowRef('brief')
-const drawer = shallowRef<'brief' | 'knowledge' | 'upload' | 'output' | 'feedback' | 'retry' | 'ignore' | 'defer' | null>(null)
+const drawer = shallowRef<'brief' | 'knowledge' | 'upload' | 'output' | 'feedback' | 'retry' | 'ignore' | null>(null)
 const error = shallowRef('')
 const message = shallowRef('')
 const decisionReason = shallowRef('')
@@ -454,12 +454,6 @@ function ignoreCurrentTask() {
     decisionExplanation.value = ''
   }
 }
-function deferCurrentTask() {
-  if (act('defer_task', { ignoreReason: decisionReason.value, note: decisionExplanation.value })) {
-    decisionReason.value = ''
-    decisionExplanation.value = ''
-  }
-}
 function warnUnsavedContent() {
   validationToastVariant.value = 'warning'
   validationToastMessage.value = '请确认已保存修改内容'
@@ -511,6 +505,19 @@ function saveBriefDraftFromButton() {
     return
   }
   saveBriefDraft()
+}
+function removeKnowledge(item: TaskKnowledge) {
+  if (!editableBrief.value)
+    return
+  act('save_brief', {
+    brief: {
+      ...flow.value.brief,
+      contentInstruction: directInstruction.value,
+      webSupplement: webSupplement.value,
+    },
+    methods: [...props.task.methods],
+    knowledge: flow.value.knowledge.filter(known => known.id !== item.id),
+  })
 }
 function saveWebSupplementSetting() {
   if (editableBrief.value)
@@ -763,9 +770,12 @@ function versionDiff(index: number) {
                     <div class="tw-content-basis__line">
                       <strong>AI 自动匹配</strong>
                       <div class="tw-chip-list">
-                        <Tag v-for="item in flow.knowledge" :key="item.id" tone="blue">
-                          {{ item.title }}
-                        </Tag>
+                        <span v-for="item in flow.knowledge" :key="item.id" class="tw-knowledge-tag">
+                          <Tag tone="blue">{{ item.title }}</Tag>
+                          <button v-if="editableBrief" type="button" class="tw-knowledge-tag__remove" :aria-label="`移除知识：${item.title}`" title="移除" @click="removeKnowledge(item)">
+                            <AppIcon name="close" :size="12" />
+                          </button>
+                        </span>
                         <span v-if="!flow.knowledge.length" class="tw-content-basis__empty">在您的知识库没有检索到相关资料</span>
                       </div>
                     </div>
@@ -831,9 +841,6 @@ function versionDiff(index: number) {
                 </div>
                 <div v-if="editableBrief && flow.briefStatus === 'ready'" class="tw-actions">
                   <Button variant="secondary" data-test="save-brief-draft" @click="saveBriefDraftFromButton">保存</Button>
-                  <Button variant="secondary" data-test="defer-task" :disabled="!canIgnoreCurrentStep" :title="canIgnoreCurrentStep ? undefined : `当前步骤由${ignoreOwner(task, serviceMode) === 'ops' ? '专家' : '客户'}负责`" @click="drawer = 'defer'">
-                    暂不处理
-                  </Button>
                   <Button class="tw-ignore-action" variant="secondary" data-test="ignore-task" :disabled="!canIgnoreCurrentStep" :title="canIgnoreCurrentStep ? undefined : `当前步骤由${ignoreOwner(task, serviceMode) === 'ops' ? '专家' : '客户'}负责`" @click="drawer = 'ignore'">
                     忽略
                   </Button>
@@ -942,9 +949,6 @@ function versionDiff(index: number) {
             等待客户确认最终稿
           </Button>
           <template v-else-if="!ignoredTask && task.progress !== 'done'">
-            <Button variant="secondary" data-test="defer-task" :disabled="!canIgnoreCurrentStep" :title="canIgnoreCurrentStep ? undefined : `当前步骤由${ignoreOwner(task, serviceMode) === 'ops' ? '专家' : '客户'}负责`" @click="drawer = 'defer'">
-              暂不处理
-            </Button>
             <Button class="tw-ignore-action" variant="secondary" data-test="ignore-task" :disabled="!canIgnoreCurrentStep" :title="canIgnoreCurrentStep ? undefined : `当前步骤由${ignoreOwner(task, serviceMode) === 'ops' ? '专家' : '客户'}负责`" @click="drawer = 'ignore'">
               忽略
             </Button>
@@ -993,20 +997,18 @@ function versionDiff(index: number) {
       </div>
     </section>
 
-    <Drawer :open="drawer !== null && drawer !== 'upload'" :class="drawer === 'ignore' || drawer === 'defer' ? 'tw-ignore-drawer' : undefined" :eyebrow="drawer === 'ignore' || drawer === 'defer' ? `${task.name} · ${decisionStageLabel}` : undefined" :title="drawer === 'ignore' ? '绝对不处理（忽略）' : drawer === 'defer' ? '暂不处理本次审核事项' : drawer === 'brief' ? '编辑 Brief 与执行方法' : drawer === 'knowledge' ? '知识资料准备' : drawer === 'output' ? '编辑任务产物' : drawer === 'retry' ? '补充要求并重新提交' : task.progress === 'site_publish' ? '发布预览修改要求' : customerFinalReview && serviceMode === 'managed' ? '退回专家修改' : '提出调整意见'" :size="560" close-label="关闭编辑" @close="closeDrawer">
-      <div v-if="drawer === 'ignore' || drawer === 'defer'" class="tw-ignore-form">
+    <Drawer :open="drawer !== null && drawer !== 'upload'" :class="drawer === 'ignore' ? 'tw-ignore-drawer' : undefined" :eyebrow="drawer === 'ignore' ? `${task.name} · ${decisionStageLabel}` : undefined" :title="drawer === 'ignore' ? '绝对不处理（忽略）' : drawer === 'brief' ? '编辑 Brief 与执行方法' : drawer === 'knowledge' ? '知识资料准备' : drawer === 'output' ? '编辑任务产物' : drawer === 'retry' ? '补充要求并重新提交' : task.progress === 'site_publish' ? '发布预览修改要求' : customerFinalReview && serviceMode === 'managed' ? '退回专家修改' : '提出调整意见'" :size="560" close-label="关闭编辑" @close="closeDrawer">
+      <div v-if="drawer === 'ignore'" class="tw-ignore-form">
         <p class="tw-ignore-warning">
-          {{ drawer === 'defer'
-            ? '暂不处理后，本任务会移出待处理，但保留当前阶段，之后可以恢复处理；来源诊断仍保留。'
-            : '忽略后，本次审核事项不再进入后续执行，也不会从待处理中重复出现；来源诊断仍保留，官网异常不会因此变为通过。提交后不可恢复。' }}
+          忽略后，本次审核事项不再进入后续执行，也不会从待处理中重复出现；来源诊断仍保留，官网异常不会因此变为通过。提交后不可恢复。
         </p>
         <label class="tw-field tw-ignore-field">
-          <span>{{ drawer === 'defer' ? '暂不处理原因' : '忽略原因' }} <b v-if="decisionDetailsRequired" aria-hidden="true">*</b><small v-else class="tw-ignore-optional">可选</small></span>
-          <DropdownSelect v-model="decisionReason" :options="ignoreReasonOptions" v-bind="{ ariaLabel: drawer === 'defer' ? '暂不处理原因' : '忽略原因' }" panel-width="100%" />
+          <span>忽略原因 <b v-if="decisionDetailsRequired" aria-hidden="true">*</b><small v-else class="tw-ignore-optional">可选</small></span>
+          <DropdownSelect v-model="decisionReason" :options="ignoreReasonOptions" ariaLabel="忽略原因" panel-width="100%" />
         </label>
         <label class="tw-field tw-ignore-field">
-          <span>{{ drawer === 'defer' ? '暂不处理说明' : '忽略说明' }} <b v-if="decisionDetailsRequired" aria-hidden="true">*</b><small v-else class="tw-ignore-optional">可选</small></span>
-          <textarea v-model="decisionExplanation" data-test="ignore-explanation" rows="5" :placeholder="drawer === 'defer' ? (decisionDetailsRequired ? '说明为什么暂不处理，便于后续恢复时参考。' : '可选：说明为什么暂不处理，便于后续恢复时参考。') : (decisionDetailsRequired ? '说明为什么不采纳本次审核事项，便于追溯和 Agent 学习。' : '可选：补充说明，便于后续追溯。')" />
+          <span>忽略说明 <b v-if="decisionDetailsRequired" aria-hidden="true">*</b><small v-else class="tw-ignore-optional">可选</small></span>
+          <textarea v-model="decisionExplanation" data-test="ignore-explanation" rows="5" :placeholder="decisionDetailsRequired ? '说明为什么不采纳本次审核事项，便于追溯和 Agent 学习。' : '可选：补充说明，便于后续追溯。'" />
         </label>
         <p v-if="error" role="alert" class="tw-error">
           {{ error }}
@@ -1047,8 +1049,8 @@ function versionDiff(index: number) {
       <template #footer>
         <Button variant="secondary" @click="closeDrawer">
           取消
-        </Button><Button v-if="drawer === 'ignore' || drawer === 'defer'" variant="primary" :data-test="drawer === 'defer' ? 'confirm-defer' : 'confirm-ignore'" :disabled="decisionDetailsRequired && (!decisionReason || !decisionExplanation.trim())" @click="drawer === 'defer' ? deferCurrentTask() : ignoreCurrentTask()">
-          {{ drawer === 'defer' ? '确认暂不处理' : '确认忽略' }}
+        </Button><Button v-if="drawer === 'ignore'" variant="primary" data-test="confirm-ignore" :disabled="decisionDetailsRequired && (!decisionReason || !decisionExplanation.trim())" @click="ignoreCurrentTask()">
+          确认忽略
         </Button><Button v-else :disabled="drawer === 'feedback' && !note.trim()" @click="saveDrawer">
           {{ drawer === 'feedback' && customerFinalReview && serviceMode === 'managed' ? '提交意见并退回专家' : drawer === 'feedback' && task.progress === 'site_publish' ? '提交修改要求' : drawer === 'feedback' ? '提交调整意见' : drawer === 'retry' ? '重新提交' : '保存修改' }}
         </Button>

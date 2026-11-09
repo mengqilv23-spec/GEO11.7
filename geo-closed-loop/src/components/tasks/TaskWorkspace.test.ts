@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import { geoWorkbenchRouteContextKey } from '../../composables/workbench-route-context'
 import { auditFindings, officialContentSnapshot } from '../../data/geo-data'
-import { ensureWorkflow, knowledgeLibrary } from '../../workflows/task-workflow'
+import { applyAction, ensureWorkflow, knowledgeLibrary } from '../../workflows/task-workflow'
 import TaskWorkspace from './TaskWorkspace.vue'
 
 function makeTask(): GeoTask {
@@ -64,8 +64,22 @@ describe('task workspace task confirmation', () => {
     expect(task.workflow?.brief.contentInstruction).toBe('先核对品牌资料')
     expect(task.progress).toBe('brief')
     expect(restored.find('.tw-draft-save-row').exists()).toBe(false)
-    expect(restored.findAll('.tw-brief-confirm .tw-actions button').map(button => button.text())).toEqual(['保存', '暂不处理', '忽略', '专家审核通过并生成内容'])
+    expect(restored.findAll('.tw-brief-confirm .tw-actions button').map(button => button.text())).toEqual(['保存', '忽略', '专家审核通过并生成内容'])
     expect(window.localStorage.getItem('geo-task-draft:managed:ops:T-DRAFT-TEST')).toBeNull()
+  })
+
+  it('removes an AI-matched knowledge tag directly from the Brief', async () => {
+    const task = reactive(makeTask())
+    const flow = ensureWorkflow(task)
+    flow.knowledge = [{ ...knowledgeLibrary[0]! }]
+    const wrapper = mountWorkspace('ops', task)
+
+    expect(wrapper.get('.tw-knowledge-tag').text()).toContain(knowledgeLibrary[0]!.title)
+    await wrapper.get('.tw-knowledge-tag__remove').trigger('click')
+
+    expect(task.workflow?.knowledge).toHaveLength(0)
+    expect(wrapper.find('.tw-knowledge-tag').exists()).toBe(false)
+    expect(wrapper.get('.tw-content-basis__empty').text()).toContain('没有检索到相关资料')
   })
 
   it('shows the current address finding and website modification scope for saved F9 tasks', () => {
@@ -273,32 +287,16 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.get('.tw-actionbar').text()).toContain('已忽略「专家专业审核」')
   })
 
-  it('defers the current step without losing progress and can resume it later', async () => {
+  it('resumes a previously deferred step from the action bar', async () => {
     const task = makeTask()
     task.progress = 'human'
+    ensureWorkflow(task)
+    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '等待客户补充认证材料。' })).toBeNull()
     const wrapper = mountWorkspace('ops', task)
 
-    await wrapper.get('.tw-actionbar [data-test="defer-task"]').trigger('click')
-    expect(wrapper.get('[data-test="drawer"] h2').text()).toBe('暂不处理本次审核事项')
-    expect(wrapper.get('[data-test="drawer"]').text()).toContain('专家专业审核')
-    expect(wrapper.get('[data-test="drawer"]').text()).toContain('之后可以恢复处理')
-    expect((wrapper.get('[data-test="confirm-defer"]').element as HTMLButtonElement).disabled).toBe(true)
-
-    await wrapper.get('[data-test="drawer"] select').setValue('其他')
-    await wrapper.get('[data-test="ignore-explanation"]').setValue('等待客户补充认证材料。')
-    await wrapper.get('[data-test="confirm-defer"]').trigger('click')
-
-    expect(task.workflow?.deferredTask).toMatchObject({
-      stage: 'human',
-      stageLabel: '专家专业审核',
-      reason: '其他',
-      explanation: '等待客户补充认证材料。',
-      actor: '专家',
-    })
-    expect(task.progress).toBe('human')
-    expect(wrapper.find('.tw-actionbar [data-test="defer-task"]').exists()).toBe(false)
     expect(wrapper.get('.tw-actionbar').text()).toContain('已暂不处理「专家专业审核」：其他')
     expect(wrapper.get('.tw-actionbar').text()).toContain('可恢复处理')
+    expect(wrapper.find('.tw-actionbar [data-test="defer-task"]').exists()).toBe(false)
     expect(wrapper.get('.tw-actionbar [data-test="resume-task"]').text()).toBe('恢复处理')
     expect(wrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(true)
 
@@ -306,36 +304,18 @@ describe('task workspace task confirmation', () => {
 
     expect(task.workflow?.deferredTask).toBeUndefined()
     expect(task.progress).toBe('human')
-    expect(wrapper.find('.tw-actionbar [data-test="defer-task"]').exists()).toBe(true)
     expect(wrapper.find('.tw-actionbar [data-test="resume-task"]').exists()).toBe(false)
     expect(wrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(true)
   })
 
-  it('lets the agent customer defer without filling in a reason or explanation', async () => {
-    const task = makeTask()
-    task.progress = 'human'
-    const wrapper = mountWorkspace('client', task, vi.fn(), false, 'agent')
-
-    await wrapper.get('.tw-actionbar [data-test="defer-task"]').trigger('click')
-    expect(wrapper.get('[data-test="drawer"]').text().match(/可选/g)).toHaveLength(2)
-    expect((wrapper.get('[data-test="confirm-defer"]').element as HTMLButtonElement).disabled).toBe(false)
-
-    await wrapper.get('[data-test="confirm-defer"]').trigger('click')
-
-    expect(task.workflow?.deferredTask).toMatchObject({ stage: 'human', reason: '', explanation: '', actor: '客户' })
-    expect(task.progress).toBe('human')
-    expect(wrapper.get('.tw-actionbar').text()).toContain('可恢复处理')
-  })
-
-  it('offers defer and terminal ignore at the customer final review', () => {
+  it('offers terminal ignore at the customer final review', () => {
     const task = makeTask()
     task.progress = 'client_review'
     ensureWorkflow(task)
     const wrapper = mountWorkspace('client', task)
 
-    expect(wrapper.get('.tw-actionbar [data-test="defer-task"]').text()).toBe('暂不处理')
+    expect(wrapper.find('.tw-actionbar [data-test="defer-task"]').exists()).toBe(false)
     expect(wrapper.get('.tw-actionbar [data-test="ignore-task"]').text()).toBe('忽略')
-    expect((wrapper.get('.tw-actionbar [data-test="defer-task"]').element as HTMLButtonElement).disabled).toBe(false)
     expect((wrapper.get('.tw-actionbar [data-test="ignore-task"]').element as HTMLButtonElement).disabled).toBe(false)
   })
 
@@ -781,7 +761,7 @@ describe('task workspace task confirmation', () => {
     expect(customerView.find('.tw-stage-permission').exists()).toBe(false)
     expect(customerView.get('.tw-actionbar').text()).toContain('请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。')
     expect(customerView.find('.tw-actionbar strong').exists()).toBe(false)
-    expect(customerView.find('[data-test="defer-task"]').exists()).toBe(true)
+    expect(customerView.find('[data-test="defer-task"]').exists()).toBe(false)
     expect(customerView.find('[data-test="ignore-task"]').exists()).toBe(true)
     expect(customerView.find('[data-test="request-output-feedback"]').exists()).toBe(false)
     expect(customerView.get('.tw-actionbar').text()).toContain('客户确认文案结果')
