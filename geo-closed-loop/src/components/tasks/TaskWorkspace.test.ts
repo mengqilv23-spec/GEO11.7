@@ -93,8 +93,8 @@ describe('task workspace task confirmation', () => {
     const wrapper = mountWorkspace('client', task)
     const summary = wrapper.get('.tw-brief-summary')
 
-    expect(summary.text()).toContain('问题与依据')
-    expect(summary.text()).toContain('修改范围')
+    expect(summary.text()).toContain('问题描述')
+    expect(summary.text()).toContain('解决方案')
     expect(summary.text()).toContain('官网：围绕')
     expect(summary.text()).not.toContain('目标人设')
     expect(summary.text()).not.toContain('决策因子')
@@ -105,7 +105,7 @@ describe('task workspace task confirmation', () => {
     delete task.auditContent
     const strategyWrapper = mountWorkspace('client', task)
     expect(strategyWrapper.get('.tw-brief-summary').text()).toContain('目标人设')
-    expect(strategyWrapper.get('.tw-brief-summary').text()).not.toContain('修改范围')
+    expect(strategyWrapper.get('.tw-brief-summary').text()).not.toContain('解决方案')
     strategyWrapper.unmount()
   })
 
@@ -120,8 +120,8 @@ describe('task workspace task confirmation', () => {
     const summary = wrapper.get('.tw-brief-summary').text()
 
     expect(wrapper.get('.tw-count-badge').text()).toBe('T-2501')
-    expect(summary).toContain('问题与依据')
-    expect(summary).toContain('修改范围')
+    expect(summary).toContain('问题描述')
+    expect(summary).toContain('解决方案')
     expect(summary).not.toContain('任务目标')
     expect(summary).not.toContain('目标人设')
     expect(summary).not.toContain('决策因子')

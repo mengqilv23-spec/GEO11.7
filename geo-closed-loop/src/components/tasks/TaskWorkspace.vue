@@ -717,12 +717,12 @@ function versionDiff(index: number) {
                   <dl class="tw-brief" :class="{ 'tw-brief--table': task.progress === 'brief', 'tw-brief--audit-content': auditContent }">
                     <template v-if="auditContent">
                       <template v-if="task.progress === 'brief'">
-                        <div class="tw-brief-summary__item is-primary"><dt>问题与依据</dt><dd>{{ auditContent.abnormality }}</dd></div>
-                        <div class="tw-brief-summary__item is-before"><dt>修改范围</dt><dd>{{ auditModificationScope }}</dd></div>
+                        <div class="tw-brief-summary__item is-primary"><dt>问题描述</dt><dd>{{ auditContent.abnormality }}</dd></div>
+                        <div class="tw-brief-summary__item is-before"><dt>解决方案</dt><dd>{{ auditModificationScope }}</dd></div>
                       </template>
                       <template v-else>
-                        <dt>问题与依据</dt><dd>{{ auditContent.abnormality }}</dd>
-                        <dt>修改范围</dt><dd>{{ auditModificationScope }}</dd>
+                        <dt>问题描述</dt><dd>{{ auditContent.abnormality }}</dd>
+                        <dt>解决方案</dt><dd>{{ auditModificationScope }}</dd>
                       </template>
                     </template>
                     <template v-for="field in auditContent ? [] : briefFields" :key="field.key">
@@ -887,7 +887,7 @@ function versionDiff(index: number) {
                 </p><dl class="tw-brief">
                   <template v-for="field in auditContent ? [] : briefFields" :key="field.key">
                     <dt>{{ field.label }}</dt><dd>{{ version.brief[field.key] }}</dd>
-                  </template><template v-if="auditContent"><dt>问题与依据</dt><dd>{{ auditContent.abnormality }}</dd><dt>修改范围</dt><dd>{{ auditModificationScope }}</dd></template><dt>执行方法</dt><dd>{{ version.methods.join('、') || '未选择' }}</dd><dt>知识资料</dt><dd>{{ version.knowledge.map(item => item.title).join('、') || '未关联' }}</dd>
+                  </template><template v-if="auditContent"><dt>问题描述</dt><dd>{{ auditContent.abnormality }}</dd><dt>解决方案</dt><dd>{{ auditModificationScope }}</dd></template><dt>执行方法</dt><dd>{{ version.methods.join('、') || '未选择' }}</dd><dt>知识资料</dt><dd>{{ version.knowledge.map(item => item.title).join('、') || '未关联' }}</dd>
                 </dl><pre v-if="version.output" class="tw-output">{{ version.output }}</pre>
               </details>
             </section>
@@ -1000,7 +1000,7 @@ function versionDiff(index: number) {
       </div>
       <div v-else class="tw-editor">
         <template v-if="drawer === 'brief'">
-          <template v-if="auditContent"><div class="tw-field"><strong>问题与依据</strong><p>{{ auditContent.abnormality }}</p></div><div class="tw-field"><strong>修改范围</strong><p>{{ auditModificationScope }}</p></div></template>
+          <template v-if="auditContent"><div class="tw-field"><strong>问题描述</strong><p>{{ auditContent.abnormality }}</p></div><div class="tw-field"><strong>解决方案</strong><p>{{ auditModificationScope }}</p></div></template>
           <label v-for="field in auditContent ? [] : briefFields" :key="field.key" class="tw-field">{{ field.label }}<textarea v-model="draft.brief[field.key]" rows="3" /></label><fieldset class="tw-methods">
             <legend>执行方法 · 至少选择一项</legend><label v-for="method in [...new Set([...methodOptions, ...draft.methods])]" :key="method" class="tw-check"><input type="checkbox" :checked="draft.methods.includes(method)" @change="toggleMethod(method)">{{ method }}</label>
           </fieldset><div class="tw-inline">

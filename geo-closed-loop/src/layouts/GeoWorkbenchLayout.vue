@@ -1044,11 +1044,11 @@ provide(geoWorkbenchRouteContextKey, {
             </template>
             <template v-else-if="serviceMode === 'managed'">
               <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
-              <dt>参考建议</dt><dd>{{ (drawer.item as AuditFinding).advice || (drawer.item as AuditFinding).routeReason }}</dd>
+              <dt>解决方案</dt><dd>{{ (drawer.item as AuditFinding).advice || (drawer.item as AuditFinding).routeReason }}</dd>
             </template>
             <template v-if="serviceMode === 'agent' && !isReadOnlyFinding(drawer.item as AuditFinding)">
               <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
-              <dt>{{ isDirectRepairFinding(drawer.item as AuditFinding) ? '解决方案' : '处理范围' }}</dt><dd>{{ (drawer.item as AuditFinding).routeReason }}</dd>
+              <dt>解决方案</dt><dd>{{ (drawer.item as AuditFinding).routeReason }}</dd>
             </template>
             <template v-if="taskForFinding(drawer.item as AuditFinding)">
               <dt>关联任务</dt>
