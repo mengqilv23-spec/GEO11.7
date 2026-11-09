@@ -87,20 +87,19 @@ const overviewStats = computed(() => taskTypes.map(type => ({
   name: type.label,
   count: props.allTasks.filter(task => type.id === 'all' || task.type === type.id).length,
 })))
-const techStats = computed(() => {
-  const tasks = props.allTasks.filter(task => task.type === 'repair')
+const taskStatusStats = computed(() => {
   let pending = 0
   let processing = 0
   let done = 0
-  for (const task of tasks) {
+  for (const task of props.allTasks) {
     if (task.progress === 'done' || task.completionOutcome === 'expired-unexecuted' || isTaskIgnored(task) || isTaskDeferred(task))
       done += 1
-    else if (['brief', 'human', 'site_submit', 'site_returned', 'site_failed'].includes(task.progress))
+    else if (needsMyAction(task))
       pending += 1
     else
       processing += 1
   }
-  return { total: tasks.length, pending, processing, done }
+  return { total: props.allTasks.length, pending, processing, done }
 })
 watch([() => props.role, () => props.serviceMode], () => {
   bucket.value = 'all'
@@ -141,7 +140,7 @@ function setTaskStatus(value: string) {
   <div class="geo-content geo-optimization">
     <GeoPageIntro variant="workbench" title="优化中心 · 任务工作台" help-label="优化中心说明" description="官网体检确认后生成独立任务；候选策略可按执行目标合并为一项任务。任务先确认 Brief，再进入内容执行与审核。" />
 
-    <section class="geo-diagnosis-summary geo-optimization-summary" aria-label="任务概况与官网结构与技术统计">
+    <section class="geo-diagnosis-summary geo-optimization-summary" aria-label="任务概况与任务状态统计">
       <div class="geo-optimization-summary__overview">
         <div class="geo-optimization-round-meta"><span>监测时间 / 轮次</span><b>2026-10-02 · 第 5 轮</b></div>
         <header class="geo-diagnosis-summary__header">
@@ -157,24 +156,24 @@ function setTaskStatus(value: string) {
         </div>
       </div>
 
-      <section class="geo-optimization-tech-stats" aria-labelledby="geo-tech-stats-title">
+      <section class="geo-optimization-status-stats" aria-labelledby="geo-status-stats-title">
         <header class="geo-panel__head">
-          <h2 id="geo-tech-stats-title">
-            官网结构与技术
+          <h2 id="geo-status-stats-title">
+            任务状态
           </h2>
           <Tag tone="blue" variant="soft" size="sm">
-            共 {{ techStats.total }} 项
+            共 {{ taskStatusStats.total }} 项
           </Tag>
         </header>
-        <div class="geo-tech-stats__grid">
-          <div class="geo-tech-stat is-pending">
-            <span>待我处理</span><b>{{ techStats.pending }}<small> 项</small></b>
+        <div class="geo-status-stats__grid">
+          <div class="geo-status-stat is-pending">
+            <span>待我处理</span><b>{{ taskStatusStats.pending }}<small> 项</small></b>
           </div>
-          <div class="geo-tech-stat is-processing">
-            <span>处理中</span><b>{{ techStats.processing }}<small> 项</small></b>
+          <div class="geo-status-stat is-processing">
+            <span>处理中</span><b>{{ taskStatusStats.processing }}<small> 项</small></b>
           </div>
-          <div class="geo-tech-stat is-done">
-            <span>已完成</span><b>{{ techStats.done }}<small> 项</small></b>
+          <div class="geo-status-stat is-done">
+            <span>已完成</span><b>{{ taskStatusStats.done }}<small> 项</small></b>
           </div>
         </div>
       </section>

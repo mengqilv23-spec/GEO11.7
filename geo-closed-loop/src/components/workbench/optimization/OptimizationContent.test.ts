@@ -135,25 +135,26 @@ describe('optimization content task table', () => {
     wrapper.unmount()
   })
 
-  it('counts structure and technical tasks by pending, processing and done', async () => {
+  it('counts every task by pending, processing and done', async () => {
     const tasks: GeoTask[] = [
-      { ...initialTasks[0]!, id: 'TECH-1', name: '待处理修复', type: 'repair', workflow: undefined, progress: 'brief' },
-      { ...initialTasks[0]!, id: 'TECH-2', name: '处理中修复', type: 'repair', workflow: undefined, progress: 'site_running' },
-      { ...initialTasks[0]!, id: 'TECH-3', name: '已完成修复', type: 'repair', workflow: undefined, progress: 'done' },
-      { ...initialTasks[0]!, id: 'TECH-4', name: '验证未通过修复', type: 'repair', workflow: undefined, progress: 'site_failed' },
-      { ...initialTasks[0]!, id: 'WEB-1', name: '官网内容任务', type: 'web', workflow: undefined, progress: 'brief' },
+      { ...initialTasks[0]!, id: 'STAT-1', name: '待确认任务', type: 'web', workflow: undefined, progress: 'brief' },
+      { ...initialTasks[0]!, id: 'STAT-2', name: '待审核任务', type: 'web', workflow: undefined, progress: 'human' },
+      { ...initialTasks[0]!, id: 'STAT-3', name: '生成中任务', type: 'web', workflow: undefined, progress: 'running' },
+      { ...initialTasks[0]!, id: 'STAT-4', name: '待发布任务', type: 'web', workflow: undefined, progress: 'site_publish' },
+      { ...initialTasks[0]!, id: 'STAT-5', name: '已完成任务', type: 'web', workflow: undefined, progress: 'done' },
+      { ...initialTasks[0]!, id: 'STAT-6', name: '修复中任务', type: 'repair', workflow: undefined, progress: 'site_running' },
     ]
     const wrapper = mount(OptimizationContent, {
       props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
     })
 
-    expect(wrapper.get('.geo-optimization-tech-stats h2').text()).toBe('官网结构与技术')
-    expect(wrapper.findAll('.geo-tech-stat').map(stat => stat.text().replace(/\s/g, ''))).toEqual([
+    expect(wrapper.get('.geo-optimization-status-stats h2').text()).toBe('任务状态')
+    expect(wrapper.findAll('.geo-status-stat').map(stat => stat.text().replace(/\s/g, ''))).toEqual([
       '待我处理2项',
-      '处理中1项',
+      '处理中3项',
       '已完成1项',
     ])
-    expect(wrapper.get('.geo-optimization-tech-stats .ce-tag').text()).toBe('共 4 项')
+    expect(wrapper.get('.geo-optimization-status-stats .ce-tag').text()).toBe('共 6 项')
     wrapper.unmount()
   })
 })
