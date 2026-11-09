@@ -166,17 +166,17 @@ describe('buyer stage filter', () => {
       '采购决策',
     ])
     expect(wrapper.findAll('.geo-personas button')).toHaveLength(personas.length)
-    expect(wrapper.findAll('.geo-personas button small').map(label => label.text())).toContain('供应商评估 · 4 Gap')
+    expect(wrapper.findAll('.geo-personas button small').map(label => label.text())).toContain('供应商评估 · 4 条数据')
 
     await stageSelect.setValue('purchase-decision')
     expect(wrapper.findAll('.geo-personas button strong').map(name => name.text())).toEqual(['航空采购'])
-    expect(wrapper.get('.geo-personas button small').text()).toBe('采购决策 · 4 Gap')
+    expect(wrapper.get('.geo-personas button small').text()).toBe('采购决策 · 4 条数据')
     expect(wrapper.get('.geo-personas button').attributes('aria-selected')).toBe('true')
     expect(wrapper.emitted('selectPersona')?.at(-1)).toEqual(['procurement'])
 
     await stageSelect.setValue('requirement-identification')
     expect(wrapper.findAll('.geo-personas button strong').map(name => name.text())).toEqual(['车间主管'])
-    expect(wrapper.get('.geo-personas button small').text()).toBe('需求识别 · 4 Gap')
+    expect(wrapper.get('.geo-personas button small').text()).toBe('需求识别 · 4 条数据')
     expect(wrapper.emitted('selectPersona')?.at(-1)).toEqual(['distributor'])
     wrapper.unmount()
   })

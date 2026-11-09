@@ -20,7 +20,7 @@ import { diagnosisFindingStatus, diagnosisStrategyStatus } from '../workflows/di
 import { findingHasTask, findingRouteLabel, findingTreatment, isAdviceFinding, isKnowledgeFinding, isReadOnlyFinding } from '../workflows/finding-treatment'
 import { isDirectRepairFinding, isDirectRepairTask } from '../workflows/direct-repair'
 import { advanceAutomatic, ensureWorkflow, knowledgeLibrary, taskStageLabel } from '../workflows/task-workflow'
-import { normalizeClientFindings, createClientFindingTask, strategyGapEvidence, strategyCoverageGapRefs, platformGapBreakdown, clientStrategyPlan, createVerificationTask } from '../workflows/client-diagnosis'
+import { normalizeClientFindings, createClientFindingTask, strategyGapEvidence, strategyGapSummaries, strategyCoverageGapRefs, platformGapBreakdown, clientStrategyPlan, createVerificationTask } from '../workflows/client-diagnosis'
 import type { ProcessingPage } from '../workflows/data-processing'
 import { updateDataProcessing, useDataProcessing } from '../workflows/data-processing'
 import '../styles/geo-workbench.css'
@@ -99,12 +99,15 @@ const deferReasonOptions: DropdownSelectOption[] = [
   { value: '其他', label: '其他' },
 ]
 const drawer = reactive<{ type: DrawerType, item: Strategy | AuditFinding | AuditCheck | 'scope' | 'rounds' | 'diagnosis' | 'optimization' | null }>({ type: null, item: null })
-const selectedStrategyGapEvidence = computed(() => drawer.type === 'strategy' && drawer.item ? strategyGapEvidence(drawer.item as Strategy, personas) : null)
-const selectedStrategyPlatformGaps = computed(() => {
-  const selected = selectedStrategyGapEvidence.value
-  const persona = personas.find(item => item.name === selected?.persona)
-  return selected && persona ? platformGapBreakdown(persona, selected.topic.name) : []
+const selectedStrategyGapSummaries = computed(() => drawer.type === 'strategy' && drawer.item ? strategyGapSummaries(drawer.item as Strategy, personas) : [])
+const selectedStrategyConcerns = computed(() => {
+  if (selectedStrategyGapSummaries.value.length) return selectedStrategyGapSummaries.value.map(item => item.topic.name)
+  if (drawer.type !== 'strategy' || !drawer.item) return []
+  return (drawer.item as Strategy).factor.split('/').map(name => name.trim()).filter(Boolean)
 })
+function selectedStrategyPlatformGaps(persona: typeof personas[number], theme: string) {
+  return platformGapBreakdown(persona, theme)
+}
 const toast = shallowRef('')
 const toastTask = shallowRef<GeoTask | null>(null)
 const dataProcessing = useDataProcessing()
@@ -802,7 +805,7 @@ function drawerSubtitle() {
 function drawerEyebrow() {
   if (drawer.type === 'strategy') {
     const index = strategyState.findIndex(strategy => strategy.id === (drawer.item as Strategy).id)
-    return `认知缺口策略 ${Math.max(1, index + 1)}`
+    return `Gap ${Math.max(1, index + 1)}`
   }
   if (drawer.type !== 'audit-finding')
     return undefined
@@ -972,7 +975,7 @@ provide(geoWorkbenchRouteContextKey, {
               </dd>
               <dt>策略类型</dt><dd>{{ strategyTypeLabel(drawer.item as Strategy) }}</dd>
               <dt>目标人设</dt><dd>{{ (drawer.item as Strategy).persona }}</dd>
-              <dt>决策因子</dt><dd>{{ (drawer.item as Strategy).factor }}</dd>
+              <dt>买家关注点</dt><dd>{{ selectedStrategyConcerns.join('、') }}</dd>
             </dl>
           </section>
           <section class="geo-strategy-detail-card">
@@ -1001,19 +1004,18 @@ provide(geoWorkbenchRouteContextKey, {
           <section class="geo-strategy-detail-card">
             <header class="geo-strategy-detail-card__header"><strong>策略依据</strong></header>
             <div class="geo-strategy-evidence">
-              <template v-if="selectedStrategyGapEvidence">
-                <div class="geo-strategy-evidence__gap">
-                  <span>{{ selectedStrategyGapEvidence.persona }} · {{ selectedStrategyGapEvidence.topic.name }}</span>
+              <template v-if="selectedStrategyGapSummaries.length">
+                <div v-for="concern in selectedStrategyGapSummaries" :key="concern.topic.name" class="geo-strategy-evidence__gap">
                   <div class="geo-strategy-evidence__platforms" aria-label="汇总与各平台覆盖差距">
                     <div class="geo-strategy-evidence__platform geo-strategy-evidence__platform--total">
-                      <strong>全部平台汇总</strong>
-                      <b>Gap +{{ selectedStrategyGapEvidence.topic.gap }} 个百分点</b>
-                      <small>我方 {{ selectedStrategyGapEvidence.topic.own }}% · Flow {{ selectedStrategyGapEvidence.topic.rival }}% · 有效回答 {{ selectedStrategyGapEvidence.topic.denominator }} 条</small>
+                      <strong>{{ concern.topic.name }} · 全部平台汇总</strong>
+                      <b>Gap {{ concern.topic.gap > 0 ? '+' : '' }}{{ concern.topic.gap }} 个百分点</b>
+                      <small>买家关注度 {{ concern.topic.attention }}% · 我方 {{ concern.topic.own }}% · 有效回答 {{ concern.topic.denominator }} 条</small>
                     </div>
-                    <div v-for="item in selectedStrategyPlatformGaps" :key="item.platform" class="geo-strategy-evidence__platform">
+                    <div v-for="item in selectedStrategyPlatformGaps(concern.persona, concern.topic.name)" :key="item.platform" class="geo-strategy-evidence__platform">
                       <strong>{{ item.platform }}</strong>
                       <b>{{ item.gap === null ? '暂无数据' : `Gap ${item.gap > 0 ? '+' : ''}${item.gap} 个百分点` }}</b>
-                      <small>{{ item.denominator ? `我方 ${item.own}% · Flow ${item.rival}% · 有效回答 ${item.denominator} 条` : '无有效回答' }}</small>
+                      <small>{{ item.denominator ? `买家关注度 ${item.attention}% · 我方 ${item.own}% · 有效回答 ${item.denominator} 条` : '无有效回答' }}</small>
                     </div>
                   </div>
                 </div>

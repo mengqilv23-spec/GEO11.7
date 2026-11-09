@@ -15,7 +15,7 @@ const visibleTopics = computed(() => sample.value.topics.filter(topic => topic.g
 <template>
   <section class="client-gap-evidence">
     <div class="client-gap-head">
-      <h3>关注点与品牌覆盖差距 <span title="关注度、我方与竞品覆盖率都以当前人设和平台下该因子的有效回答数为分母；仅展示竞品领先且有关联策略的因子。" aria-label="关注点与品牌覆盖差距说明">ⓘ</span></h3>
+      <h3>关注点与品牌覆盖差距 <span title="买家关注度、我方与竞品覆盖率都以当前人设和平台下该关注点的有效回答数为分母；Gap = 买家关注度 − 我方覆盖率，仅展示 Gap 大于 0 且有关联策略的关注点。" aria-label="关注点与品牌覆盖差距说明">ⓘ</span></h3>
       <select :value="platform" aria-label="按 AI 平台筛选主题差距" @change="emit('setPlatform', ($event.target as HTMLSelectElement).value as DiagnosisPlatform)">
         <option value="全部平台">全部平台</option>
         <option v-for="item in diagnosisPlatforms" :key="item" :value="item">{{ item }}</option>
@@ -24,7 +24,7 @@ const visibleTopics = computed(() => sample.value.topics.filter(topic => topic.g
     <div class="client-gap-list">
       <button v-for="(topic, index) in visibleTopics" :key="topic.name" type="button" class="client-gap-row" :class="{ 'is-active': store.selectedGap === topic.name }" :aria-pressed="store.selectedGap === topic.name" @click="emit('focus', topic.name)">
         <span class="client-gap-row__top"><span>{{ index + 1 }}. {{ topic.name }} ↗</span><b>Gap {{ topic.gap }}</b></span>
-        <span class="client-gap-row__metrics">关注度 {{ topic.attention }}%（{{ topic.attentionHits }}/{{ topic.denominator }}） · 我方 {{ topic.own }}% · 竞品 {{ topic.rival }}%</span>
+        <span class="client-gap-row__metrics">买家关注度 {{ topic.attention }}%（{{ topic.attentionHits }}/{{ topic.denominator }}） · 我方 {{ topic.own }}% · 竞品 {{ topic.rival }}%</span>
         <span class="client-gap-row__bottom"><small>点击筛选下方策略</small><em>关联策略 {{ linkedCount(topic.name) }}</em></span>
       </button>
       <p v-if="!visibleTopics.length" class="client-gap-empty">当前平台没有需要策略分析的覆盖差距。</p>

@@ -25,7 +25,7 @@ const { selectedGap } = storeToRefs(diagnosisStore)
     <div class="geo-card-head">
       <div class="geo-gap-card__title">
         <strong>当前人设的认知缺口</strong>
-        <Tooltip content="Gap 指的是竞品正向覆盖率与我方正向覆盖率的差值">
+        <Tooltip content="Gap = 买家关注度 − 我方正向覆盖率">
           <span class="geo-help geo-gap-help" tabindex="0" aria-label="Gap 说明">?</span>
         </Tooltip>
       </div>

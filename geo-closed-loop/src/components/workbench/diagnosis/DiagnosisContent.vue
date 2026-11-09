@@ -258,7 +258,7 @@ function platformGapTooltip(name: string) {
     ...platformGapBreakdown(persona, name).map(item => h('div', { class: 'geo-platform-gap-tooltip__row' }, [
       h('span', item.platform),
       h('b', item.gap === null ? '暂无数据' : `${item.gap > 0 ? '+' : ''}${item.gap} 个百分点`),
-      h('small', item.denominator ? `我方 ${item.own}% · Flow ${item.rival}% · ${item.denominator} 条` : '无有效回答'),
+      h('small', item.denominator ? `买家关注度 ${item.attention}% · 我方 ${item.own}% · 竞品 ${item.rival}% · ${item.denominator} 条` : '无有效回答'),
     ])),
   ])
 }
@@ -415,13 +415,13 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
       </header>
       <div class="geo-personas" role="tablist" aria-label="买家人设">
         <button v-for="persona in visiblePersonas" :key="persona.id" type="button" role="tab" :aria-selected="currentPersona?.id === persona.id" :class="{ 'is-active': currentPersona?.id === persona.id }" @click="emit('selectPersona', persona.id)">
-          <strong>{{ persona.name }}</strong><small>{{ stageLabel(persona.stage) }} · {{ persona.gaps.length }} Gap</small>
+          <strong>{{ persona.name }}</strong><small>{{ stageLabel(persona.stage) }} · {{ persona.gaps.length }} 条数据</small>
         </button>
       </div>
       <div v-if="activePersonaData" class="geo-persona-body">
         <Card class="geo-radar-card">
           <div class="geo-card-head">
-            <strong>{{ activePersonaData.name }} · 关注点与品牌覆盖</strong><span>关注度 / 我方正向覆盖率 / 竞品正向覆盖率（同一回答分母）</span>
+            <strong>{{ activePersonaData.name }} · 关注点与品牌覆盖</strong><span>买家关注度 / 我方正向覆盖率 / 竞品正向覆盖率（同一回答分母）</span>
           </div><DeferredGeoRadarChart :factors="activePersonaData.factors" :title="activePersonaData.name" client-mode />
         </Card><ClientGapEvidence :persona="currentPersona!" :linked-count="linkedStrategyCount" :platform="platformFilter" @set-platform="platformFilter = $event" @focus="focusGap" />
       </div>

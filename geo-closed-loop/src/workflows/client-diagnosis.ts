@@ -18,7 +18,7 @@ export function topicMetrics(answers: readonly TopicAnswer[], theme: string) {
   const attention = denominator ? Number((attentionHits / denominator * 100).toFixed(2)) : null
   const own = denominator ? Number((ownHits / denominator * 100).toFixed(2)) : null
   const rival = denominator ? Number((rivalHits / denominator * 100).toFixed(2)) : null
-  return { denominator, attentionHits, attention, ownHits, rivalHits, own, rival, gap: own === null || rival === null ? null : Number((rival - own).toFixed(2)), negative: relevant.filter(row => row.negative).length, answerIds: relevant.map(row => row.id) }
+  return { denominator, attentionHits, attention, ownHits, rivalHits, own, rival, gap: attention === null || own === null ? null : Number((attention - own).toFixed(2)), negative: relevant.filter(row => row.negative).length, answerIds: relevant.map(row => row.id) }
 }
 
 // Explicit prototype sampling fixtures; these records do not represent live collection.
@@ -82,6 +82,28 @@ export function strategyCoverageGapRefs(strategy: Strategy, personas: readonly P
     .flatMap(persona => personaEvidence(persona).topics
       .filter(topic => strategy.gapNames?.includes(topic.name) && topic.gap !== null && topic.gap > 0)
       .map(topic => `${persona.id}:${topic.name}`))
+}
+
+export interface StrategyGapSummary {
+  persona: Persona
+  topic: ReturnType<typeof personaEvidence>['topics'][number] & { gap: number }
+}
+
+/** Resolve every buyer concern referenced by a strategy, preserving gapNames order. */
+export function strategyGapSummaries(strategy: Strategy, personas: readonly Persona[]): StrategyGapSummary[] {
+  const candidates = personas.filter(persona => strategy.personaIds?.includes(persona.id))
+  const pool = candidates.length ? candidates : personas
+  const evidence = pool.map(persona => ({ persona, topics: personaEvidence(persona).topics }))
+  const seen = new Set<string>()
+  return (strategy.gapNames ?? []).flatMap((name) => {
+    if (seen.has(name)) return []
+    seen.add(name)
+    for (const item of evidence) {
+      const topic = item.topics.find(topic => topic.name === name)
+      if (topic && topic.gap !== null && topic.gap > 0) return [{ persona: item.persona, topic: { ...topic, gap: topic.gap } }]
+    }
+    return []
+  })
 }
 
 export interface GapFacts { verified: boolean, capability: boolean | null, contentExists: boolean, clear: boolean, readable: boolean, thirdParty: boolean }

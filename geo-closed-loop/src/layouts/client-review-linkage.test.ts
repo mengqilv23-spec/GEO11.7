@@ -71,7 +71,7 @@ it('shows the selected strategy GAP and evidence summary in its review drawer', 
     expect(drawer.get('.geo-strategy-evidence__gap').text()).toContain('Gap +')
     const platforms = drawer.findAll('.geo-strategy-evidence__platform')
     expect(platforms).toHaveLength(4)
-    expect(platforms.map(row => row.get('strong').text())).toEqual(['全部平台汇总', 'ChatGPT', 'Perplexity', 'Google AI'])
+    expect(platforms.map(row => row.get('strong').text())).toEqual(['认证与合规 · 全部平台汇总', 'ChatGPT', 'Perplexity', 'Google AI'])
     expect(platforms[0]!.text()).toContain('有效回答 100 条')
     expect(platforms.slice(1).map(row => Number(row.text().match(/有效回答 (\d+) 条/)?.[1])).reduce((sum, count) => sum + count, 0)).toBe(100)
     expect(drawer.get('.geo-strategy-evidence__snapshot').text()).toContain('页面被 Perplexity 引为来源，但回答只推荐 Flow')

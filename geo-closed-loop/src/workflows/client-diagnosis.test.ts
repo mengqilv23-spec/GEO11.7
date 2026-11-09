@@ -3,15 +3,16 @@ import { auditChecks, auditFindings, clientContentReviewFindings, personas } fro
 import { clientCheckResult, createClientFindingTask, normalizeClientFindings, personaEvidence, platformGapBreakdown, resolveGap, topicMetrics } from './client-diagnosis'
 
 describe('unified client diagnosis', () => {
-  it('uses the topic denominator, counts overlapping brands independently, deduplicates answers and retains negative GAP', () => {
+  it('uses the topic denominator, counts overlapping brands independently, deduplicates answers and computes gap from buyer attention', () => {
     const answers = Array.from({ length: 60 }, (_, i) => ({ id: String(i), theme: '服务', ownPositive: i < 15, rivalPositive: i < 36, negative: i === 59 }))
     answers.push({ ...answers[0]! })
     const result = topicMetrics(answers, '服务')
-    expect(result).toMatchObject({ denominator: 60, ownHits: 15, rivalHits: 36, own: 25, rival: 60, gap: 35, negative: 1 })
+    expect(result).toMatchObject({ denominator: 60, ownHits: 15, rivalHits: 36, attention: 100, own: 25, rival: 60, gap: 75, negative: 1 })
     expect(topicMetrics([], '服务').gap).toBeNull()
-    expect(topicMetrics(answers.map(row => ({ ...row, ownPositive: row.rivalPositive, rivalPositive: row.ownPositive })), '服务').gap).toBe(-35)
+    expect(topicMetrics(answers.map(row => ({ ...row, ownPositive: row.rivalPositive, rivalPositive: row.ownPositive })), '服务').gap).toBe(40)
+    expect(topicMetrics(answers.map((row, index) => ({ ...row, topicPresent: index < 10 })), '服务').gap).toBe(-8.33)
     const evidence = personaEvidence(personas[0]!)
-    for (const topic of evidence.topics) if (topic.gap !== null) expect(topic.gap).toBeCloseTo(topic.rival! - topic.own!)
+    for (const topic of evidence.topics) if (topic.gap !== null) expect(topic.gap).toBeCloseTo(topic.attention! - topic.own!)
     const chatgpt = personaEvidence(personas[0]!, 'ChatGPT')
     expect(chatgpt.answers).toHaveLength(6 * 34)
     expect(chatgpt.answers.every(answer => answer.platform === 'ChatGPT')).toBe(true)

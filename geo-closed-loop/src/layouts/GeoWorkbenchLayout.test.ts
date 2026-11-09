@@ -114,7 +114,7 @@ describe('geoWorkbenchLayout icon migration', () => {
     const drawer = wrapper.get('.test-drawer')
     expect(drawer.get('header').element.firstElementChild?.tagName).toBe('H2')
     expect(drawer.attributes('data-size')).toBe('560')
-    expect(drawer.get('small').text()).toBe('认知缺口策略 10')
+    expect(drawer.get('small').text()).toBe('Gap 10')
     expect(drawer.get('p').text()).toBe('')
     expect(drawer.get('h2').text()).toBe('交期页增加汽车工艺停机风险与服务问答')
     expect(drawer.findAll('.geo-strategy-detail-card__header').map(header => header.text())).toEqual([
@@ -129,6 +129,7 @@ describe('geoWorkbenchLayout icon migration', () => {
     expect(drawer.find('.geo-strategy-drawer__status').text()).toBe('处理中')
     expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('策略类型官网内容')
     expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('目标人设汽车工艺、车间主管')
+    expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('买家关注点停机风险')
     expect(drawer.get('.geo-strategy-recommendation').text()).toBe('建议采用停机风险 Q&A、服务问答、买家场景补充等方式，完成本次官网内容优化。')
     expect(drawer.text()).not.toContain('审核与协作记录')
     expect(wrapper.findAll('.test-drawer footer button').some(button => button.text() === '忽略')).toBe(false)
