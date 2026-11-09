@@ -111,7 +111,7 @@ describe('task workspace task confirmation', () => {
     expect(summary.text()).toContain('解决方案')
     expect(summary.text()).toContain('官网：围绕')
     expect(summary.text()).not.toContain('目标人设')
-    expect(summary.text()).not.toContain('决策因子')
+    expect(summary.text()).not.toContain('买家关注点')
     wrapper.unmount()
 
     task.origin = 'buyer-coverage'
@@ -138,7 +138,7 @@ describe('task workspace task confirmation', () => {
     expect(summary).toContain('解决方案')
     expect(summary).not.toContain('任务目标')
     expect(summary).not.toContain('目标人设')
-    expect(summary).not.toContain('决策因子')
+    expect(summary).not.toContain('买家关注点')
     expect(summary).not.toContain('执行对象')
   })
 
@@ -398,7 +398,7 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.get('.tw-content-basis').element.contains(wrapper.get('.tw-gate.ready').element)).toBe(true)
     expect(wrapper.get('.tw-brief-workspace').find('.tw-brief-confirm').exists()).toBe(true)
     const fields = wrapper.findAll('.tw-brief--table dt')
-    expect(fields.map(field => field.text())).toEqual(['任务目标', '目标人设', '决策因子', '执行对象'])
+    expect(fields.map(field => field.text())).toEqual(['任务目标', '目标人设', '买家关注点', '执行对象'])
     expect(wrapper.findAll('.tw-brief--table dd')).toHaveLength(4)
     expect(wrapper.get('.tw-brief-confirm').text()).not.toContain('现在需要运营')
     expect(wrapper.get('.tw-brief-confirm').text()).not.toContain('确认的是这次任务具体做什么')

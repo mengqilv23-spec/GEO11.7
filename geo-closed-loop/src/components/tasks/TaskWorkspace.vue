@@ -169,7 +169,7 @@ function confirmExternalClaim(id: string) {
   flow.value.reviews.push({ time: new Date().toISOString(), actor: '客户', note: `已核对联网品牌信息：${claim.text}` })
   emit('change')
 }
-const briefFields: Array<{ key: 'goal' | 'persona' | 'factor' | 'executionTarget', label: string }> = [{ key: 'goal', label: '任务目标' }, { key: 'persona', label: '目标人设' }, { key: 'factor', label: '决策因子' }, { key: 'executionTarget', label: '执行对象' }]
+const briefFields: Array<{ key: 'goal' | 'persona' | 'factor' | 'executionTarget', label: string }> = [{ key: 'goal', label: '任务目标' }, { key: 'persona', label: '目标人设' }, { key: 'factor', label: '买家关注点' }, { key: 'executionTarget', label: '执行对象' }]
 const auditContent = computed(() => {
   if (props.task.origin !== 'geo-audit' || props.task.type !== 'web' || props.task.executionKind === 'verification') return undefined
   if (props.task.source === 'F9') return officialContentSnapshot(auditFindings.find(finding => finding.id === 'F9')!)
