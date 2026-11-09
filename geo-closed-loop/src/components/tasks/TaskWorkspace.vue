@@ -289,6 +289,28 @@ const siteStatus = computed(() => {
     return { label: 'AI 建站执行中', tone: 'blue' as const }
   return { label: taskStageLabel(props.task, props.serviceMode), tone: 'blue' as const }
 })
+const siteStripVisible = computed(() => props.task.type === 'web' && ['site_submit', 'site_submitted', 'site_running', 'site_verifying', 'site_failed', 'site_publish', 'publish', 'recheck', 'done'].includes(props.task.progress))
+const siteStripText = computed(() => {
+  if (props.task.completionOutcome === 'expired-unexecuted')
+    return '未执行优化：新一轮监测生成时本任务仍未提交官网，已按时限关闭。'
+  if (props.task.progress === 'site_publish')
+    return `发布内容预览已就绪 · ${flow.value.site.preview || `Preview V${flow.value.output.revision}`}`
+  if (props.task.progress === 'site_failed')
+    return flow.value.site.result || '官网检测未通过，请修改正文后重新提交。'
+  if (['site_submit', 'site_submitted'].includes(props.task.progress))
+    return '执行包已提交 AI 建站，等待执行结果。'
+  if (props.task.progress === 'site_running')
+    return 'AI 建站执行中，完成后自动进入 GEO 验证。'
+  if (props.task.progress === 'site_verifying')
+    return 'GEO 验证中，结果返回后可确认发布。'
+  if (props.task.progress === 'publish')
+    return flow.value.site.result || '已确认发布，正在执行发布后 Re-check。'
+  if (props.task.progress === 'recheck')
+    return flow.value.site.result || '发布后 Re-check 中，完成后任务闭环。'
+  if (props.task.progress === 'done')
+    return flow.value.site.result || '任务已完成。'
+  return flow.value.site.result || '执行包已进入官网检测流程，结果返回后会在这里显示。'
+})
 const taskPriority = computed(() => props.task.priority
   ?? routeContext.strategies?.find(strategy => strategy.id === props.task.strategy)?.priority
   ?? routeContext.findings?.find(finding => props.task.source.split(/[\s/·]+/).includes(finding.id))?.priority)
@@ -853,6 +875,13 @@ function versionDiff(index: number) {
 
             <section v-else-if="tab === 'output'" class="tw-card">
               <template v-if="flow.output.body">
+                <div v-if="siteStripVisible" class="tw-site-strip" :class="{ 'is-failed': task.progress === 'site_failed', 'is-ready': task.progress === 'site_publish' }" :title="flow.site.result || undefined">
+                  <Tag :tone="siteStatus.tone" size="sm">
+                    {{ siteStatus.label }}
+                  </Tag>
+                  <span class="tw-site-strip__text">{{ siteStripText }}</span>
+                  <a v-if="task.progress === 'site_publish'" class="tw-preview-link" :href="previewHref" target="_blank" rel="noopener noreferrer">打开发布内容预览</a>
+                </div>
                 <div class="tw-output-review-layout">
                   <div class="tw-output-review-main">
                     <p v-if="aiWritingBlocked" class="tw-ai-guard" role="status">
@@ -865,18 +894,6 @@ function versionDiff(index: number) {
                     </TaskRichTextEditor>
                   </div>
                 </div>
-                <div v-if="task.type === 'web' && task.progress === 'site_publish'" class="tw-output-review-below">
-                  <div class="tw-site-preview-state">
-                    <div><strong>发布内容预览已就绪</strong><span>{{ flow.site.preview || `Preview V${flow.output.revision}` }}</span><small>请打开预览页面核对。确认发布前不会影响线上内容。</small></div>
-                    <a class="tw-preview-link" :href="previewHref" target="_blank" rel="noopener noreferrer">打开发布内容预览</a>
-                  </div>
-                </div>
-                <section v-if="task.type === 'web' && ['site_submit', 'site_submitted', 'site_running', 'site_verifying', 'site_failed', 'site_publish', 'publish', 'recheck', 'done'].includes(task.progress)" class="tw-site-feedback" :class="{ 'is-failed': task.progress === 'site_failed', 'is-ready': task.progress === 'site_publish' }" aria-label="官网检测反馈">
-                  <header><div><span>官网检测反馈</span><h3>{{ task.progress === 'site_failed' ? '官网检测未通过' : task.progress === 'site_publish' ? '检测通过，可打开预览链接并确认发布' : '官网检测与发布状态' }}</h3></div><Tag :tone="task.progress === 'site_failed' ? 'red' : task.progress === 'site_publish' ? 'green' : 'blue'">{{ siteStatus.label }}</Tag></header>
-                  <p>{{ flow.site.result || '执行包已进入官网检测流程，结果返回后会在这里显示。' }}</p>
-                  <p v-if="task.completionOutcome === 'expired-unexecuted'" class="tw-site-feedback__advice"><strong>未执行优化</strong><span>新一轮监测生成时，本任务仍未提交官网，已按时限关闭。</span></p>
-                  <div v-if="task.progress === 'site_failed'" class="tw-site-feedback__advice"><strong>返回建议</strong><span>请根据检测结果修改正文，保存后将重新执行内容优化、AI 质检与最终稿确认。</span></div>
-                </section>
               </template><p v-else class="tw-empty">
                 {{ outputEmptyMessage }}
               </p>

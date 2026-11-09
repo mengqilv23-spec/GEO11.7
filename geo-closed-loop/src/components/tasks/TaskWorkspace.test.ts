@@ -656,6 +656,22 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.find('.tw-confirmation').exists()).toBe(false)
   })
 
+  it('keeps the preview link in one status strip above the article', () => {
+    const task = makeTask()
+    task.progress = 'site_publish'
+    const flow = ensureWorkflow(task)
+    flow.site.preview = 'Preview V1'
+    const wrapper = mountWorkspace('client', task)
+
+    const strip = wrapper.get('.tw-site-strip')
+    expect(strip.text()).toContain('GEO 验证通过 · 待发布')
+    expect(strip.text()).toContain('发布内容预览已就绪 · Preview V1')
+    expect(strip.get('.tw-preview-link').attributes('href')).toContain('/optimization/tasks/T-2402/preview')
+    expect((strip.element.nextElementSibling as HTMLElement).className).toContain('tw-output-review-layout')
+    expect(wrapper.find('.tw-site-feedback').exists()).toBe(false)
+    expect(wrapper.find('.tw-output-review-below').exists()).toBe(false)
+  })
+
   it('shows the waiting state for operations and publish actions for the customer in step four', async () => {
     const task = makeTask()
     task.progress = 'site_publish'
