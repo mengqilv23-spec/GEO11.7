@@ -1029,31 +1029,20 @@ provide(geoWorkbenchRouteContextKey, {
               <template v-else>{{ (drawer.item as AuditFinding).priority }}</template>
             </dd>
             <template v-if="isReadOnlyFinding(drawer.item as AuditFinding)">
-              <dt>问题依据</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
+              <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
               <dt>{{ isKnowledgeFinding(drawer.item as AuditFinding) ? '补充要求' : '参考建议' }}</dt><dd>{{ (drawer.item as AuditFinding).advice || (drawer.item as AuditFinding).routeReason }}</dd>
             </template>
             <template v-else-if="serviceMode === 'managed'">
-              <dt>问题依据</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
+              <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
               <dt>参考建议</dt><dd>{{ (drawer.item as AuditFinding).advice || (drawer.item as AuditFinding).routeReason }}</dd>
             </template>
             <template v-if="serviceMode === 'agent' && !isReadOnlyFinding(drawer.item as AuditFinding)">
-              <dt>问题对象</dt><dd>{{ (drawer.item as AuditFinding).route === 'repair' ? '官网结构' : '官网内容' }}</dd>
-              <dt>检测依据</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
+              <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
               <dt>处理范围</dt><dd>{{ (drawer.item as AuditFinding).routeReason }}</dd>
-              <template v-if="isDirectRepairFinding(drawer.item as AuditFinding)">
-                <dt>执行对象</dt><dd>{{ taskForFinding(drawer.item as AuditFinding)?.workflow?.site.targetPage || '待任务 Brief 确认后写入执行对象' }}</dd>
-                <dt>拟修改项</dt><dd>{{ (drawer.item as AuditFinding).method }} · {{ (drawer.item as AuditFinding).title }}</dd>
-                <dt>验证结果</dt><dd>{{ taskForFinding(drawer.item as AuditFinding)?.workflow?.site.result || ((drawer.item as AuditFinding).status === '已修复' ? '官网已返回处理结果。' : '尚无验证结果，完成后更新。') }}</dd>
-              </template>
             </template>
             <template v-if="taskForFinding(drawer.item as AuditFinding)">
               <dt>关联任务</dt>
-              <dd>
-                {{ taskForFinding(drawer.item as AuditFinding)!.id }} · {{ taskStageLabel(taskForFinding(drawer.item as AuditFinding)!, serviceMode) }}
-                <Button size="sm" variant="text" @click="openTask(taskForFinding(drawer.item as AuditFinding)!)">
-                  {{ taskForFinding(drawer.item as AuditFinding)!.progress === 'done' ? '查看结果' : '查看任务' }}
-                </Button>
-              </dd>
+              <dd>{{ taskForFinding(drawer.item as AuditFinding)!.id }} · {{ taskStageLabel(taskForFinding(drawer.item as AuditFinding)!, serviceMode) }}</dd>
             </template>
             <dt>所属检查项</dt><dd>{{ findingCheckLabel(drawer.item as AuditFinding) }}</dd>
             <dt>当前状态</dt><dd><span class="geo-finding-status" :class="{ 'is-advice': isAdviceFinding(drawer.item as AuditFinding), 'is-done': ['已生成任务', '已完成处理', 'AI建站处理中'].includes(findingStatusLabel(drawer.item as AuditFinding)), 'is-deferred': findingStatusLabel(drawer.item as AuditFinding) === '暂不修复' }">{{ findingStatusLabel(drawer.item as AuditFinding) }}</span></dd>

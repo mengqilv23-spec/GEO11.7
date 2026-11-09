@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/geo-closed-loop-workbench]
   workflow_dispatch:
 
 permissions:
@@ -13,6 +13,10 @@ permissions:
 concurrency:
   group: github-pages
   cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: geo-closed-loop
 
 jobs:
   build:
@@ -25,6 +29,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: geo-closed-loop/package-lock.json
       - name: Install dependencies
         run: npm ci
       - name: Build site
@@ -34,7 +39,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: dist
+          path: geo-closed-loop/dist
 
   deploy:
     environment:

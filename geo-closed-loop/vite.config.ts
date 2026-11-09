@@ -3,8 +3,10 @@ import { env } from 'node:process'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
 
+const pagesRepository = env.GITHUB_REPOSITORY?.split('/')[1]
+
 export default defineConfig({
-  base: env.GITHUB_ACTIONS === 'true' ? '/geo-agent-web-mock/' : '/',
+  base: env.GITHUB_ACTIONS === 'true' && pagesRepository ? `/${pagesRepository}/` : '/',
   plugins: [vue()],
   test: {
     environment: 'jsdom',
