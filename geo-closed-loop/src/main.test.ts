@@ -2,14 +2,16 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('pinia', () => ({ createPinia: vi.fn(() => ({})) }))
 vi.mock('vue', () => ({ createApp: vi.fn(() => ({ use: vi.fn().mockReturnThis(), mount: vi.fn() })) }))
-vi.mock('./router', () => ({ default: {} }))
+vi.mock('./router', () => ({ default: { isReady: vi.fn(() => Promise.resolve(true)) } }))
+vi.mock('./router/prefetch', () => ({ prefetchNavigationPagesWhenIdle: vi.fn() }))
 vi.mock('./App.vue', () => ({ default: {} }))
 
 describe('standalone bootstrap', () => {
   it('mounts the Vue app directly without a delegated session or host bridge', async () => {
     await import('./main')
     const { createApp } = await import('vue')
+    const { prefetchNavigationPagesWhenIdle } = await import('./router/prefetch')
     expect(createApp).toHaveBeenCalledOnce()
+    await vi.waitFor(() => expect(prefetchNavigationPagesWhenIdle).toHaveBeenCalledOnce())
   })
 })
-

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import GeoWorkbenchLayout from '../layouts/GeoWorkbenchLayout.vue'
 import { useGeoContextStore } from '../stores/geo-context'
+import { pageLoaders } from './prefetch'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -23,49 +24,55 @@ export function createAppRouter() {
           {
             path: 'overview',
             name: 'overview',
-            component: () => import('../views/OverviewView.vue'),
+            component: pageLoaders.overview,
             meta: { title: '概览', requiresOnboarding: true },
           },
           {
             path: 'diagnosis',
             name: 'diagnosis',
-            component: () => import('../views/DiagnosisView.vue'),
+            component: pageLoaders.diagnosis,
             meta: { title: '诊断与策略', requiresOnboarding: true },
           },
           {
             path: 'optimization',
             name: 'optimization',
-            component: () => import('../views/OptimizationView.vue'),
+            component: pageLoaders.optimization,
             meta: { title: '优化中心', requiresOnboarding: true },
           },
           {
             path: 'operations-review',
             name: 'operations-review',
-            component: () => import('../views/OperationsReviewView.vue'),
+            component: pageLoaders['operations-review'],
             meta: { title: '运营复盘与 Agent 升级', requiresOnboarding: true },
           },
           {
             path: 'optimization/tasks/:taskId',
             name: 'task-detail',
-            component: () => import('../views/TaskDetailView.vue'),
+            component: pageLoaders['task-detail'],
             meta: { title: '任务详情', requiresOnboarding: true },
           },
           {
             path: 'visibility-monitoring',
             name: 'visibility-monitoring',
-            component: () => import('../views/VisibilityMonitoringView.vue'),
+            component: pageLoaders['visibility-monitoring'],
             meta: { title: '可见性监测', requiresOnboarding: true },
+          },
+          {
+            path: 'brand-cognition',
+            name: 'brand-cognition',
+            component: pageLoaders['brand-cognition'],
+            meta: { title: '企业认知', requiresOnboarding: true },
           },
           {
             path: 'report-center',
             name: 'report-center',
-            component: () => import('../views/ReportCenterView.vue'),
+            component: pageLoaders['report-center'],
             meta: { title: '报告中心', requiresOnboarding: true },
           },
           {
             path: 'onboarding',
             name: 'onboarding',
-            component: () => import('../views/OnboardingView.vue'),
+            component: pageLoaders.onboarding,
             meta: { title: '品牌知识引导' },
           },
         ],
@@ -73,19 +80,19 @@ export function createAppRouter() {
       {
         path: '/market-setup',
         name: 'market-setup',
-        component: () => import('../views/MarketSetupView.vue'),
+        component: pageLoaders['market-setup'],
         meta: { title: '新增市场配置', requiresOnboarding: true },
       },
       {
         path: '/optimization/tasks/:taskId/preview',
         name: 'task-preview',
-        component: () => import('../views/TaskPreviewView.vue'),
+        component: pageLoaders['task-preview'],
         meta: { title: '发布内容预览', requiresOnboarding: true },
       },
       {
         path: '/reports/:reportId',
         name: 'report-detail',
-        component: () => import('../views/ReportDetailView.vue'),
+        component: pageLoaders['report-detail'],
         meta: { title: '报告详情', requiresOnboarding: true },
       },
       { path: '/:pathMatch(.*)*', redirect: '/' },
@@ -124,4 +131,3 @@ export function createAppRouter() {
 }
 
 export default createAppRouter()
-

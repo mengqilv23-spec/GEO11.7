@@ -23,13 +23,40 @@ const sources: SourceDomain[] = Object.entries(raw.sourceDomainDetails).map(([do
   platformStats: details.engineStats.map(item => ({ platform: platformId(item.name), citationCount: item.citations, questionCount: item.questions, pageCount: item.pages })),
 }))
 
+const sourceWithoutProtocol = (value: string) => value.replace(/^https?:\/\//, '').replace(/\/$/, '')
+const absoluteSourceUrl = (value: string) => /^https?:\/\//.test(value) ? value : `https://${value}`
+const sourceDomainOf = (value: string) => {
+  try { return new URL(absoluteSourceUrl(value)).hostname.replace(/^www\./, '') }
+  catch { return sourceWithoutProtocol(value).split('/')[0]!.replace(/^www\./, '') }
+}
+function pageForSource(value: string) {
+  const normalized = sourceWithoutProtocol(value)
+  const lastSegment = normalized.split('/').filter(Boolean).at(-1)
+  return pages.find(page => page.href && sourceWithoutProtocol(page.href) === normalized)
+    ?? pages.find(page => page.href && sourceWithoutProtocol(page.href).startsWith(`${normalized}/`))
+    ?? (lastSegment && !lastSegment.includes('.')
+      ? pages.find(page => page.href && sourceWithoutProtocol(page.href).split('/').includes(lastSegment))
+      : undefined)
+}
+function citationView(citation: { source: string, content: string, isMe: boolean }) {
+  const page = pageForSource(citation.source)
+  const excerpt = citation.content.length > 60 ? `${citation.content.slice(0, 60)}…` : citation.content
+  return {
+    url: absoluteSourceUrl(citation.source),
+    excerpt: citation.content,
+    isOwned: citation.isMe,
+    title: page?.title ?? (citation.source.includes('/') ? citation.source : excerpt),
+    domain: sourceDomainOf(citation.source),
+  }
+}
+
 type Query = typeof raw.queryMatrixData[number]
 function roundResults(query: Query, round: Query['rounds']['r1'] | Query['rounds']['r2']): PlatformResult[] {
   return round.engines.map(engine => ({
     platform: platformId(engine.name), ownBrandMentioned: rank(engine.rank) !== null,
     competitorsMentioned: competitorsFor(query.id), officialSiteCited: round.citationsTable.some(citation => citation.isMe && engine.name.startsWith(citation.engine)),
     htmlSnapshot: engine.htmlSnapshot,
-    citations: round.citationsTable.filter(citation => engine.name.startsWith(citation.engine)).map(citation => ({ url: `https://${citation.source}`, excerpt: citation.content })),
+    citations: round.citationsTable.filter(citation => engine.name.startsWith(citation.engine)).map(citationView),
     rank: rank(engine.rank), sentiment: engine.sentiment.includes('正面') ? 'positive' : 'neutral', answer: engine.fullText,
     citedPages: [...new Set(round.citationsTable.filter(citation => engine.name.startsWith(citation.engine)).flatMap(citation => {
       const match = pages.find(page => page.href?.replace(/^https?:\/\//, '') === citation.source)

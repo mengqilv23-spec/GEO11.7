@@ -32,7 +32,7 @@ interface Snapshot { contentReviewReset?: number, findings: AuditFinding[], stra
 const route = useRoute()
 const router = useRouter()
 const isOnboardingPage = computed(() => route.name === 'onboarding')
-const activePage = computed<GeoPage | 'overview' | 'visibility-monitoring' | 'report-center' | 'operations-review'>(() => route.name === 'overview' ? 'overview' : route.name === 'visibility-monitoring' ? 'visibility-monitoring' : route.name === 'report-center' ? 'report-center' : route.name === 'operations-review' ? 'operations-review' : ['optimization', 'task-detail'].includes(String(route.name)) ? 'optimization' : 'diagnosis')
+const activePage = computed<GeoPage | 'overview' | 'visibility-monitoring' | 'brand-cognition' | 'report-center' | 'operations-review'>(() => route.name === 'overview' ? 'overview' : route.name === 'visibility-monitoring' ? 'visibility-monitoring' : route.name === 'brand-cognition' ? 'brand-cognition' : route.name === 'report-center' ? 'report-center' : route.name === 'operations-review' ? 'operations-review' : ['optimization', 'task-detail'].includes(String(route.name)) ? 'optimization' : 'diagnosis')
 const sidebarSections = [
   { heading: '', items: [{ label: '网站建设', icon: 'globe', route: 'overview' }] },
   { heading: '整合视图', items: [{ label: '增长驾驶舱', icon: 'dashboard', route: 'overview' }] },
@@ -1038,7 +1038,7 @@ provide(geoWorkbenchRouteContextKey, {
             </template>
             <template v-if="serviceMode === 'agent' && !isReadOnlyFinding(drawer.item as AuditFinding)">
               <dt>问题描述</dt><dd>{{ (drawer.item as AuditFinding).evidence || (drawer.item as AuditFinding).detail }}</dd>
-              <dt>处理范围</dt><dd>{{ (drawer.item as AuditFinding).routeReason }}</dd>
+              <dt>{{ isDirectRepairFinding(drawer.item as AuditFinding) ? '解决方案' : '处理范围' }}</dt><dd>{{ (drawer.item as AuditFinding).routeReason }}</dd>
             </template>
             <template v-if="taskForFinding(drawer.item as AuditFinding)">
               <dt>关联任务</dt>

@@ -1,7 +1,10 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import GeoSectionNav from './GeoSectionNav.vue'
+
+const { prefetchPage } = vi.hoisted(() => ({ prefetchPage: vi.fn() }))
+vi.mock('../../../router/prefetch', () => ({ prefetchPage }))
 
 const router = createRouter({
   history: createMemoryHistory(),
@@ -10,12 +13,15 @@ const router = createRouter({
     { path: '/diagnosis', name: 'diagnosis', component: { template: '<div />' } },
     { path: '/optimization', name: 'optimization', component: { template: '<div />' } },
     { path: '/visibility-monitoring', name: 'visibility-monitoring', component: { template: '<div />' } },
+    { path: '/brand-cognition', name: 'brand-cognition', component: { template: '<div />' } },
     { path: '/report-center', name: 'report-center', component: { template: '<div />' } },
     { path: '/operations-review', name: 'operations-review', component: { template: '<div />' } },
   ],
 })
 
 describe('geo section navigation', () => {
+  beforeEach(() => prefetchPage.mockClear())
+
   it('renders route navigation as a labeled secondary navigation row', async () => {
     await router.push('/optimization')
     await router.isReady()
@@ -25,11 +31,27 @@ describe('geo section navigation', () => {
     })
 
     expect(wrapper.get('nav').attributes('aria-label')).toBe('GEO 智能体页面')
-    expect(wrapper.findAll('a')).toHaveLength(6)
+    expect(wrapper.findAll('a')).toHaveLength(7)
     expect(wrapper.get('a[aria-current="page"]').text()).toContain('优化中心')
     expect(wrapper.get('a[href="/overview"]').text()).toContain('概览')
+    expect(wrapper.get('a[href="/brand-cognition"]').text()).toContain('企业认知')
     expect(wrapper.get('a[href="/operations-review"]').text()).toContain('运营复盘与 Agent 升级')
     wrapper.unmount()
   })
-})
 
+  it('warms a page chunk before the navigation item is clicked', async () => {
+    await router.push('/optimization')
+    await router.isReady()
+    const wrapper = mount(GeoSectionNav, {
+      props: { activePage: 'optimization' },
+      global: { plugins: [router] },
+    })
+
+    await wrapper.get('a[href="/brand-cognition"]').trigger('pointerenter')
+    await wrapper.get('a[href="/report-center"]').trigger('focus')
+
+    expect(prefetchPage).toHaveBeenCalledWith('brand-cognition')
+    expect(prefetchPage).toHaveBeenCalledWith('report-center')
+    wrapper.unmount()
+  })
+})

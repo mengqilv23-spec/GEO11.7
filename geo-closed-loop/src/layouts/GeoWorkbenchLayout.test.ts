@@ -254,6 +254,31 @@ it.each(['client', 'managed'])('runs direct technical repairs without human appr
   finally { wrapper.unmount(); vi.useRealTimers() }
 })
 
+it('labels a direct technical repair detail as a solution in the client version', async () => {
+  localStorage.clear()
+  const probe = defineComponent({
+    setup() {
+      const context = inject(geoWorkbenchRouteContextKey)!
+      return () => h('div', context.findings.filter(finding => finding.id === 'F7-1').map(finding =>
+        h('button', { 'data-test': finding.id, onClick: () => context.openAudit(finding) }, finding.status)))
+    },
+  })
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: probe }] })
+  await router.push('/diagnosis?version=client')
+  const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
+    GeoWorkbenchToolbar: true, RouterLink: true,
+    GeoDrawer: { props: ['open'], template: '<div v-if="open" class="test-drawer"><slot /><footer><slot name="footer" /></footer></div>' },
+  } } })
+  try {
+    await wrapper.get('[data-test="F7-1"]').trigger('click')
+    expect(wrapper.get('.test-drawer').text()).toContain('解决方案')
+    expect(wrapper.get('.test-drawer').text()).not.toContain('处理范围')
+  }
+  finally {
+    wrapper.unmount()
+    localStorage.clear()
+  }
+})
 
 it.each(['client', 'managed'])('persists reviewer priority changes including P3 in %s version', async (version) => {
   localStorage.clear()

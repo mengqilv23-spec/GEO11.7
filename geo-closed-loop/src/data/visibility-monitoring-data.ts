@@ -25,7 +25,7 @@ export interface PlatformResult {
   rank: number | null
   sentiment: 'positive' | 'neutral' | 'negative'
   htmlSnapshot?: string
-  citations?: Array<{ url: string, excerpt: string }>
+  citations?: Array<{ url: string, excerpt: string, isOwned?: boolean, title?: string, domain?: string }>
   answer: string
   citedPages: string[]
 }

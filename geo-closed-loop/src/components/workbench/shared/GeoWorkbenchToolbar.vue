@@ -8,7 +8,7 @@ import MarketSwitcher from '../../market/MarketSwitcher.vue'
 import GeoSectionNav from './GeoSectionNav.vue'
 
 const props = defineProps<{
-  activePage: GeoPage | 'overview' | 'visibility-monitoring' | 'report-center' | 'operations-review'
+  activePage: GeoPage | 'overview' | 'visibility-monitoring' | 'brand-cognition' | 'report-center' | 'operations-review'
   serviceMode?: ServiceMode
   role: UserRole
 }>()
