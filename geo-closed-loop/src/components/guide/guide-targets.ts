@@ -27,7 +27,7 @@ export const guideTargets: Record<string, GuideTarget[]> = {
     { selector: '.geo-strategy-panel' },
   ],
   optimization: [
-    { selector: '.geo-optimization-pending' },
+    { selector: '.geo-optimization-summary' },
     { selector: '.geo-task-table-wrap' },
     { selector: '.tw-brief-workspace', activate: ['[data-guide-brief-task="true"]'], preserveModule: true, unavailable: '当前任务列表没有待确认 Brief 的内容任务，请先在优化中心筛选待确认任务。' },
   ],

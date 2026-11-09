@@ -6,7 +6,6 @@ import { displayObjectCodes } from '../../../data/geo-data'
 import { isTaskDeferred, isTaskIgnored, reviewOwner } from '../../../workflows/task-workflow'
 import { isDirectRepairTask } from '../../../workflows/direct-repair'
 import Button from '../../ui/ce/button/Button.vue'
-import ActionCard from '../../ui/ce/card/ActionCard.vue'
 import DataList from '../../ui/ce/data-list/DataList.vue'
 import Pagination from '../../ui/ce/pagination/Pagination.vue'
 import SegmentedControl from '../../ui/ce/segmented-control/SegmentedControl.vue'
@@ -17,7 +16,7 @@ import '../../../styles/optimization-page.css'
 const props = defineProps<{ tasks: GeoTask[], allTasks: GeoTask[], strategies?: Strategy[], filter: TaskFilter, role: UserRole, serviceMode?: ServiceMode }>()
 const emit = defineEmits<{ setFilter: [filter: TaskFilter], openTask: [task: GeoTask], openFlow: [] }>()
 
-type BucketFilter = 'all' | 'brief' | 'content' | 'review' | 'website' | 'changes' | 'publish' | 'ignored' | 'deferred' | 'done'
+type BucketFilter = 'all' | 'brief' | 'processing' | 'done'
 const taskTypes: Array<{ id: TaskFilter, label: string }> = [
   { id: 'all', label: '全部任务' },
   { id: 'web', label: '官网内容' },
@@ -26,20 +25,13 @@ const taskTypes: Array<{ id: TaskFilter, label: string }> = [
 ]
 const bucket = shallowRef<BucketFilter>('all')
 const page = shallowRef(1)
-const onlyMine = shallowRef(false)
 const perPage = 5
 const taskTypeOptions = taskTypes.map(item => ({ value: item.id, label: item.label }))
 const taskStatusOptions: Array<{ value: BucketFilter, label: string }> = [
   { value: 'all', label: '全部状态' },
   { value: 'brief', label: '待确认 Brief' },
-  { value: 'content', label: '内容处理中' },
-  { value: 'review', label: '待内容确认' },
-  { value: 'website', label: '官网处理中' },
-  { value: 'changes', label: '待修改' },
-  { value: 'publish', label: '待发布确认' },
-  { value: 'ignored', label: '已忽略' },
-  { value: 'deferred', label: '已暂不处理' },
-  { value: 'done', label: '已完结' },
+  { value: 'processing', label: '处理中' },
+  { value: 'done', label: '已完成' },
 ]
 const taskColumns: DataListColumn<unknown>[] = [
   { key: 'serial', title: '序号', width: '4%', minWidth: 44 },
@@ -60,21 +52,16 @@ const taskTableLabels = {
   selectRow: (label: string) => `选择任务 ${label}`,
 }
 function keyStatus(task: GeoTask): Exclude<BucketFilter, 'all'> {
-  if (isTaskIgnored(task)) return 'ignored'
-  if (['recheck', 'done'].includes(task.progress)) return 'done'
-  if (isTaskDeferred(task)) return 'deferred'
-  if (task.progress === 'brief') return 'brief'
-  if (task.type === 'repair') return 'website'
-  if (['todo', 'running'].includes(task.progress)) return 'content'
-  if (['client_content_review', 'human', 'client_review'].includes(task.progress)) return 'review'
-  if (task.progress === 'site_failed') return 'changes'
-  if (['site_publish', 'publish'].includes(task.progress)) return 'publish'
-  return 'website'
+  if (task.progress === 'done' || task.completionOutcome === 'expired-unexecuted' || isTaskIgnored(task) || isTaskDeferred(task))
+    return 'done'
+  if (task.progress === 'brief')
+    return 'brief'
+  return 'processing'
 }
 function keyStatusLabel(task: GeoTask) {
-  return taskStatusOptions.find(item => item.value === keyStatus(task))?.label ?? '官网处理中'
+  return taskStatusOptions.find(item => item.value === keyStatus(task))?.label ?? '处理中'
 }
-const filteredTasks = computed(() => props.allTasks.filter(task => (props.filter === 'all' || task.type === props.filter) && (bucket.value === 'all' || keyStatus(task) === bucket.value) && (!onlyMine.value || needsMyAction(task))))
+const filteredTasks = computed(() => props.allTasks.filter(task => (props.filter === 'all' || task.type === props.filter) && (bucket.value === 'all' || keyStatus(task) === bucket.value)))
 const pages = computed(() => Math.max(1, Math.ceil(filteredTasks.value.length / perPage)))
 const visibleTasks = computed(() => filteredTasks.value.slice((page.value - 1) * perPage, page.value * perPage))
 function taskFromRow(item: unknown) {
@@ -96,34 +83,33 @@ function needsMyAction(task: GeoTask) {
   if (task.progress === 'site_failed') return props.role === owner
   return ['site_publish', 'publish'].includes(task.progress) && props.role === 'client'
 }
-const myTasks = computed(() => props.allTasks.filter(needsMyAction))
-const cards = computed(() => [
-  { title: '确认 Brief', bucket: 'brief' as BucketFilter },
-  { title: '审核内容', bucket: 'review' as BucketFilter },
-  { title: '处理官网执行', bucket: 'website' as BucketFilter },
-  { title: '处理修改', bucket: 'changes' as BucketFilter },
-  { title: '确认发布', bucket: 'publish' as BucketFilter },
-].map(card => ({ ...card, tasks: myTasks.value.filter(task => keyStatus(task) === card.bucket) }))
-  .map(card => ({ ...card, count: card.tasks.length })).filter(card => card.count > 0))
 const overviewStats = computed(() => taskTypes.map(type => ({
   name: type.label,
   count: props.allTasks.filter(task => type.id === 'all' || task.type === type.id).length,
 })))
-watch([() => props.role, () => props.serviceMode], () => { onlyMine.value = false; bucket.value = 'all' })
+const techStats = computed(() => {
+  const tasks = props.allTasks.filter(task => task.type === 'repair')
+  let pending = 0
+  let processing = 0
+  let done = 0
+  for (const task of tasks) {
+    if (task.progress === 'done' || task.completionOutcome === 'expired-unexecuted' || isTaskIgnored(task) || isTaskDeferred(task))
+      done += 1
+    else if (['brief', 'human', 'site_submit', 'site_returned', 'site_failed'].includes(task.progress))
+      pending += 1
+    else
+      processing += 1
+  }
+  return { total: tasks.length, pending, processing, done }
+})
+watch([() => props.role, () => props.serviceMode], () => {
+  bucket.value = 'all'
+})
 watch([bucket, () => props.filter], () => page.value = 1)
 watch(pages, (value) => {
   if (page.value > value)
     page.value = value
 })
-function openCard(taskCard: typeof cards.value[number]) {
-  onlyMine.value = true
-  bucket.value = taskCard.bucket
-  emit('setFilter', 'all')
-  page.value = 1
-  if (taskCard.tasks.length === 1)
-    emit('openTask', taskCard.tasks[0]!)
-  else document.getElementById('geo-task-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
 function taskTypeLabel(task: GeoTask) {
   return task.type === 'web' ? '官网内容' : task.type === 'external' ? '外部内容' : '官网结构与技术'
 }
@@ -144,11 +130,9 @@ function taskActionLabel(task: GeoTask) {
   return '查看详情'
 }
 function setTaskFilter(value: string) {
-  onlyMine.value = false
   emit('setFilter', value as TaskFilter)
 }
 function setTaskStatus(value: string) {
-  onlyMine.value = false
   bucket.value = value as BucketFilter
 }
 </script>
@@ -157,7 +141,7 @@ function setTaskStatus(value: string) {
   <div class="geo-content geo-optimization">
     <GeoPageIntro variant="workbench" title="优化中心 · 任务工作台" help-label="优化中心说明" description="官网体检确认后生成独立任务；候选策略可按执行目标合并为一项任务。任务先确认 Brief，再进入内容执行与审核。" />
 
-    <section class="geo-diagnosis-summary geo-optimization-summary" aria-label="任务概况与待办">
+    <section class="geo-diagnosis-summary geo-optimization-summary" aria-label="任务概况与官网结构与技术统计">
       <div class="geo-optimization-summary__overview">
         <div class="geo-optimization-round-meta"><span>监测时间 / 轮次</span><b>2026-10-02 · 第 5 轮</b></div>
         <header class="geo-diagnosis-summary__header">
@@ -173,18 +157,26 @@ function setTaskStatus(value: string) {
         </div>
       </div>
 
-      <section class="geo-optimization-pending" aria-labelledby="geo-my-tasks-title">
+      <section class="geo-optimization-tech-stats" aria-labelledby="geo-tech-stats-title">
         <header class="geo-panel__head">
-          <h2 id="geo-my-tasks-title">待我处理 <span class="geo-my-tasks-count">{{ myTasks.length }}</span></h2>
+          <h2 id="geo-tech-stats-title">
+            官网结构与技术
+          </h2>
+          <Tag tone="blue" variant="soft" size="sm">
+            共 {{ techStats.total }} 项
+          </Tag>
         </header>
-        <div v-if="cards.length" class="geo-action-grid">
-          <ActionCard v-for="card in cards" :key="card.title" class="geo-action-card has-pending" @click="openCard(card)">
-            <strong class="geo-action-card__title">{{ card.title }}</strong>
-            <span class="geo-action-card__count">{{ card.count }}<small> 项</small></span>
-            <span class="geo-action-card__arrow" aria-hidden="true">→</span>
-          </ActionCard>
+        <div class="geo-tech-stats__grid">
+          <div class="geo-tech-stat is-pending">
+            <span>待我处理</span><b>{{ techStats.pending }}<small> 项</small></b>
+          </div>
+          <div class="geo-tech-stat is-processing">
+            <span>处理中</span><b>{{ techStats.processing }}<small> 项</small></b>
+          </div>
+          <div class="geo-tech-stat is-done">
+            <span>已完成</span><b>{{ techStats.done }}<small> 项</small></b>
+          </div>
         </div>
-        <p v-else class="geo-optimization-no-pending" role="status">当前暂无待处理任务</p>
       </section>
     </section>
 
@@ -194,7 +186,7 @@ function setTaskStatus(value: string) {
           <h2 id="geo-task-title">
             任务列表
           </h2>
-        </div><Button v-if="onlyMine" variant="text" size="sm" @click="onlyMine = false; bucket = 'all'">查看全部任务</Button><Tag tone="blue" variant="soft" size="sm">
+        </div><Tag tone="blue" variant="soft" size="sm">
           {{ filteredTasks.length }} 项
         </Tag>
       </header>

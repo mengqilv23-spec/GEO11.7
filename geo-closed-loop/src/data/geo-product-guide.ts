@@ -46,7 +46,7 @@ export const geoGuideModules: GuideModule[] = [
     id: 'optimization', title: '优化中心', route: 'optimization',
     introduction: '把策略转化后的任务、待办和执行进展集中管理，从任务范围确认到内容交付保留连续的处理记录。',
     steps: [
-      { title: '从待我处理开始', description: '任务概况展示类型分布，待我处理聚合当前角色需要参与的节点。任务列表可按类型与状态筛选。', action: '点击对应待办或筛选任务，打开需要处理的任务。' },
+      { title: '从任务概况开始', description: '任务概况展示类型分布与官网结构与技术的处理进度。任务列表可按类型与状态筛选。', action: '查看概况与统计，筛选需要处理的任务。' },
       { title: '确认 Brief 与执行范围', description: 'Brief 记录任务目标、资料和执行要求，为后续生成与审核提供依据。', action: '在任务中核对 Brief，补充资料后按当前权限确认或反馈。' },
       { title: '确认 Brief，告诉 AI 如何生成', description: '进入待确认任务后，先核对任务目标、买家人设、决策因子和内容依据。如果内容方向不符合预期，可在“直接告诉 AI”里写一句具体要求，再确认 Brief 生成内容。', action: '检查任务信息与资料；需要调整时补充提示，再点击“确认并生成内容”。' },
     ],

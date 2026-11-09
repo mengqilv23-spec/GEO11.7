@@ -29,7 +29,7 @@ describe('optimization content task table', () => {
       '全部任务2项',
       '官网内容1项',
       '外部内容1项',
-      '基础修复0项',
+      '官网结构与技术0项',
     ])
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
     wrapper.unmount()
@@ -61,11 +61,11 @@ describe('optimization content task table', () => {
       '操作',
     ])
     expect(wrapper.findAll('tbody tr td:first-child').map(cell => cell.text())).toEqual([
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
+      'TASK-1',
+      'TASK-2',
+      'TASK-3',
+      'TASK-4',
+      'TASK-5',
     ])
     expect(wrapper.get('thead th:nth-child(1)').attributes('style')).toContain('width: 4%')
     expect(wrapper.get('thead th:nth-child(1)').attributes('style')).toContain('min-width: 44px')
@@ -78,31 +78,37 @@ describe('optimization content task table', () => {
     wrapper.unmount()
   })
 
-  it('removes ignored Briefs from pending cards and exposes a dedicated ignored filter', async () => {
-    const task = { ...initialTasks[0]!, id: 'TASK-IGNORED', name: '已忽略任务', progress: 'brief' as const }
-    ensureWorkflow(task).ignoredBrief = {
+  it('offers only the three task statuses', () => {
+    const tasks = makeTasks()
+    const wrapper = mount(OptimizationContent, {
+      props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
+    })
+
+    const statusRow = wrapper.findAll('.geo-task-filter-row')[1]!
+    expect(statusRow.findAll('.ce-segmented__option').map(option => option.text())).toEqual([
+      '全部状态',
+      '待确认 Brief',
+      '处理中',
+      '已完成',
+    ])
+    expect(wrapper.find('.geo-optimization-pending').exists()).toBe(false)
+    expect(wrapper.find('.geo-action-card').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('maps every task progress into pending Brief, processing or done', async () => {
+    const tasks: GeoTask[] = ['brief', 'site_failed', 'done'].map((progress, index) => ({
+      ...initialTasks[0]!, id: `STATUS-${index}`, name: `状态任务${index}`, workflow: undefined, progress: progress as GeoTask['progress'],
+    }))
+    const ignored = { ...initialTasks[0]!, id: 'STATUS-IGNORED', name: '已忽略任务', progress: 'brief' as const }
+    ensureWorkflow(ignored).ignoredBrief = {
       reason: '其他',
       explanation: '不再适用',
       actor: '客户',
       time: new Date().toISOString(),
     }
-    const tasks = [task]
-    const wrapper = mount(OptimizationContent, {
-      props: { tasks, allTasks: tasks, filter: 'all', role: 'client' },
-    })
-
-    expect(wrapper.find('.geo-action-card').exists()).toBe(false)
-    expect(wrapper.get('.geo-optimization-no-pending').text()).toBe('当前暂无待处理任务')
-    expect(wrapper.get('tbody').text()).toContain('已忽略')
-    await wrapper.get('input[value="ignored"]').trigger('change')
-    expect(wrapper.get('tbody').text()).toContain('已忽略任务')
-
-    wrapper.unmount()
-  })
-
-  it('removes deferred tasks from pending cards and exposes a dedicated deferred filter', async () => {
-    const task = { ...initialTasks[0]!, id: 'TASK-DEFERRED', name: '已暂不处理任务', progress: 'human' as const }
-    ensureWorkflow(task).deferredTask = {
+    const deferred = { ...initialTasks[0]!, id: 'STATUS-DEFERRED', name: '已暂不处理任务', progress: 'human' as const }
+    ensureWorkflow(deferred).deferredTask = {
       stage: 'human',
       stageLabel: '运营专业审核',
       reason: '资料待补充',
@@ -110,39 +116,45 @@ describe('optimization content task table', () => {
       actor: '专家',
       time: new Date().toISOString(),
     }
-    const tasks = [task]
+    tasks.push(ignored, deferred)
+    const wrapper = mount(OptimizationContent, {
+      props: { tasks, allTasks: tasks, filter: 'all', role: 'client' },
+    })
+
+    expect(wrapper.findAll('tbody .geo-progress').map(status => status.text())).toEqual([
+      '待确认 Brief',
+      '处理中',
+      '已完成',
+      '已完成',
+      '已完成',
+    ])
+    await wrapper.get('input[value="done"]').setValue(true)
+    expect(wrapper.findAll('tbody tr')).toHaveLength(3)
+    expect(wrapper.get('tbody').text()).toContain('已忽略任务')
+    expect(wrapper.get('tbody').text()).toContain('已暂不处理任务')
+    wrapper.unmount()
+  })
+
+  it('counts structure and technical tasks by pending, processing and done', async () => {
+    const tasks: GeoTask[] = [
+      { ...initialTasks[0]!, id: 'TECH-1', name: '待处理修复', type: 'repair', workflow: undefined, progress: 'brief' },
+      { ...initialTasks[0]!, id: 'TECH-2', name: '处理中修复', type: 'repair', workflow: undefined, progress: 'site_running' },
+      { ...initialTasks[0]!, id: 'TECH-3', name: '已完成修复', type: 'repair', workflow: undefined, progress: 'done' },
+      { ...initialTasks[0]!, id: 'TECH-4', name: '验证未通过修复', type: 'repair', workflow: undefined, progress: 'site_failed' },
+      { ...initialTasks[0]!, id: 'WEB-1', name: '官网内容任务', type: 'web', workflow: undefined, progress: 'brief' },
+    ]
     const wrapper = mount(OptimizationContent, {
       props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
     })
 
-    expect(wrapper.find('.geo-action-card').exists()).toBe(false)
-    expect(wrapper.get('.geo-optimization-no-pending').text()).toBe('当前暂无待处理任务')
-    expect(wrapper.get('tbody').text()).toContain('已暂不处理')
-    await wrapper.get('input[value="deferred"]').trigger('change')
-    expect(wrapper.get('tbody').text()).toContain('已暂不处理任务')
-
+    expect(wrapper.get('.geo-optimization-tech-stats h2').text()).toBe('官网结构与技术')
+    expect(wrapper.findAll('.geo-tech-stat').map(stat => stat.text().replace(/\s/g, ''))).toEqual([
+      '待我处理2项',
+      '处理中1项',
+      '已完成1项',
+    ])
+    expect(wrapper.get('.geo-optimization-tech-stats .ce-tag').text()).toBe('共 4 项')
     wrapper.unmount()
   })
-})
-
-
-it.each([
-  ['managed', 'ops', 2],
-  ['managed', 'client', 1],
-  ['agent', 'client', 3],
-  ['agent', 'ops', 0],
-] as const)('counts only tasks owned by the current reviewer in %s/%s', async (mode, role, expected) => {
-  const tasks: GeoTask[] = ['brief', 'human', 'client_review', 'running', 'done'].map((progress, index) => ({
-    ...initialTasks[0]!, id: `ROLE-${index}`, name: `角色任务${index}`, type: 'web', workflow: undefined, progress: progress as GeoTask['progress'],
-  }))
-  tasks.push({ ...tasks[0]!, id: 'REPAIR', type: 'repair', source: 'F7-1', progress: 'human' })
-  const wrapper = mount(OptimizationContent, { props: { tasks, allTasks: tasks, filter: 'all', role, serviceMode: mode } })
-  expect(wrapper.get('.geo-my-tasks-count').text()).toBe(String(expected))
-  expect(wrapper.findAll('.geo-action-card').every(card => !card.text().includes('暂无待办'))).toBe(true)
-  if (mode === 'managed' && role === 'ops') {
-    await wrapper.findAll('.geo-action-card').find(card => card.text().includes('审核内容'))!.trigger('click')
-    expect(wrapper.emitted('openTask')?.[0]?.[0]).toMatchObject({ id: 'ROLE-1' })
-  }
-  wrapper.unmount()
 })
 
