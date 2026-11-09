@@ -588,7 +588,7 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.find('.tw-actionbar strong').exists()).toBe(false)
     expect(wrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(true)
     expect(wrapper.get('.tw-actionbar [data-test="save-inline-output"]').text()).toBe('保存正文')
-    expect((wrapper.get('.tw-actionbar [data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(true)
+    expect((wrapper.get('.tw-actionbar [data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(false)
     expect(wrapper.findAll('.tw-actionbar button').map(button => button.text())).toEqual([
       '忽略',
       '保存正文',
@@ -627,7 +627,7 @@ describe('task workspace task confirmation', () => {
     expect(task.workflow?.output.body).toContain('运营保存后的正文')
     expect(task.workflow?.output.revision).toBe(2)
     expect(task.progress).toBe('human')
-    expect((wrapper.get('[data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(true)
+    expect((wrapper.get('[data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(false)
     expect(wrapper.get('.tw-actionbar .tw-success').text()).toContain('保存产物修改')
   })
 

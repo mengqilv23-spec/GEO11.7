@@ -505,6 +505,13 @@ function saveBriefDraft() {
   }
   return saved
 }
+function saveBriefDraftFromButton() {
+  if (!briefDirty.value) {
+    message.value = '当前没有需要保存的修改'
+    return
+  }
+  saveBriefDraft()
+}
 function saveWebSupplementSetting() {
   if (editableBrief.value)
     return
@@ -570,6 +577,13 @@ function saveInlineOutput() {
     persistLocalDraft()
   }
   return saved
+}
+function saveInlineOutputFromButton() {
+  if (!outputDirty.value) {
+    message.value = '当前没有需要保存的修改'
+    return
+  }
+  saveInlineOutput()
 }
 function approveReview() {
   if (!saveInlineOutput()) return
@@ -660,7 +674,7 @@ function versionDiff(index: number) {
             <option value="add-content">有能力，官网未介绍</option><option value="edit-content">已有介绍，表达不明确</option><option value="technical">内容完整，存在读取障碍</option><option value="external">需要补充第三方来源</option><option value="business-gap">实际不具备该能力</option>
           </select></label>
           <label class="tw-field">核查记录<textarea v-model="draft.body" :readonly="task.progress === 'done'" rows="7" placeholder="记录核查资料、发现的原因和后续处理建议" /></label>
-          <Button v-if="task.progress !== 'done'" variant="secondary" :disabled="draft.body === flow.output.body" @click="saveVerificationDraft">保存核查草稿</Button>
+          <Button v-if="task.progress !== 'done'" variant="secondary" @click="saveVerificationDraft">保存核查草稿</Button>
           <Button :disabled="!draft.body.trim() || !task.verificationOutcome || task.progress === 'done'" @click="completeVerification">保存核查结论并完成</Button>
           <p v-if="task.progress === 'done'">核查已完成。内容类结论已进入后续策略审核；技术问题进入直接处理；业务能力缺口仅记录。</p>
           <Button v-if="task.verificationFollowupId" @click="openVerificationFollowup">查看后续处理</Button>
@@ -816,7 +830,7 @@ function versionDiff(index: number) {
                   </p>
                 </div>
                 <div v-if="editableBrief && flow.briefStatus === 'ready'" class="tw-actions">
-                  <Button variant="secondary" data-test="save-brief-draft" :disabled="!briefDirty" @click="saveBriefDraft">保存</Button>
+                  <Button variant="secondary" data-test="save-brief-draft" @click="saveBriefDraftFromButton">保存</Button>
                   <Button variant="secondary" data-test="defer-task" :disabled="!canIgnoreCurrentStep" :title="canIgnoreCurrentStep ? undefined : `当前步骤由${ignoreOwner(task, serviceMode) === 'ops' ? '专家' : '客户'}负责`" @click="drawer = 'defer'">
                     暂不处理
                   </Button>
@@ -936,7 +950,7 @@ function versionDiff(index: number) {
             </Button>
           </template>
           <template v-if="reviewing">
-            <Button v-if="outputEditable" variant="secondary" data-test="save-inline-output" :disabled="!outputDirty" @click="saveInlineOutput">
+            <Button v-if="outputEditable" variant="secondary" data-test="save-inline-output" @click="saveInlineOutputFromButton">
               保存正文
             </Button>
             <Button v-if="canRequestAgentRevision" variant="secondary" data-test="request-agent-revision" @click="requestAgentRevision">
@@ -952,7 +966,7 @@ function versionDiff(index: number) {
           <Button v-if="siteOwner && task.progress === 'site_submit'" @click="act('submit_site', { simulateFailure })">
             提交 AI 建站
           </Button>
-          <Button v-if="siteOwner && task.progress === 'site_failed'" variant="primary" :disabled="!outputDirty" @click="saveInlineOutput">
+          <Button v-if="siteOwner && task.progress === 'site_failed'" variant="primary" @click="saveInlineOutputFromButton">
             保存修改并重新质检
           </Button>
           <Button v-if="role === 'ops' && task.progress === 'site_publish'" variant="secondary" disabled data-test="publish-waiting">
