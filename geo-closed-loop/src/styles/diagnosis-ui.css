@@ -51,6 +51,9 @@
 .geo-diagnosis .geo-personas { gap: 8px; padding: 12px var(--space-surface-content) 0; }
 .geo-diagnosis .geo-personas button { min-height: 44px; padding: 4px 12px; }
 .geo-diagnosis .geo-persona-body { padding: 12px var(--space-surface-content) var(--space-surface-content); }
+.geo-diagnosis .geo-persona-stage-filter { display: flex; flex: none; align-items: center; gap: 8px; color: var(--geo-text-2); font-size: 12px; line-height: 20px; white-space: nowrap; }
+.geo-diagnosis .geo-persona-stage-filter select { min-width: 112px; padding: 6px 9px; border: 1px solid var(--geo-border); border-radius: 6px; background: var(--geo-surface); color: var(--geo-text); font: inherit; font-size: 12px; }
+.geo-diagnosis .geo-persona-empty { margin: 0; padding: 24px var(--space-surface-content); color: var(--geo-text-2); font-size: 13px; }
 .geo-diagnosis .geo-radar-card,
 .geo-diagnosis .geo-gap-card { padding: var(--space-surface-content); }
 .geo-diagnosis .geo-radar-card,

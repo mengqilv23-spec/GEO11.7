@@ -68,11 +68,14 @@ export interface AuditCheck {
   strategyIds?: string[]
 }
 
+export type PurchaseStageId = 'requirement-identification' | 'solution-search' | 'supplier-evaluation' | 'purchase-decision'
+
 export interface Persona {
   id: string
   name: string
   shortName: string
   focus: string
+  stage: PurchaseStageId
   gaps: PersonaGap[]
   factors: RadarFactor[]
 }
@@ -197,11 +200,11 @@ export const diagnosisChanges: DiagnosisChange[] = [
 ]
 
 export const personas: Persona[] = [
-  { id: 'engineering', name: '复材技术负责人', shortName: '复材技术', focus: '德国 / 英语', gaps: [{ name: '本地服务与培训', value: 40, source: '官网+第三方' }, { name: '认证与合规', value: 35, source: '官网' }, { name: '交期与产能', value: 25, source: '官网' }, { name: '其他', value: 0, source: '其他' }], factors: [{ name: '切割精度', coverage: 88, competitor: 80 }, { name: '无热影响区', coverage: 90, competitor: 78 }, { name: '交期与产能', coverage: 35, competitor: 70 }, { name: '价格与 TCO', coverage: 52, competitor: 60 }, { name: '本地服务与培训', coverage: 40, competitor: 85 }, { name: '认证与合规', coverage: 45, competitor: 82 }, { name: '其他', coverage: 50, competitor: 50 }] },
-  { id: 'procurement', name: '航空采购', shortName: '航空采购', focus: '欧洲 / 英语', gaps: [{ name: '交付稳定性', value: 62 }, { name: '认证与合规', value: 55 }, { name: '供应链风险', value: 55 }, { name: '其他', value: 0 }], factors: [{ name: '认证与合规', coverage: 45, competitor: 88 }, { name: '交付稳定性', coverage: 38, competitor: 76 }, { name: '供应链风险', coverage: 35, competitor: 70 }, { name: '售后响应', coverage: 42, competitor: 77 }, { name: '价格与 TCO', coverage: 52, competitor: 62 }, { name: '切割精度', coverage: 88, competitor: 92 }, { name: '其他', coverage: 50, competitor: 50 }] },
-  { id: 'plant', name: '日本商社', shortName: '日本商社', focus: '日本 / 日语', gaps: [{ name: '本地服务', value: 65 }, { name: '代理支持', value: 60 }, { name: '交期稳定', value: 55 }, { name: '其他', value: 0 }], factors: [{ name: '本地服务', coverage: 35, competitor: 80 }, { name: '交期稳定', coverage: 35, competitor: 72 }, { name: '代理支持', coverage: 30, competitor: 76 }, { name: '认证合规', coverage: 45, competitor: 82 }, { name: '品牌可信度', coverage: 55, competitor: 84 }, { name: '价格与 TCO', coverage: 52, competitor: 58 }, { name: '其他', coverage: 50, competitor: 50 }] },
-  { id: 'distributor', name: '车间主管', shortName: '车间主管', focus: '北美 / 英语', gaps: [{ name: '维护难度', value: 45 }, { name: '停机风险', value: 42 }, { name: '培训成本', value: 40 }, { name: '其他', value: 0 }], factors: [{ name: '操作效率', coverage: 62, competitor: 78 }, { name: '维护难度', coverage: 45, competitor: 72 }, { name: '切割精度', coverage: 88, competitor: 92 }, { name: '培训成本', coverage: 40, competitor: 68 }, { name: '停机风险', coverage: 38, competitor: 66 }, { name: '价格与 TCO', coverage: 52, competitor: 60 }, { name: '其他', coverage: 50, competitor: 50 }] },
-  { id: 'quality', name: '质量管理负责人', shortName: '质量管理', focus: '德国 / 英语', gaps: [], factors: [{ name: '切割精度', coverage: 82, competitor: 82 }, { name: '认证与合规', coverage: 82, competitor: 82 }, { name: '交付稳定性', coverage: 74, competitor: 74 }, { name: '售后响应', coverage: 77, competitor: 77 }, { name: '价格与 TCO', coverage: 62, competitor: 62 }, { name: '操作效率', coverage: 78, competitor: 78 }] },
+  { id: 'engineering', name: '复材技术负责人', shortName: '复材技术', focus: '德国 / 英语', stage: 'supplier-evaluation', gaps: [{ name: '本地服务与培训', value: 40, source: '官网+第三方' }, { name: '认证与合规', value: 35, source: '官网' }, { name: '交期与产能', value: 25, source: '官网' }, { name: '其他', value: 0, source: '其他' }], factors: [{ name: '切割精度', coverage: 88, competitor: 80 }, { name: '无热影响区', coverage: 90, competitor: 78 }, { name: '交期与产能', coverage: 35, competitor: 70 }, { name: '价格与 TCO', coverage: 52, competitor: 60 }, { name: '本地服务与培训', coverage: 40, competitor: 85 }, { name: '认证与合规', coverage: 45, competitor: 82 }, { name: '其他', coverage: 50, competitor: 50 }] },
+  { id: 'procurement', name: '航空采购', shortName: '航空采购', focus: '欧洲 / 英语', stage: 'purchase-decision', gaps: [{ name: '交付稳定性', value: 62 }, { name: '认证与合规', value: 55 }, { name: '供应链风险', value: 55 }, { name: '其他', value: 0 }], factors: [{ name: '认证与合规', coverage: 45, competitor: 88 }, { name: '交付稳定性', coverage: 38, competitor: 76 }, { name: '供应链风险', coverage: 35, competitor: 70 }, { name: '售后响应', coverage: 42, competitor: 77 }, { name: '价格与 TCO', coverage: 52, competitor: 62 }, { name: '切割精度', coverage: 88, competitor: 92 }, { name: '其他', coverage: 50, competitor: 50 }] },
+  { id: 'plant', name: '日本商社', shortName: '日本商社', focus: '日本 / 日语', stage: 'solution-search', gaps: [{ name: '本地服务', value: 65 }, { name: '代理支持', value: 60 }, { name: '交期稳定', value: 55 }, { name: '其他', value: 0 }], factors: [{ name: '本地服务', coverage: 35, competitor: 80 }, { name: '交期稳定', coverage: 35, competitor: 72 }, { name: '代理支持', coverage: 30, competitor: 76 }, { name: '认证合规', coverage: 45, competitor: 82 }, { name: '品牌可信度', coverage: 55, competitor: 84 }, { name: '价格与 TCO', coverage: 52, competitor: 58 }, { name: '其他', coverage: 50, competitor: 50 }] },
+  { id: 'distributor', name: '车间主管', shortName: '车间主管', focus: '北美 / 英语', stage: 'requirement-identification', gaps: [{ name: '维护难度', value: 45 }, { name: '停机风险', value: 42 }, { name: '培训成本', value: 40 }, { name: '其他', value: 0 }], factors: [{ name: '操作效率', coverage: 62, competitor: 78 }, { name: '维护难度', coverage: 45, competitor: 72 }, { name: '切割精度', coverage: 88, competitor: 92 }, { name: '培训成本', coverage: 40, competitor: 68 }, { name: '停机风险', coverage: 38, competitor: 66 }, { name: '价格与 TCO', coverage: 52, competitor: 60 }, { name: '其他', coverage: 50, competitor: 50 }] },
+  { id: 'quality', name: '质量管理负责人', shortName: '质量管理', focus: '德国 / 英语', stage: 'supplier-evaluation', gaps: [], factors: [{ name: '切割精度', coverage: 82, competitor: 82 }, { name: '认证与合规', coverage: 82, competitor: 82 }, { name: '交付稳定性', coverage: 74, competitor: 74 }, { name: '售后响应', coverage: 77, competitor: 77 }, { name: '价格与 TCO', coverage: 62, competitor: 62 }, { name: '操作效率', coverage: 78, competitor: 78 }] },
 ]
 
 export const strategies: Strategy[] = ([

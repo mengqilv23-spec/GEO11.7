@@ -150,6 +150,38 @@ describe('diagnosisContent icons', () => {
   })
 })
 
+describe('buyer stage filter', () => {
+  it('filters buyer personas by stage and selects the first visible persona', async () => {
+    const wrapper = mount(DiagnosisContent, {
+      props: { findings: [], personas, activePersona: 'engineering', strategies, strategyLayer: '全部', serviceMode: 'agent', role: 'client' },
+      global: { plugins: [createPinia()], stubs: { DeferredGeoRadarChart: true, Tooltip: { template: '<span><slot /></span>' } } },
+    })
+
+    const stageSelect = wrapper.get('[aria-label="买家阶段筛选"]')
+    expect(stageSelect.findAll('option').map(option => option.text())).toEqual([
+      '全部阶段',
+      '需求识别',
+      '方案寻找',
+      '供应商评估',
+      '采购决策',
+    ])
+    expect(wrapper.findAll('.geo-personas button')).toHaveLength(personas.length)
+    expect(wrapper.findAll('.geo-personas button small').map(label => label.text())).toContain('供应商评估 · 4 Gap')
+
+    await stageSelect.setValue('purchase-decision')
+    expect(wrapper.findAll('.geo-personas button strong').map(name => name.text())).toEqual(['航空采购'])
+    expect(wrapper.get('.geo-personas button small').text()).toBe('采购决策 · 4 Gap')
+    expect(wrapper.get('.geo-personas button').attributes('aria-selected')).toBe('true')
+    expect(wrapper.emitted('selectPersona')?.at(-1)).toEqual(['procurement'])
+
+    await stageSelect.setValue('requirement-identification')
+    expect(wrapper.findAll('.geo-personas button strong').map(name => name.text())).toEqual(['车间主管'])
+    expect(wrapper.get('.geo-personas button small').text()).toBe('需求识别 · 4 Gap')
+    expect(wrapper.emitted('selectPersona')?.at(-1)).toEqual(['distributor'])
+    wrapper.unmount()
+  })
+})
+
 describe('advice-only findings in both products', () => {
   it.each([
     ['managed', 'ops'], ['managed', 'client'], ['agent', 'client'],

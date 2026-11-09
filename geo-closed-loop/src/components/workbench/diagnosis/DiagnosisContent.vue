@@ -4,7 +4,7 @@ import { findingHasTask, findingRouteLabel, isAdviceFinding, isKnowledgeFinding,
 import { isDirectRepairFinding } from '../../../workflows/direct-repair'
 import type { DiagnosisStatus } from '../../../workflows/diagnosis-status'
 import { diagnosisFindingStatus, diagnosisStrategyStatus } from '../../../workflows/diagnosis-status'
-import type { AuditCheck, AuditFinding, GeoTask, Persona, Strategy, StrategyLayer } from '../../../data/geo-data'
+import type { AuditCheck, AuditFinding, GeoTask, Persona, PurchaseStageId, Strategy, StrategyLayer } from '../../../data/geo-data'
 import type { DataListColumn } from '../../ui/ce/data-list/types'
 import { storeToRefs } from 'pinia'
 import { computed, h, shallowRef, watch } from 'vue'
@@ -22,6 +22,7 @@ import DeferredGeoRadarChart from './DeferredGeoRadarChart.vue'
 import ClientGapEvidence from './ClientGapEvidence.vue'
 import { clientCheckResult, personaEvidence, platformGapBreakdown, strategyCoverageGapRefs } from '../../../workflows/client-diagnosis'
 import type { DiagnosisPlatform } from '../../../workflows/client-diagnosis'
+import { purchaseStageOptions } from '../../onboarding/buyer-persona/buyer-persona-options'
 
 const props = defineProps<{
   findings: AuditFinding[]
@@ -56,6 +57,15 @@ const layerLabel = (layer: StrategyLayer) => layer === '内容' ? '官网内容'
 const diagnosisStore = useDiagnosisStore()
 const { selectedGap } = storeToRefs(diagnosisStore)
 const platformFilter = shallowRef<DiagnosisPlatform>('全部平台')
+const stageFilter = shallowRef<'all' | PurchaseStageId>('all')
+const visiblePersonas = computed(() => stageFilter.value === 'all' ? props.personas : props.personas.filter(persona => persona.stage === stageFilter.value))
+const currentPersona = computed(() => visiblePersonas.value.find(persona => persona.id === props.activePersona) ?? visiblePersonas.value[0])
+function stageLabel(stage: PurchaseStageId) {
+  return purchaseStageOptions.find(option => option.value === stage)?.label ?? stage
+}
+function setStageFilter(value: string) {
+  stageFilter.value = value as 'all' | PurchaseStageId
+}
 const tableLabels = {
   bulkActions: '异常批量操作',
   selectedCount: (count: number) => `已选择 ${count} 项`,
@@ -84,12 +94,9 @@ const strategyColumns: DataListColumn<unknown>[] = [
   { key: 'status', title: '当前状态', width: '12%', minWidth: 150, className: 'geo-strategy-status' },
   { key: 'actions', title: '操作', width: 120, minWidth: 120, className: 'geo-strategy-actions' },
 ]
-const aggregatePersonaEvidence = computed(() => {
-  const persona = props.personas.find(item => item.id === props.activePersona) ?? props.personas[0]
-  return persona ? personaEvidence(persona) : null
-})
+const aggregatePersonaEvidence = computed(() => currentPersona.value ? personaEvidence(currentPersona.value) : null)
 const activePersonaData = computed(() => {
-  const persona = props.personas.find(persona => persona.id === props.activePersona) ?? props.personas[0]
+  const persona = currentPersona.value
   if (!persona) return persona
   const evidence = personaEvidence(persona, platformFilter.value)
   const actionable = evidence.topics.filter(topic => topic.gap !== null && topic.gap > 0 && linkedStrategyCount(topic.name) > 0)
@@ -205,6 +212,13 @@ watch(() => props.activePersona, () => {
   diagnosisStore.clearFocusedGap()
   queuePage.value = 1
 })
+watch(stageFilter, () => {
+  diagnosisStore.clearFocusedGap()
+  queuePage.value = 1
+  const persona = visiblePersonas.value[0]
+  if (persona && !visiblePersonas.value.some(item => item.id === props.activePersona))
+    emit('selectPersona', persona.id)
+})
 watch(platformFilter, () => {
   diagnosisStore.clearFocusedGap()
   queuePage.value = 1
@@ -227,9 +241,14 @@ function focusGap(name: string) {
   const behavior = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
   document.getElementById('strategy-title')?.scrollIntoView({ behavior, block: 'start' })
 }
+function selectGapPersona(personaId: string, name: string) {
+  stageFilter.value = 'all'
+  emit('selectPersona', personaId)
+  focusGap(name)
+}
 function linkedStrategyCount(name: string) {
   if (!aggregatePersonaEvidence.value?.topics.some(topic => topic.name === name && topic.gap !== null && topic.gap > 0)) return 0
-  return reviewableStrategies.value.filter(strategy => strategyGaps(strategy).some(gap => gap.personaId === props.activePersona && gap.name === name)).length
+  return reviewableStrategies.value.filter(strategy => strategyGaps(strategy).some(gap => gap.personaId === currentPersona.value?.id && gap.name === name)).length
 }
 function platformGapTooltip(name: string) {
   const persona = props.personas.find(item => item.id === props.activePersona)
@@ -386,10 +405,17 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
             <span class="geo-persona-panel__subtitle">基于买家人设下的 AI 回答，识别关注话题、品牌覆盖差距与优化机会</span>
           </h2>
         </div>
+        <label class="geo-persona-stage-filter">
+          <span>买家阶段</span>
+          <select :value="stageFilter" aria-label="买家阶段筛选" @change="setStageFilter(($event.target as HTMLSelectElement).value)">
+            <option value="all">全部阶段</option>
+            <option v-for="stage in purchaseStageOptions" :key="stage.value" :value="stage.value">{{ stage.label }}</option>
+          </select>
+        </label>
       </header>
       <div class="geo-personas" role="tablist" aria-label="买家人设">
-        <button v-for="persona in personas" :key="persona.id" type="button" role="tab" :aria-selected="activePersona === persona.id" :class="{ 'is-active': activePersona === persona.id }" @click="emit('selectPersona', persona.id)">
-          <strong>{{ persona.name }}</strong><small>{{ persona.gaps.length }} Gap</small>
+        <button v-for="persona in visiblePersonas" :key="persona.id" type="button" role="tab" :aria-selected="currentPersona?.id === persona.id" :class="{ 'is-active': currentPersona?.id === persona.id }" @click="emit('selectPersona', persona.id)">
+          <strong>{{ persona.name }}</strong><small>{{ stageLabel(persona.stage) }} · {{ persona.gaps.length }} Gap</small>
         </button>
       </div>
       <div v-if="activePersonaData" class="geo-persona-body">
@@ -397,8 +423,9 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
           <div class="geo-card-head">
             <strong>{{ activePersonaData.name }} · 关注点与品牌覆盖</strong><span>关注度 / 我方正向覆盖率 / 竞品正向覆盖率（同一回答分母）</span>
           </div><DeferredGeoRadarChart :factors="activePersonaData.factors" :title="activePersonaData.name" client-mode />
-        </Card><ClientGapEvidence :persona="personas.find(persona => persona.id === activePersona) || personas[0]!" :linked-count="linkedStrategyCount" :platform="platformFilter" @set-platform="platformFilter = $event" @focus="focusGap" />
+        </Card><ClientGapEvidence :persona="currentPersona!" :linked-count="linkedStrategyCount" :platform="platformFilter" @set-platform="platformFilter = $event" @focus="focusGap" />
       </div>
+      <p v-else class="geo-persona-empty">当前阶段暂无买家人设。</p>
     </section>
 
     <section class="geo-panel geo-strategy-panel" aria-labelledby="strategy-title">
@@ -464,7 +491,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
             <template v-if="strategyGaps(strategyFromRow(strategy)).length">
               <template v-for="gap in strategyGaps(strategyFromRow(strategy))" :key="`${gap.personaId}:${gap.name}`">
                 <Tooltip :content="platformGapTooltip(gap.name)" placement="top">
-                  <Button class="geo-gap-link" variant="text" size="sm" :aria-pressed="selectedGap === gap.name && activePersona === gap.personaId" @click="emit('selectPersona', gap.personaId); focusGap(gap.name)">
+                  <Button class="geo-gap-link" variant="text" size="sm" :aria-pressed="selectedGap === gap.name && activePersona === gap.personaId" @click="selectGapPersona(gap.personaId, gap.name)">
                     {{ gap.persona }} · {{ gap.name }} · Gap {{ gap.value }}<AppIcon name="openExternal" :size="14" aria-hidden="true" />
                   </Button>
                 </Tooltip>
