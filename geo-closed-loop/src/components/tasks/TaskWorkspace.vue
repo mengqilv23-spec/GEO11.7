@@ -21,7 +21,6 @@ import TaskProgressTimeline from './TaskProgressTimeline.vue'
 import TaskRepairDetail from './TaskRepairDetail.vue'
 import TaskReviewInsights from './TaskReviewInsights.vue'
 import TaskRichTextEditor from './TaskRichTextEditor.vue'
-import TaskSiteCollaboration from './TaskSiteCollaboration.vue'
 
 const props = defineProps<{ task: GeoTask, role: UserRole, serviceMode: ServiceMode, clientPreview: boolean }>()
 const emit = defineEmits<{ back: [], change: [], setTestRole: [role: UserRole] }>()
@@ -332,7 +331,6 @@ const automatic = computed(() => hasAutomaticStep(props.task, props.serviceMode)
 const tabs = computed(() => [
   { key: 'output', label: props.task.type === 'repair' ? '修复结果' : ['site_submit', 'site_submitted', 'site_running', 'site_verifying', 'site_failed', 'site_publish', 'publish', 'recheck', 'done'].includes(props.task.progress) ? '最终稿' : '生成内容' },
   { key: 'brief', label: 'Brief' },
-  ...(props.task.type !== 'external' && (props.task.type === 'repair' || ['site_submit', 'site_submitted', 'site_running', 'site_returned', 'site_verifying', 'site_failed', 'site_publish', 'publish', 'recheck', 'done'].includes(props.task.progress) || Boolean(flow.value.site.result)) ? [{ key: 'website', label: props.task.type === 'repair' ? '官网回传' : '执行与验证' }] : []),
   { key: 'records', label: '审核记录' },
   { key: 'versions', label: '版本' },
 ].filter(item => props.task.progress !== 'brief' || item.key !== 'output'))
@@ -705,7 +703,6 @@ function versionDiff(index: number) {
           </section>
         </template>
         <template v-else-if="task.executionKind !== 'verification' || task.progress === 'brief'">
-          <TaskSiteCollaboration v-if="tab === 'website'" :task="task" :brief="flow.brief" :site="flow.site" :methods="task.methods" :status-label="siteStatus.label" :status-tone="siteStatus.tone" />
           <div class="tw-more-details" :class="{ 'tw-brief-workspace': task.progress === 'brief' }">
             <header v-if="task.progress === 'brief'" class="tw-brief-workspace__head">
               <h2>Task Brief 确认</h2>
@@ -883,20 +880,6 @@ function versionDiff(index: number) {
               </template><p v-else class="tw-empty">
                 {{ outputEmptyMessage }}
               </p>
-            </section>
-
-            <section v-else-if="tab === 'website'" class="tw-card">
-              <div class="tw-section-head">
-                <div><h2>AI 建站执行包</h2><p>客户终审 → 提交官网 → 执行 → GEO 验证 → 发布门禁 → Re-check</p></div><Tag tone="blue">
-                  第 {{ flow.site.attempts }} 次提交
-                </Tag>
-              </div>
-              <dl class="tw-brief">
-                <dt>执行目标</dt><dd>{{ flow.brief.scope }}</dd><dt>交付产物</dt><dd>{{ flow.output.title }} · V{{ flow.output.revision }}</dd><dt>执行要求</dt><dd>{{ flow.site.requirements || '客户确认产物后生成执行包。' }}</dd><dt>验收条件</dt><dd>{{ flow.brief.acceptance }}</dd><dt>预览链接</dt><dd><a v-if="flow.site.preview" :href="previewHref" target="_blank" rel="noopener noreferrer">打开 {{ flow.site.preview }}</a><span v-else>等待官网回传</span></dd><dt>检测结果</dt><dd>{{ flow.site.result || '尚未检测' }}</dd>
-              </dl>
-              <details v-if="flow.site.preview" class="tw-resource">
-                <summary>查看本次执行 Diff</summary><p>执行对象：{{ flow.brief.scope }}</p><p>本次内容变更：{{ task.methods.join('、') }}</p><p>正文版本：V{{ flow.output.revision }}。完整正文请通过上方预览链接查看。</p>
-              </details>
             </section>
 
             <section v-else-if="tab === 'versions'" class="tw-card">
