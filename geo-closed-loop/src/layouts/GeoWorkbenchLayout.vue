@@ -243,7 +243,7 @@ function resetClientContentReview() {
     }
   }
   for (const strategy of strategyState) { strategy.confirmed = false; strategy.ignored = false; delete strategy.reviewNote }
-  tasks.splice(0, tasks.length, ...tasks.filter(task => isDirectRepairTask(task) && !(task.id === 'T-2501' && task.strategy === 'GS14')))
+  tasks.splice(0, tasks.length, ...tasks.filter(task => (isDirectRepairTask(task) && !(task.id === 'T-2501' && task.strategy === 'GS14')) || task.id === 'T-2402'))
   Object.keys(reviewNotes).forEach(key => delete reviewNotes[key])
 }
 function restore(mode: ServiceMode) {
@@ -332,6 +332,9 @@ function restore(mode: ServiceMode) {
     const preservedRepair = restoredTasks.find(task => task.id !== 'T-2403' && task.type === 'repair' && task.name === '核心产品页结构化数据修复')
     if (preservedRepair && !restoredTasks.some(task => task.id === 'T-2403'))
       preservedRepair.id = 'T-2403'
+    const failedVerificationExample = initialTasks.find(task => task.id === 'T-2402')
+    if (failedVerificationExample && !restoredTasks.some(task => task.id === failedVerificationExample.id))
+      restoredTasks.unshift(cloneGeoTask(failedVerificationExample))
     tasks.splice(0, tasks.length, ...restoredTasks)
     const officialFindingIds = new Set(canonicalFindings.map(finding => finding.id))
     for (const task of tasks) {
