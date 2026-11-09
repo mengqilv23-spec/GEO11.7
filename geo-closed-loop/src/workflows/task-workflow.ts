@@ -465,6 +465,7 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       if (task.progress === 'site_failed') {
         flow.site.result = '已根据官网反馈修改内容，等待重新完成内容质检与最终稿确认。'
         flow.site.preview = ''
+        flow.site.simulateFailure = false
         task.progress = mode === 'managed' ? 'human' : 'client_review'
       }
       break

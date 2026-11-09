@@ -425,6 +425,8 @@ const actionbarDescription = computed(() => {
     return '请检查并修改内容；审核通过后，客户才能确认最终稿。'
   if (props.task.progress === 'client_content_review')
     return '请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。'
+  if (props.task.progress === 'site_failed')
+    return '官网验证未通过。请返回内容审核改写后重新提交；如不再处理，可选择忽略。'
   if (props.task.progress === 'site_submit')
     return props.role === 'ops' ? '执行包已经准备完成，请提交 AI 建站开始网站修改。' : '执行包已准备完成，等待专家提交 AI 建站开始网站修改。'
   if (props.task.progress === 'site_publish') {
@@ -594,9 +596,7 @@ function saveDrawer() {
     act(props.task.progress === 'brief' ? 'request_brief_changes' : props.task.progress === 'site_publish' ? 'request_preview_changes' : 'request_output_changes', { note: note.value })
   }
 }
-function saveInlineOutput() {
-  if (!outputDirty.value)
-    return true
+function persistInlineOutput() {
   const saved = act('save_output', { title: draft.title, body: draft.body })
   if (saved) {
     draft.title = flow.value.output.title
@@ -604,6 +604,12 @@ function saveInlineOutput() {
     persistLocalDraft()
   }
   return saved
+}
+function saveInlineOutput() {
+  return outputDirty.value ? persistInlineOutput() : true
+}
+function returnToContentReview() {
+  persistInlineOutput()
 }
 function saveInlineOutputFromButton() {
   if (!outputDirty.value) {
@@ -970,8 +976,8 @@ function versionDiff(index: number) {
           <Button v-if="siteOwner && task.progress === 'site_submit'" @click="act('submit_site', { simulateFailure })">
             提交 AI 建站
           </Button>
-          <Button v-if="siteOwner && task.progress === 'site_failed'" variant="primary" @click="saveInlineOutputFromButton">
-            保存修改并重新质检
+          <Button v-if="siteOwner && task.progress === 'site_failed'" variant="primary" data-test="return-content-review" @click="returnToContentReview">
+            返回内容审核改写
           </Button>
           <Button v-if="role === 'ops' && task.progress === 'site_publish'" variant="secondary" disabled data-test="publish-waiting">
             等待客户发布确认

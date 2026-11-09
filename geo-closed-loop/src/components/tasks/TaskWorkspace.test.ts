@@ -672,6 +672,25 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.find('.tw-output-review-below').exists()).toBe(false)
   })
 
+  it('returns a failed website verification to content review instead of publishing', async () => {
+    const task = makeTask()
+    task.progress = 'site_failed'
+    const flow = ensureWorkflow(task)
+    flow.output.body = '<p>待修改正文</p>'
+    flow.site.result = '验证未通过：正文参数与已确认事实不一致。'
+    flow.site.simulateFailure = true
+    const wrapper = mountWorkspace('client', task, vi.fn(), false, 'agent')
+
+    expect(wrapper.get('[data-test="return-content-review"]').text()).toBe('返回内容审核改写')
+    expect(wrapper.find('[data-test="confirm-publish"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="ignore-task"]').exists()).toBe(true)
+    expect(wrapper.get('.tw-site-strip').text()).toContain('验证未通过')
+
+    await wrapper.get('[data-test="return-content-review"]').trigger('click')
+    expect(task.progress).toBe('client_review')
+    expect(task.workflow?.site.simulateFailure).toBe(false)
+  })
+
   it('shows the waiting state for operations and publish actions for the customer in step four', async () => {
     const task = makeTask()
     task.progress = 'site_publish'
