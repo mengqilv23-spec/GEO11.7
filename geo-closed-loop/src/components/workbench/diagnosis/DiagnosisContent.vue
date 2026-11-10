@@ -272,7 +272,6 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
     <GeoPageIntro variant="workbench" title="诊断与策略" help-label="诊断与策略说明" description="需要处理的问题按类型进入修复或策略流程；仅提供建议的条目保留依据与解决方案，无需审核或生成任务。">
       <template #actions>
         <div class="geo-page-head__actions">
-          <span class="geo-stage">当前阶段 · 确认问题与处理方向</span>
           <Button variant="text" size="sm" type="button" @click="emit('openFlow')">
             查看流程 <AppIcon name="arrowRight" :size="14" />
           </Button>
