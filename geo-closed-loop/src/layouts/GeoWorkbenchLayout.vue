@@ -955,7 +955,14 @@ provide(geoWorkbenchRouteContextKey, {
       <RouterLink class="geo-workbench-sidebar__onboarding" :to="{ name: 'onboarding', query: { preview: '1' } }">
         新人引导
       </RouterLink>
-      <div class="geo-workbench-sidebar__processing">
+      <label v-if="!isOnboardingPage" class="geo-workbench-sidebar__product">
+        <span>产品版本</span>
+        <select aria-label="产品版本" :value="productMode" @change="changeProductMode(($event.target as HTMLSelectElement).value as ServiceMode)">
+          <option value="managed">AI + 专家 + 客户</option>
+          <option value="agent">AI + 客户</option>
+        </select>
+      </label>
+      <div v-if="!isOnboardingPage" class="geo-workbench-sidebar__processing">
         <button type="button" class="geo-workbench-sidebar__processing-trigger" :aria-expanded="dataStatusOpen" aria-controls="geo-processing-status" @click="dataStatusOpen = !dataStatusOpen">
           <span v-if="dataProcessing.running.value" class="geo-workbench-sidebar__processing-dot" aria-hidden="true" />
           数据状态

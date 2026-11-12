@@ -15,13 +15,6 @@ const emit = defineEmits<{ 'update:role': [role: UserRole], 'update:serviceMode'
   <div class="geo-workbench-toolbar">
     <div class="geo-workbench-toolbar__main">
       <GeoSectionNav :active-page="activePage" />
-      <label v-if="activePage === 'diagnosis' || activePage === 'optimization'" class="geo-workbench-toolbar__role">
-        <span>产品版本</span>
-        <select aria-label="产品版本" :value="serviceMode || 'managed'" @change="emit('update:serviceMode', ($event.target as HTMLSelectElement).value as ServiceMode)">
-          <option value="managed">AI + 专家 + 客户</option>
-          <option value="agent">AI + 客户</option>
-        </select>
-      </label>
       <div v-if="serviceMode !== 'agent'" class="geo-workbench-toolbar__role" aria-label="本地模拟角色">
         <span>本地角色</span>
         <div class="geo-role-switch" role="group" aria-label="切换体验角色">
@@ -40,7 +33,4 @@ const emit = defineEmits<{ 'update:role': [role: UserRole], 'update:serviceMode'
   </div>
 </template>
 
-<style scoped>
-select { padding: 6px 10px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--background-primary); color: var(--text-primary); font: inherit; }
-</style>
 
