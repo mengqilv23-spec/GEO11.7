@@ -126,6 +126,13 @@ function openProcessedPage(page: ProcessingPage) {
   processingNotice.value = null
   void router.push({ name: page, query: page === 'visibility-monitoring' ? {} : { version: productMode.value === 'agent' ? 'client' : 'managed' } })
 }
+const dataStatusOpen = shallowRef(false)
+const processingPages: ProcessingPage[] = ['visibility-monitoring', 'diagnosis', 'optimization']
+function openDataStatusPage(page: ProcessingPage) {
+  if (!dataProcessing.isReady(page).value) return
+  dataStatusOpen.value = false
+  openProcessedPage(page)
+}
 function uniqueById<T extends { id: string }>(items: readonly T[]) {
   const seen = new Set<string>()
   return items.filter((item) => {
@@ -948,6 +955,25 @@ provide(geoWorkbenchRouteContextKey, {
       <RouterLink class="geo-workbench-sidebar__onboarding" :to="{ name: 'onboarding', query: { preview: '1' } }">
         新人引导
       </RouterLink>
+      <div class="geo-workbench-sidebar__processing">
+        <button type="button" class="geo-workbench-sidebar__processing-trigger" :aria-expanded="dataStatusOpen" aria-controls="geo-processing-status" @click="dataStatusOpen = !dataStatusOpen">
+          <span v-if="dataProcessing.running.value" class="geo-workbench-sidebar__processing-dot" aria-hidden="true" />
+          数据状态
+          <span v-if="dataProcessing.running.value" class="geo-workbench-sidebar__processing-count">{{ dataProcessing.completed.value }}/3</span>
+        </button>
+        <div v-if="dataStatusOpen" id="geo-processing-status" class="geo-workbench-sidebar__processing-panel" role="status">
+          <strong>数据处理进度</strong>
+          <p v-if="!dataProcessing.hasRun.value">暂无正在处理的数据</p>
+          <p v-else-if="dataProcessing.running.value">预计需要 10～20 分钟</p>
+          <p v-else>本轮数据已全部处理完成</p>
+          <div v-if="dataProcessing.hasRun.value" class="geo-workbench-sidebar__processing-list">
+            <button v-for="(page, index) in processingPages" :key="page" type="button" :disabled="!dataProcessing.isReady(page).value" @click="openDataStatusPage(page)">
+              <span>{{ dataProcessing.labels[page] }}</span>
+              <small>{{ dataProcessing.completed.value > index ? '已完成 · 查看 →' : dataProcessing.completed.value === index ? '处理中' : '等待中' }}</small>
+            </button>
+          </div>
+        </div>
+      </div>
     </aside>
     <div class="geo-main" :class="{ 'geo-main--onboarding': isOnboardingPage }">
       <GeoWorkbenchToolbar v-if="!isOnboardingPage" :active-page="activePage" :role="role" :service-mode="serviceMode" @update:role="role = $event" @update:service-mode="changeProductMode($event)" />
