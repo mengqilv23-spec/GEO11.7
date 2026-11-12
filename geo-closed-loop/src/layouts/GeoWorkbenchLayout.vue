@@ -917,8 +917,8 @@ provide(geoWorkbenchRouteContextKey, {
       </div>
       <div class="geo-app-header__account" aria-label="当前账户">
         <span class="geo-app-header__theme" aria-hidden="true">◐</span>
-        <span class="geo-app-header__avatar" aria-hidden="true">{{ serviceMode === 'agent' ? '客' : '运' }}</span>
-        <span>{{ serviceMode === 'agent' ? '客户' : '专家管理员' }}</span>
+        <span class="geo-app-header__avatar" aria-hidden="true">{{ productMode === 'agent' ? '客' : '运' }}</span>
+        <span>{{ productMode === 'agent' ? '客户' : '专家管理员' }}</span>
         <AppIcon name="chevronDown" :size="14" />
       </div>
     </header>
@@ -983,7 +983,7 @@ provide(geoWorkbenchRouteContextKey, {
       </div>
     </aside>
     <div class="geo-main" :class="{ 'geo-main--onboarding': isOnboardingPage }">
-      <GeoWorkbenchToolbar v-if="!isOnboardingPage" :active-page="activePage" :role="role" :service-mode="serviceMode" @update:role="role = $event" @update:service-mode="changeProductMode($event)" />
+      <GeoWorkbenchToolbar v-if="!isOnboardingPage" :active-page="activePage" :role="role" :service-mode="productMode" @update:role="role = $event" @update:service-mode="changeProductMode($event)" />
       <section v-if="processingPage && !processingReady" class="geo-processing" role="status" aria-live="polite">
         <span class="geo-processing__spinner" aria-hidden="true" />
         <h1>{{ dataProcessing.labels[processingPage] }}数据处理中</h1>
