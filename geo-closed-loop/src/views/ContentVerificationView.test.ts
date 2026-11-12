@@ -27,7 +27,7 @@ describe('content verification view', () => {
     expect(wrapper.text()).not.toContain('本轮有官网')
     expect(wrapper.text()).toContain('可点击详情查看查询结果')
     expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['3', '4', '3'])
-    expect(wrapper.findAll('thead th').map(item => item.text())).toEqual(['序号', '任务名', '任务序号', 'AI 引用结果', '最近核验', '操作'])
+    expect(wrapper.findAll('thead th').map(item => item.text())).toEqual(['序号', '任务名', '任务序号', '核验问题', 'AI 引用结果', '最近核验', '操作'])
     expect(wrapper.findAll('.cv-index').map(item => item.text())).toEqual(['1', '2', '3'])
     expect(wrapper.findAll('.cv-task-name').map(item => item.text())).toEqual([
       '碳纤维方案页：补充无热影响区与 25mm 工艺参数',
@@ -35,6 +35,8 @@ describe('content verification view', () => {
       '航空应用页：补充材料适用范围与服务边界',
     ])
     expect(wrapper.findAll('.cv-task-link').map(item => item.text())).toEqual(['T-2404', 'T-2405', 'T-2406'])
+    expect(wrapper.findAll('.cv-count').map(item => item.text())).toEqual(['1 个', '1 个', '2 个'])
+    expect(wrapper.get('[data-task-id="T-2404"] .cv-question-preview').text()).toBe('APW 是不是有五轴水刀系统？')
     expect(wrapper.find('.cv-status').exists()).toBe(false)
     expect(wrapper.findAll('tbody tr')).toHaveLength(3)
     expect(wrapper.findAll('tbody tr').every(row => ['T-2404', 'T-2405', 'T-2406'].includes(row.attributes('data-task-id')!))).toBe(true)

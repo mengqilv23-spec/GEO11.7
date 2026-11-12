@@ -83,6 +83,9 @@ function closeItem() {
                 任务序号
               </th>
               <th scope="col">
+                核验问题
+              </th>
+              <th scope="col">
                 AI 引用结果
               </th>
               <th scope="col">
@@ -106,6 +109,16 @@ function closeItem() {
                   {{ item.taskId }}
                   <AppIcon name="arrowRight" :size="13" />
                 </RouterLink>
+              </td>
+              <td>
+                <template v-if="item.questions.length">
+                  <span class="cv-count">{{ item.questions.length }} 个</span>
+                  <small class="cv-question-preview">{{ item.questions[0]!.question }}</small>
+                </template>
+                <template v-else>
+                  <span class="cv-muted">—</span>
+                  <small class="cv-question-preview">内容发布后才能生成核验问题。</small>
+                </template>
               </td>
               <td>
                 <span class="cv-result is-success">{{ citedQuestionCount(item) }} / {{ item.questions.length }} 个问题有官网</span>
@@ -225,16 +238,18 @@ function closeItem() {
 .cv-card__head h2 { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; }
 .cv-card__head p { margin: 4px 0 0; color: var(--text-secondary); }
 .cv-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-default); border-radius: 10px; }
-table { width: 100%; min-width: 880px; border-collapse: collapse; text-align: left; }
+table { width: 100%; min-width: 1020px; border-collapse: collapse; text-align: left; }
 thead { color: var(--text-secondary); background: var(--background-subtle); }
 th, td { padding: 12px; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
 th { font-weight: 600; white-space: nowrap; }
 tbody tr:last-child td { border-bottom: 0; }
 .cv-index { width: 56px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.cv-task-name { min-width: 260px; font-weight: 500; overflow-wrap: anywhere; }
+.cv-task-name { min-width: 230px; font-weight: 500; overflow-wrap: anywhere; }
 .cv-task-link { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; color: var(--action-accent); font-size: 12px; line-height: 18px; text-decoration: none; overflow-wrap: anywhere; }
 .cv-task-link:hover { text-decoration: underline; }
 .cv-task-link:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
+.cv-count { display: block; color: var(--text-primary); font-weight: 600; }
+.cv-question-preview { display: block; max-width: 230px; margin-top: 5px; color: var(--text-secondary); font-size: 12px; line-height: 18px; }
 .cv-result { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 11px; line-height: 17px; white-space: nowrap; }
 .cv-result.is-success { color: var(--status-success-foreground); background: var(--status-success-background); }
 .cv-platform-summary { display: block; max-width: 220px; margin-top: 6px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
