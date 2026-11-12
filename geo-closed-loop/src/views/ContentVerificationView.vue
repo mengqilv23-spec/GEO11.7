@@ -77,13 +77,13 @@ function closeItem() {
                 序号
               </th>
               <th scope="col">
+                核验问题
+              </th>
+              <th scope="col">
                 任务名
               </th>
               <th scope="col">
                 任务序号
-              </th>
-              <th scope="col">
-                核验问题
               </th>
               <th scope="col">
                 AI 引用结果
@@ -101,15 +101,6 @@ function closeItem() {
               <td class="cv-index">
                 {{ index + 1 }}
               </td>
-              <td class="cv-task-name">
-                {{ item.taskName }}
-              </td>
-              <td>
-                <RouterLink class="cv-task-link" :to="{ name: 'task-detail', params: { taskId: item.taskId } }">
-                  {{ item.taskId }}
-                  <AppIcon name="arrowRight" :size="13" />
-                </RouterLink>
-              </td>
               <td>
                 <template v-if="item.questions.length">
                   <span class="cv-count">{{ item.questions.length }} 个</span>
@@ -119,6 +110,15 @@ function closeItem() {
                   <span class="cv-muted">—</span>
                   <small class="cv-question-preview">内容发布后才能生成核验问题。</small>
                 </template>
+              </td>
+              <td class="cv-task-name">
+                {{ item.taskName }}
+              </td>
+              <td>
+                <RouterLink class="cv-task-link" :to="{ name: 'task-detail', params: { taskId: item.taskId } }">
+                  {{ item.taskId }}
+                  <AppIcon name="arrowRight" :size="13" />
+                </RouterLink>
               </td>
               <td>
                 <span class="cv-result is-success">{{ citedQuestionCount(item) }} / {{ item.questions.length }} 个问题有官网</span>

@@ -27,7 +27,7 @@ describe('content verification view', () => {
     expect(wrapper.text()).not.toContain('本轮有官网')
     expect(wrapper.text()).toContain('可点击详情查看查询结果')
     expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['3', '4', '3'])
-    expect(wrapper.findAll('thead th').map(item => item.text())).toEqual(['序号', '任务名', '任务序号', '核验问题', 'AI 引用结果', '最近核验', '操作'])
+    expect(wrapper.findAll('thead th').map(item => item.text())).toEqual(['序号', '核验问题', '任务名', '任务序号', 'AI 引用结果', '最近核验', '操作'])
     expect(wrapper.findAll('.cv-index').map(item => item.text())).toEqual(['1', '2', '3'])
     expect(wrapper.findAll('.cv-task-name').map(item => item.text())).toEqual([
       '碳纤维方案页：补充无热影响区与 25mm 工艺参数',
