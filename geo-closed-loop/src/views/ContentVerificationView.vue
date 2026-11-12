@@ -15,7 +15,6 @@ const summary = computed(() => {
   return {
     published: contentVerificationItems.length,
     questions: questions.length,
-    cited: questions.filter(question => question.state === 'cited').length,
     platforms: platforms.size,
     sampleDate: contentVerificationItems.map(item => item.lastChecked).filter(Boolean).sort().at(-1) ?? '',
   }
@@ -45,13 +44,10 @@ function closeItem() {
 
     <section class="cv-summary" aria-label="品牌内容核验概览">
       <article class="cv-stat">
-        <span>已发布内容</span><strong>{{ summary.published }}</strong><small>已进入品牌内容核验</small>
+        <span>已发布在官网的内容</span><strong>{{ summary.published }}</strong><small>已进入品牌内容核验</small>
       </article>
       <article class="cv-stat">
         <span>核验问题</span><strong>{{ summary.questions }}</strong><small>围绕企业事实生成</small>
-      </article>
-      <article class="cv-stat">
-        <span>本轮有官网</span><strong>{{ summary.cited }}</strong><small>每个问题均出现官网</small>
       </article>
       <article class="cv-stat">
         <span>覆盖平台</span><strong>{{ summary.platforms }}</strong><small>本轮监测的 AI 平台</small>
@@ -225,7 +221,7 @@ function closeItem() {
 
 <style scoped>
 .cv-page { display: grid; min-width: 0; align-content: start; gap: 24px; padding: 0; font-size: var(--font-size-body); line-height: var(--line-height-body); }
-.cv-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.cv-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .cv-stat { display: grid; gap: 6px; min-width: 0; padding: 16px; border: 1px solid var(--border-default); border-radius: 12px; background: var(--background-primary); }
 .cv-stat > span { color: var(--text-secondary); font-size: 12px; }
 .cv-stat strong { color: var(--text-primary); font-size: 26px; line-height: 34px; font-weight: 600; }

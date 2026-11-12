@@ -23,7 +23,9 @@ describe('content verification view', () => {
     const wrapper = mountView()
 
     expect(wrapper.get('[data-test="intro"]').text()).toBe('品牌内容核验')
-    expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['3', '4', '4', '3'])
+    expect(wrapper.text()).toContain('已发布在官网的内容')
+    expect(wrapper.text()).not.toContain('本轮有官网')
+    expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['3', '4', '3'])
     expect(wrapper.findAll('tbody tr')).toHaveLength(3)
     expect(wrapper.findAll('tbody tr').every(row => ['T-2404', 'T-2405', 'T-2406'].includes(row.attributes('data-task-id')!))).toBe(true)
     wrapper.unmount()
