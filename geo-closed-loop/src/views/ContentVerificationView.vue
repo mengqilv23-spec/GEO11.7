@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ContentVerificationItem } from '../data/content-verification-data'
+import type { ContentVerificationCitation, ContentVerificationItem, PlatformVerificationAnswer } from '../data/content-verification-data'
 import { computed, shallowRef } from 'vue'
 import Button from '../components/ui/ce/button/Button.vue'
 import AppIcon from '../components/ui/icons/AppIcon.vue'
@@ -31,6 +31,64 @@ function openItem(item: ContentVerificationItem) {
 }
 function closeItem() {
   selectedItem.value = null
+}
+function primaryCitations(answer: PlatformVerificationAnswer): ContentVerificationCitation[] {
+  return answer.citations.filter(citation => citation.isPrimary)
+}
+interface AnswerPart {
+  text: string
+  href?: string
+  official?: boolean
+}
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+function answerParts(answer: string): AnswerPart[] {
+  const item = selectedItem.value
+  if (!item)
+    return [{ text: answer }]
+
+  const brand = item.contentTitle.split('·')[0]!.trim()
+  const brandAliases = [...new Set([brand, brand.split(/\s+/)[0]!].filter(Boolean))]
+  let domain = ''
+  try {
+    domain = new URL(item.url).hostname.replace(/^www\./, '')
+  }
+  catch {
+    domain = ''
+  }
+
+  const terms = [
+    ...(domain
+      ? [
+          `https?:\\/\\/[^\\s，。；、）)]*${escapeRegExp(domain)}[^\\s，。；、）)]*`,
+          `(?:www\\.)?${escapeRegExp(domain)}(?:\\/[^\\s，。；、）)]*)?`,
+        ]
+      : []),
+    ...brandAliases.map(escapeRegExp),
+  ]
+  if (!terms.length)
+    return [{ text: answer }]
+
+  const pattern = new RegExp(terms.join('|'), 'gi')
+  const parts: AnswerPart[] = []
+  let lastIndex = 0
+  for (const match of answer.matchAll(pattern)) {
+    const index = match.index ?? 0
+    if (index > lastIndex)
+      parts.push({ text: answer.slice(lastIndex, index) })
+    const text = match[0]
+    const isDomain = Boolean(domain) && text.toLowerCase().includes(domain.toLowerCase())
+    parts.push({
+      text,
+      href: isDomain ? (text.startsWith('http') ? text : `https://${text.replace(/^www\./, '')}`) : undefined,
+      official: !isDomain,
+    })
+    lastIndex = index + text.length
+  }
+  if (lastIndex < answer.length)
+    parts.push({ text: answer.slice(lastIndex) })
+  return parts.length ? parts : [{ text: answer }]
 }
 </script>
 
@@ -182,12 +240,26 @@ function closeItem() {
 
                 <details class="cv-answer">
                   <summary>查看 AI 回答</summary>
-                  <p>{{ answer.answer }}</p>
+                  <p>
+                    <template v-for="(part, partIndex) in answerParts(answer.answer)" :key="partIndex">
+                      <a
+                        v-if="part.href"
+                        class="cv-answer__official"
+                        :href="part.href"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >{{ part.text }}</a>
+                      <span v-else-if="part.official" class="cv-answer__official">{{ part.text }}</span>
+                      <template v-else>
+                        {{ part.text }}
+                      </template>
+                    </template>
+                  </p>
                 </details>
 
-                <div v-if="answer.citations.length" class="cv-citations">
+                <div v-if="primaryCitations(answer).length" class="cv-citations">
                   <a
-                    v-for="citation in answer.citations"
+                    v-for="citation in primaryCitations(answer)"
                     :key="citation.key"
                     class="cv-citation"
                     :href="citation.url"
@@ -196,15 +268,12 @@ function closeItem() {
                   >
                     <div class="cv-citation__head">
                       <strong>{{ citation.title }}</strong>
-                      <span class="cv-citation__badge" :class="{ 'is-primary': citation.isPrimary }">{{ citation.isPrimary ? '官网引用' : '其他来源' }}</span>
+                      <span class="cv-citation__badge is-primary">官网引用</span>
                     </div>
                     <span class="cv-citation__domain">{{ citation.domain }}</span>
                     <p>{{ citation.excerpt }}</p>
                   </a>
                 </div>
-                <p v-else class="cv-muted cv-no-citation">
-                  回答提及官网，未记录引用链接。
-                </p>
               </article>
             </div>
           </article>
@@ -279,6 +348,9 @@ tbody tr:last-child td { border-bottom: 0; }
 .cv-answer { margin-top: 8px; }
 .cv-answer summary { color: var(--text-secondary); font-size: 12px; line-height: 18px; cursor: pointer; }
 .cv-answer p { margin: 8px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 21px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cv-answer__official { color: var(--action-accent); font-weight: 500; text-decoration: none; }
+a.cv-answer__official:hover { text-decoration: underline; }
+.cv-answer__official:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
 .cv-citations { display: grid; gap: 7px; margin-top: 10px; }
 .cv-citation { display: block; padding: 10px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--background-primary); color: inherit; text-decoration: none; }
 .cv-citation:hover { border-color: var(--action-accent); }
@@ -289,7 +361,6 @@ tbody tr:last-child td { border-bottom: 0; }
 .cv-citation__badge.is-primary { color: var(--status-success-foreground); background: var(--status-success-background); }
 .cv-citation__domain { display: block; margin-top: 3px; color: var(--text-muted); font-family: var(--font-family-mono); font-size: 10px; line-height: 16px; }
 .cv-citation p { margin: 6px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 19px; }
-.cv-no-citation { margin: 8px 0 0; }
 .cv-footer-task { margin-right: auto; color: var(--action-accent); font-size: 13px; line-height: 20px; text-decoration: none; }
 .cv-footer-task:hover { text-decoration: underline; }
 .cv-footer-task:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 3px; }
