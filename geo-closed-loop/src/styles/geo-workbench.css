@@ -94,6 +94,7 @@ html.ce-iframe-root[data-density="compact"] { --geo-table-cell-padding-y: 8px; }
 .geo-section-nav__item { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-height: 51px; padding: 0 5px; border-bottom: 2px solid transparent; color: var(--geo-text-2); font-size: 14px; line-height: 22px; text-decoration: none; white-space: nowrap; transition: border-color 140ms ease, color 140ms ease; }
 .geo-section-nav__item:hover { color: var(--geo-text); }
 .geo-section-nav__item.is-active { border-bottom-color: var(--geo-brand); color: var(--geo-brand); font-weight: 600; }
+.geo-section-nav__item.is-faint:not(.is-active) { color: var(--geo-text-3); opacity: .55; }
 .geo-section-nav__item:focus-visible { outline: 2px solid var(--geo-brand); outline-offset: 2px; }
 .geo-page { min-width: 0; }
 .geo-main > .geo-workbench-toolbar + * { margin-top: 0; }

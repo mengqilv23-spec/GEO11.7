@@ -32,6 +32,8 @@ describe('geo section navigation', () => {
 
     expect(wrapper.get('nav').attributes('aria-label')).toBe('GEO 智能体页面')
     expect(wrapper.findAll('a')).toHaveLength(7)
+    expect(wrapper.findAll('a').map(item => item.text())).toEqual(['概览', '可见性监测', '诊断与策略', '优化中心', '品牌内容核验', '报告中心', '运营复盘与 Agent 升级'])
+    expect(wrapper.get('a[href="/operations-review"]').classes()).toContain('is-faint')
     expect(wrapper.get('a[aria-current="page"]').text()).toContain('优化中心')
     expect(wrapper.get('a[href="/overview"]').text()).toContain('概览')
     expect(wrapper.get('a[href="/content-verification"]').text()).toContain('品牌内容核验')

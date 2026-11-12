@@ -14,10 +14,10 @@ function warmPage(page: PageName) {
 const navItems = [
   { page: 'overview', label: '概览', route: 'overview' },
   { page: 'visibility-monitoring', label: '可见性监测', route: 'visibility-monitoring' },
-  { page: 'content-verification', label: '品牌内容核验', route: 'content-verification' },
-  { page: 'report-center', label: '报告中心', route: 'report-center' },
   { page: 'diagnosis', label: '诊断与策略', route: 'diagnosis' },
   { page: 'optimization', label: '优化中心', route: 'optimization' },
+  { page: 'content-verification', label: '品牌内容核验', route: 'content-verification' },
+  { page: 'report-center', label: '报告中心', route: 'report-center' },
   { page: 'operations-review', label: '运营复盘与 Agent 升级', route: 'operations-review' },
 ] as const
 </script>
@@ -28,7 +28,7 @@ const navItems = [
       v-for="item in navItems"
       :key="item.page"
       class="geo-section-nav__item"
-      :class="{ 'is-active': activePage === item.page }"
+      :class="{ 'is-active': activePage === item.page, 'is-faint': item.page === 'operations-review' }"
       :to="{ name: item.route }"
       :aria-current="activePage === item.page ? 'page' : undefined"
       @pointerenter="warmPage(item.route)"
