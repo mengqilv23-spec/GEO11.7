@@ -65,7 +65,7 @@ function closeItem() {
       <div class="cv-card__head">
         <div>
           <h2>内容核验清单</h2>
-          <p>按任务编号追溯内容；核验问题围绕企业事实生成，结果记录到具体 AI 平台与来源。</p>
+          <p>按任务序号追溯内容；核验问题围绕企业事实生成，结果记录到具体 AI 平台与来源。</p>
         </div>
       </div>
 
@@ -136,7 +136,7 @@ function closeItem() {
     >
       <div v-if="selectedItem" class="cv-detail">
         <div class="cv-detail__meta">
-          <span><strong>任务编号</strong><RouterLink :to="{ name: 'task-detail', params: { taskId: selectedItem.taskId } }">{{ selectedItem.taskId }}</RouterLink></span>
+          <span><strong>任务序号</strong><RouterLink :to="{ name: 'task-detail', params: { taskId: selectedItem.taskId } }">{{ selectedItem.taskId }}</RouterLink></span>
           <span><strong>内容版本</strong>V{{ selectedItem.revision }}</span>
           <span><strong>发布日期</strong>{{ selectedItem.publishedAt || '—' }}</span>
           <span v-if="selectedItem.platformCount"><strong>核验样本</strong>{{ selectedItem.platformCount }} 个平台</span>
