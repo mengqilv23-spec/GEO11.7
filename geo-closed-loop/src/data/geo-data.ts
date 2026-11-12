@@ -110,6 +110,7 @@ export interface GeoTask {
   completionOutcome?: 'expired-unexecuted'
   verificationOutcome?: 'add-content' | 'edit-content' | 'technical' | 'external' | 'business-gap'
   verificationFollowupId?: string
+  contentFormat?: 'rich-text' | 'code'
   id: string
   origin?: DataOrigin
   name: string

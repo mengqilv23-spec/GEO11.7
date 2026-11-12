@@ -4,7 +4,7 @@ import type { PageName } from '../../../router/prefetch'
 import { prefetchPage } from '../../../router/prefetch'
 
 defineProps<{
-  activePage: GeoPage | 'overview' | 'visibility-monitoring' | 'brand-cognition' | 'report-center' | 'operations-review'
+  activePage: GeoPage | 'overview' | 'visibility-monitoring' | 'content-verification' | 'report-center' | 'operations-review'
 }>()
 
 function warmPage(page: PageName) {
@@ -14,7 +14,7 @@ function warmPage(page: PageName) {
 const navItems = [
   { page: 'overview', label: '概览', route: 'overview' },
   { page: 'visibility-monitoring', label: '可见性监测', route: 'visibility-monitoring' },
-  { page: 'brand-cognition', label: '企业认知', route: 'brand-cognition' },
+  { page: 'content-verification', label: '品牌内容核验', route: 'content-verification' },
   { page: 'report-center', label: '报告中心', route: 'report-center' },
   { page: 'diagnosis', label: '诊断与策略', route: 'diagnosis' },
   { page: 'optimization', label: '优化中心', route: 'optimization' },

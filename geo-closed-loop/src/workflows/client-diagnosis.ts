@@ -51,17 +51,19 @@ export function clientCheckResult(check: AuditCheck, findings: AuditFinding[], t
 }
 export function createClientFindingTask(tasks: GeoTask[], finding: AuditFinding): GeoTask {
   const existing = tasks.find(task => task.type === 'web' && task.source === finding.id && !task.strategy)
+  const contentFormat = finding.id === 'F9' ? 'code' as const : undefined
   if (existing) {
     const snapshot = officialContentSnapshot(finding)
     if (snapshot) {
       existing.sourceKind = 'geo-audit-content'
       existing.auditContent = snapshot
     }
+    existing.contentFormat = contentFormat
     return existing
   }
   if (finding.route !== 'strategy') throw Error('当前条目不能生成内容任务')
   const auditContent = officialContentSnapshot(finding)
-  const task: GeoTask = { id: `T-${Math.max(2500, ...tasks.map(task => Number(task.id.replace(/\D/g, '')) || 0)) + 1}`, name: finding.title, origin: 'geo-audit', type: 'web', source: finding.id, strategy: '', persona: '官网目标买家', factor: finding.check, methods: [finding.method], destination: '官网内容', progress: 'brief', relatedStrategies: [], evidence: finding.evidence ?? finding.detail, sourceKind: auditContent ? 'geo-audit-content' : undefined, auditContent }
+  const task: GeoTask = { id: `T-${Math.max(2500, ...tasks.map(task => Number(task.id.replace(/\D/g, '')) || 0)) + 1}`, name: finding.title, origin: 'geo-audit', type: 'web', source: finding.id, strategy: '', persona: '官网目标买家', factor: finding.check, methods: [finding.method], destination: '官网内容', progress: 'brief', relatedStrategies: [], evidence: finding.evidence ?? finding.detail, sourceKind: auditContent ? 'geo-audit-content' : undefined, auditContent, contentFormat }
   tasks.push(task)
   return task
 }

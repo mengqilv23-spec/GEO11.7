@@ -13,7 +13,7 @@ const router = createRouter({
     { path: '/diagnosis', name: 'diagnosis', component: { template: '<div />' } },
     { path: '/optimization', name: 'optimization', component: { template: '<div />' } },
     { path: '/visibility-monitoring', name: 'visibility-monitoring', component: { template: '<div />' } },
-    { path: '/brand-cognition', name: 'brand-cognition', component: { template: '<div />' } },
+    { path: '/content-verification', name: 'content-verification', component: { template: '<div />' } },
     { path: '/report-center', name: 'report-center', component: { template: '<div />' } },
     { path: '/operations-review', name: 'operations-review', component: { template: '<div />' } },
   ],
@@ -34,7 +34,7 @@ describe('geo section navigation', () => {
     expect(wrapper.findAll('a')).toHaveLength(7)
     expect(wrapper.get('a[aria-current="page"]').text()).toContain('优化中心')
     expect(wrapper.get('a[href="/overview"]').text()).toContain('概览')
-    expect(wrapper.get('a[href="/brand-cognition"]').text()).toContain('企业认知')
+    expect(wrapper.get('a[href="/content-verification"]').text()).toContain('品牌内容核验')
     expect(wrapper.get('a[href="/operations-review"]').text()).toContain('运营复盘与 Agent 升级')
     wrapper.unmount()
   })
@@ -47,10 +47,10 @@ describe('geo section navigation', () => {
       global: { plugins: [router] },
     })
 
-    await wrapper.get('a[href="/brand-cognition"]').trigger('pointerenter')
+    await wrapper.get('a[href="/content-verification"]').trigger('pointerenter')
     await wrapper.get('a[href="/report-center"]').trigger('focus')
 
-    expect(prefetchPage).toHaveBeenCalledWith('brand-cognition')
+    expect(prefetchPage).toHaveBeenCalledWith('content-verification')
     expect(prefetchPage).toHaveBeenCalledWith('report-center')
     wrapper.unmount()
   })

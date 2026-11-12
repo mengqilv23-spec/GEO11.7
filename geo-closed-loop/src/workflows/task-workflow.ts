@@ -1,5 +1,6 @@
 import type { GeoTask, ServiceMode, TaskProgress, UserRole } from '../data/geo-data'
 
+import { isCodeContentTask } from './content-format'
 import { directRepairStatus, isDirectRepairTask } from './direct-repair'
 
 export interface TaskBrief {
@@ -87,11 +88,60 @@ const now = () => new Date().toISOString()
 function escapeHtml(value: string) {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
 }
+function buildCodeBody(task: GeoTask, flow: TaskWorkflow) {
+  const title = escapeHtml(flow.output.title || task.name)
+  const description = 'APW Waterjet（www.apwwaterjet.com）是工业水刀切割系统与解决方案品牌，提供五轴水刀、高压水刀与本地化服务支持。'
+  const schema = [
+    '{',
+    '  "@context": "https://schema.org",',
+    '  "@type": "Organization",',
+    '  "name": "APW Waterjet",',
+    '  "url": "https://www.apwwaterjet.com/",',
+    '  "logo": "https://www.apwwaterjet.com/static/logo.svg",',
+    '  "description": "工业水刀切割系统与解决方案品牌",',
+    '  "address": {',
+    '    "@type": "PostalAddress",',
+    '    "streetAddress": "上海市浦东新区金桥路 88 号",',
+    '    "addressLocality": "上海",',
+    '    "addressCountry": "CN"',
+    '  },',
+    '  "contactPoint": {',
+    '    "@type": "ContactPoint",',
+    '    "contactType": "sales",',
+    '    "areaServed": ["CN", "JP", "DE"],',
+    '    "availableLanguage": ["zh-CN", "en", "ja", "de"]',
+    '  },',
+    '  "sameAs": ["https://www.linkedin.com/company/apw-waterjet"]',
+    '}',
+  ].join('\n')
+  const code = [
+    `<!-- GEO 公共 Schema · ${title} -->`,
+    `<meta name="description" content="${description}">`,
+    `<meta property="og:title" content="APW Waterjet｜${title}">`,
+    `<meta property="og:description" content="${description}">`,
+    '<meta property="og:url" content="https://www.apwwaterjet.com/">',
+    '<meta property="og:type" content="website">',
+    '<meta property="og:site_name" content="APW Waterjet">',
+    '<meta property="og:locale" content="zh_CN">',
+    '<meta property="og:image" content="https://www.apwwaterjet.com/static/logo.svg">',
+    '<meta property="og:image:alt" content="APW Waterjet">',
+    '<meta name="twitter:card" content="summary_large_image">',
+    `<meta name="twitter:title" content="APW Waterjet｜${title}">`,
+    `<meta name="twitter:description" content="${description}">`,
+    '<script type="application/ld+json">',
+    schema,
+    '</script>',
+  ].join('\n')
+  return `<pre><code>${escapeHtml(code)}</code></pre>`
+}
+
 /**
  * Build an editable draft from the confirmed Brief and selected knowledge.
  * It deliberately avoids inventing facts that are not in the task inputs.
  */
 function buildDraftBody(task: GeoTask, flow: TaskWorkflow) {
+  if (isCodeContentTask(task))
+    return buildCodeBody(task, flow)
   const methods = task.methods.length
     ? task.methods.map(method => `<li>${escapeHtml(method)}</li>`).join('')
     : '<li>待确认执行方法</li>'
@@ -175,6 +225,13 @@ export function ensureWorkflow(task: GeoTask): TaskWorkflow {
     const legacySeedOutput = `演示产物：${task.name}\n\n执行范围：${brief.scope || task.destination}\n执行方法：${task.methods.join('、')}\n验收依据：${brief.acceptance}\n\n本内容仅用于流程演示，发布前请核实品牌事实与资料引用。`
     if (task.workflow.output.body === legacySeedOutput || task.workflow.output.body.startsWith('演示产物：') || task.workflow.output.body.startsWith('【本地模拟产物')) {
       task.workflow.output.body = buildDraftBody(task, task.workflow)
+    }
+    if (isCodeContentTask(task)) {
+      task.contentFormat = 'code'
+      const body = task.workflow.output.body
+      const reviewStarted = ['human', 'client_review', 'client_content_review', 'site_submit', 'site_submitted', 'site_running', 'site_verifying', 'site_publish'].includes(task.progress)
+      if (reviewStarted && (!body.trim() || body.startsWith('<h2>')))
+        task.workflow.output.body = buildCodeBody(task, task.workflow)
     }
     task.workflow.site.targetSite ||= 'APW 水刀切割网站'
     const legacyWebBoundary = '使用客户终审版本；不得扩写未确认的价格、交期、认证和服务承诺'
@@ -510,7 +567,7 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       task.progress = 'done'
       break
   }
-  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', defer_task: '暂不处理本次审核事项', resume_task: '恢复处理本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: mode === 'agent' && task.type === 'web' ? `客户第${flow.customerRevisionRequests ?? 0}次要求 Agent 修改` : '要求 Agent 修改产物', request_preview_changes: '客户对发布预览提出修改，退回专家处理', approve_ops: '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', publish: '客户确认发布，任务完结；后台启动发布后效果验证', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
+  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', defer_task: '暂不处理本次审核事项', resume_task: '恢复处理本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: task.type === 'web' ? (mode === 'agent' ? '拒绝当前内容，Agent 重新生成' : '拒绝当前内容，退回重新处理') : '要求 Agent 修改产物', request_preview_changes: '客户对发布预览提出修改，退回专家处理', approve_ops: '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', publish: '客户确认发布，任务完结；后台启动发布后效果验证', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
   const detail = action === 'ignore_brief' || action === 'ignore_task' || action === 'defer_task'
     ? [payload.ignoreReason?.trim(), note].filter(Boolean).join('；')
     : note
@@ -550,7 +607,7 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
     record(task, 'Agent', '新 Brief 已生成，等待客户重新确认')
     return true
   }
-  const transitions: Partial<Record<TaskProgress, TaskProgress>> = { todo: 'running', running: mode === 'agent' ? 'client_review' : task.type === 'external' ? 'client_content_review' : 'human', site_submitted: 'site_running', site_running: 'site_verifying', site_verifying: flow.site.simulateFailure ? 'site_failed' : 'site_publish' }
+  const transitions: Partial<Record<TaskProgress, TaskProgress>> = { todo: 'running', running: mode === 'agent' ? 'client_review' : task.type === 'external' ? 'client_content_review' : 'human', site_submitted: 'site_running', site_running: 'site_verifying', site_verifying: flow.site.simulateFailure ? 'site_failed' : isCodeContentTask(task) ? 'done' : 'site_publish' }
   const next = transitions[task.progress]
   if (!next)
     return false
@@ -561,7 +618,7 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
     flow.output.revision += 1
     saveVersion(task, flow.customerRevisionRequests ? `依据客户第${flow.customerRevisionRequests}次意见完成修改与自动检查` : '生成内容草稿与自动检查')
   }
-  if (task.progress === 'site_running')
+  if (task.progress === 'site_running' && !isCodeContentTask(task))
     flow.site.preview = `Preview V${flow.site.attempts || 1}`
   if (task.progress === 'site_verifying')
     flow.site.result = flow.site.simulateFailure ? '验证未通过：执行结果与验收条件存在差异，请补充要求后重新提交。' : '验证通过：变更范围、内容一致性与机器可读结果符合本次执行包。'
@@ -571,7 +628,9 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
       ? `Agent 已依据客户第${flow.customerRevisionRequests}次意见继续优化，并完成内容质检；${taskStageLabel(task, mode)}`
       : `完成内容生成、段落问题检查与 AI 质检；${taskStageLabel(task, mode)}`
     : next === 'done'
-      ? 'Re-check 完成；站点访问与生产验证记录待接入。'
+      ? isCodeContentTask(task)
+        ? '代码内容已发布，GEO 验证通过；任务完成。'
+        : 'Re-check 完成；站点访问与生产验证记录待接入。'
       : previous === 'site_verifying'
         ? `${flow.site.result}；${taskStageLabel(task)}`
         : `自动进入：${taskStageLabel(task)}`

@@ -10,7 +10,7 @@ export const pageLoaders = {
   'operations-review': () => import('../views/OperationsReviewView.vue'),
   'task-detail': () => import('../views/TaskDetailView.vue'),
   'visibility-monitoring': () => import('../views/VisibilityMonitoringView.vue'),
-  'brand-cognition': () => import('../views/BrandCognitionView.vue'),
+  'content-verification': () => import('../views/ContentVerificationView.vue'),
   'report-center': () => import('../views/ReportCenterView.vue'),
   'onboarding': () => import('../views/OnboardingView.vue'),
   'market-setup': () => import('../views/MarketSetupView.vue'),
@@ -23,7 +23,7 @@ export type PageName = keyof typeof pageLoaders
 const navigationPages: PageName[] = [
   'overview',
   'visibility-monitoring',
-  'brand-cognition',
+  'content-verification',
   'report-center',
   'diagnosis',
   'optimization',

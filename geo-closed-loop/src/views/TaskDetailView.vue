@@ -4,7 +4,7 @@ import { computed, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TaskWorkspace from '../components/tasks/TaskWorkspace.vue'
 import { useGeoWorkbenchRouteContext } from '../composables/workbench-route-context'
-import { cloneGeoTask } from '../data/geo-data'
+import { auditFindings, cloneGeoTask, officialContentSnapshot } from '../data/geo-data'
 import { ensureWorkflow } from '../workflows/task-workflow'
 
 const route = useRoute()
@@ -14,7 +14,24 @@ const task = computed(() => {
   const source = context.tasks.find(item => item.id === route.params.taskId)
   if (!source)
     return undefined
-  if (source.id !== 'T-2502' || route.query.preview !== 'content-review')
+  if (source.id === 'T-2501' && route.query?.preview === 'code-review') {
+    const previewTask = cloneGeoTask(source)
+    const finding = auditFindings.find(item => item.id === 'F9')!
+    previewTask.name = '官网地址与已确认资料不一致'
+    previewTask.source = 'F9'
+    previewTask.type = 'web'
+    previewTask.destination = '官网内容'
+    previewTask.progress = context.serviceMode.value === 'agent' ? 'client_review' : 'human'
+    previewTask.contentFormat = 'code'
+    previewTask.evidence = finding.evidence
+    previewTask.auditContent = officialContentSnapshot(finding)
+    const workflow = ensureWorkflow(previewTask)
+    workflow.briefStatus = 'confirmed'
+    workflow.brief.goal = '统一官网企业地址与已确认资料'
+    workflow.brief.executionTarget = '官网公共 Schema 与元信息'
+    return previewTask
+  }
+  if (source.id !== 'T-2502' || route.query?.preview !== 'content-review')
     return source
 
   // A disposable, ready-to-review fixture makes the new content controls immediately previewable.

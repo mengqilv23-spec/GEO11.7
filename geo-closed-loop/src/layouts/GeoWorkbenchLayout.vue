@@ -14,6 +14,7 @@ import PrioritySelect from '../components/workbench/shared/PrioritySelect.vue'
 import GeoWorkbenchToolbar from '../components/workbench/shared/GeoWorkbenchToolbar.vue'
 import { geoWorkbenchRouteContextKey } from '../composables/workbench-route-context'
 import { auditChecks, auditFindings, clientContentReviewFindings, supplementalBriefFindings, baselineMetrics, cloneGeoTask, displayObjectCodes, filterTasks, initialTasks, officialContentSnapshot, personas, prototypeTasks, strategies } from '../data/geo-data'
+import { publishedContentTasks } from '../data/published-content-tasks'
 import { createRepairTask, orchestrateStrategy } from '../services/geo-orchestration'
 import { useWorkbenchTasksStore } from '../stores/workbench-tasks'
 import { diagnosisFindingStatus, diagnosisStrategyStatus } from '../workflows/diagnosis-status'
@@ -25,6 +26,8 @@ import type { ProcessingPage } from '../workflows/data-processing'
 import { updateDataProcessing, useDataProcessing } from '../workflows/data-processing'
 import '../styles/geo-workbench.css'
 
+const publishedContentTaskIds = new Set(publishedContentTasks.map(task => task.id))
+
 interface ReviewNote { role: UserRole | 'agent', name: string, time: string, text: string }
 type DrawerType = 'strategy' | 'audit-finding' | 'audit-check' | 'baseline' | 'pending' | 'flow' | null
 type FlowType = 'diagnosis' | 'optimization'
@@ -32,7 +35,7 @@ interface Snapshot { contentReviewReset?: number, findings: AuditFinding[], stra
 const route = useRoute()
 const router = useRouter()
 const isOnboardingPage = computed(() => route.name === 'onboarding')
-const activePage = computed<GeoPage | 'overview' | 'visibility-monitoring' | 'brand-cognition' | 'report-center' | 'operations-review'>(() => route.name === 'overview' ? 'overview' : route.name === 'visibility-monitoring' ? 'visibility-monitoring' : route.name === 'brand-cognition' ? 'brand-cognition' : route.name === 'report-center' ? 'report-center' : route.name === 'operations-review' ? 'operations-review' : ['optimization', 'task-detail'].includes(String(route.name)) ? 'optimization' : 'diagnosis')
+const activePage = computed<GeoPage | 'overview' | 'visibility-monitoring' | 'content-verification' | 'report-center' | 'operations-review'>(() => route.name === 'overview' ? 'overview' : route.name === 'visibility-monitoring' ? 'visibility-monitoring' : route.name === 'content-verification' ? 'content-verification' : route.name === 'report-center' ? 'report-center' : route.name === 'operations-review' ? 'operations-review' : ['optimization', 'task-detail'].includes(String(route.name)) ? 'optimization' : 'diagnosis')
 const sidebarSections = [
   { heading: '', items: [{ label: '网站建设', icon: 'globe', route: 'overview' }] },
   { heading: '整合视图', items: [{ label: '增长驾驶舱', icon: 'dashboard', route: 'overview' }] },
@@ -197,7 +200,7 @@ function resetSnapshot() {
   findings.splice(0, findings.length, ...uniqueById([...auditFindings, ...supplementalBriefFindings]).map(finding => ({ ...finding })))
   strategyState.splice(0, strategyState.length, ...strategies.map(strategy => ({ ...strategy, methods: [...strategy.methods] })))
   for (const strategy of strategyState) strategy.coverageGapRefs = strategyCoverageGapRefs(strategy, personas)
-  tasks.splice(0, tasks.length, ...[...prototypeTasks, ...initialTasks].map(cloneGeoTask))
+  tasks.splice(0, tasks.length, ...[...prototypeTasks, ...initialTasks, ...publishedContentTasks].map(cloneGeoTask))
   for (const task of tasks) {
     const linkedStrategies = strategyState.filter(strategy => strategy.id === task.strategy || task.relatedStrategies.includes(strategy.id))
     task.coverageGapRefs = [...new Set(linkedStrategies.flatMap(strategy => strategy.coverageGapRefs ?? []))]
@@ -246,7 +249,7 @@ function resetClientContentReview() {
     }
   }
   for (const strategy of strategyState) { strategy.confirmed = false; strategy.ignored = false; delete strategy.reviewNote }
-  tasks.splice(0, tasks.length, ...tasks.filter(task => (isDirectRepairTask(task) && !(task.id === 'T-2501' && task.strategy === 'GS14')) || task.id === 'T-2402'))
+  tasks.splice(0, tasks.length, ...tasks.filter(task => (isDirectRepairTask(task) && !(task.id === 'T-2501' && task.strategy === 'GS14')) || task.id === 'T-2402' || publishedContentTaskIds.has(task.id)))
   Object.keys(reviewNotes).forEach(key => delete reviewNotes[key])
 }
 function restore(mode: ServiceMode) {
@@ -312,6 +315,7 @@ function restore(mode: ServiceMode) {
     const restoredTasks = [
       ...prototypeTasks.filter(prototypeTask => mode !== 'agent' && !data.tasks!.some(task => task.id === prototypeTask.id)).map(cloneGeoTask),
       ...data.tasks.filter(task => task.source !== '演示任务').map(cloneGeoTask),
+      ...publishedContentTasks.filter(publishedTask => !data.tasks!.some(task => task.id === publishedTask.id)).map(cloneGeoTask),
     ]
     for (const task of restoredTasks) {
       const prototypeTask = prototypeTasks.find(item => item.id === task.id)

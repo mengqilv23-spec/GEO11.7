@@ -58,10 +58,10 @@ export function createAppRouter() {
             meta: { title: '可见性监测', requiresOnboarding: true },
           },
           {
-            path: 'brand-cognition',
-            name: 'brand-cognition',
-            component: pageLoaders['brand-cognition'],
-            meta: { title: '企业认知', requiresOnboarding: true },
+            path: 'content-verification',
+            name: 'content-verification',
+            component: pageLoaders['content-verification'],
+            meta: { title: '品牌内容核验', requiresOnboarding: true },
           },
           {
             path: 'report-center',

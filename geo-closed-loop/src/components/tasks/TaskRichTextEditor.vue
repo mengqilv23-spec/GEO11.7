@@ -30,7 +30,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: string], 'ai-call': [], 
 function editorContent(value: string) {
   if (!value)
     return '<p></p>'
-  if (/<(?:p|h[1-6]|ul|ol|blockquote|div)\b/i.test(value))
+  if (/<(?:p|h[1-6]|ul|ol|blockquote|div|pre)\b/i.test(value))
     return value
   return value.split('\n').map(line => `<p>${line.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;') || '<br>'}</p>`).join('')
 }
@@ -481,6 +481,27 @@ defineExpose({ focusEditor })
   padding-left: 12px;
   border-left: 3px solid #b9c8fb;
   color: #687790;
+}
+
+.task-rich-editor__content :deep(.ProseMirror pre) {
+  margin: 0;
+  padding: 18px 20px;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: #101828;
+  color: #e6edf7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.task-rich-editor__content :deep(.ProseMirror pre code) {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
 }
 
 /* The task workspace is narrower than the viewport because of its sidebar.

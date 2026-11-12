@@ -1,5 +1,6 @@
 import type { MockState } from './state'
 import { auditFindings, initialTasks, strategies } from '../data/geo-data'
+import { publishedContentTasks } from '../data/published-content-tasks'
 import { initialMonthlyQuota, initialReports } from '../data/report-center-data'
 import { visibilityMonitoringData } from '../data/visibility-monitoring-data'
 
@@ -55,9 +56,8 @@ export function createSeedState(): MockState {
         { id: 'round-2026-10-02', date: '2026-10-02', status: 'completed' as const, responseCount: 1138 },
       ],
     },
-    tasks: initialTasks,
+    tasks: [...initialTasks, ...publishedContentTasks],
     diagnosis: { findings: auditFindings, strategies },
     reports: { quota: initialMonthlyQuota, items: initialReports },
   } as MockState)
 }
-
