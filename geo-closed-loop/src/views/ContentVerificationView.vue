@@ -57,7 +57,7 @@ function closeItem() {
     <p class="cv-sample-note">
       <AppIcon name="info" :size="14" />
       <span>
-        引用结果来自 {{ summary.sampleDate || '本轮监测样本' }} 的监测样本，仅代表本次抽样，不承诺 AI 排名、引用或推荐结果。
+        引用结果来自 {{ summary.sampleDate || '本轮监测样本' }} 的监测样本，可点击详情查看查询结果
       </span>
     </p>
 
@@ -74,10 +74,13 @@ function closeItem() {
           <thead>
             <tr>
               <th scope="col">
-                内容 / 任务编号
+                序号
               </th>
               <th scope="col">
-                核验问题
+                任务名
+              </th>
+              <th scope="col">
+                任务序号
               </th>
               <th scope="col">
                 AI 引用结果
@@ -91,27 +94,18 @@ function closeItem() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in contentVerificationItems" :key="item.taskId" :data-task-id="item.taskId">
-              <th scope="row">
-                <div class="cv-content-title">
-                  <strong>{{ item.contentTitle }}</strong>
-                  <span class="cv-status is-success">有官网</span>
-                </div>
+            <tr v-for="(item, index) in contentVerificationItems" :key="item.taskId" :data-task-id="item.taskId">
+              <td class="cv-index">
+                {{ index + 1 }}
+              </td>
+              <td class="cv-task-name">
+                {{ item.taskName }}
+              </td>
+              <td>
                 <RouterLink class="cv-task-link" :to="{ name: 'task-detail', params: { taskId: item.taskId } }">
-                  {{ item.taskId }} · {{ item.taskName }}
+                  {{ item.taskId }}
                   <AppIcon name="arrowRight" :size="13" />
                 </RouterLink>
-                <small class="cv-content-summary">{{ item.summary }}</small>
-              </th>
-              <td>
-                <template v-if="item.questions.length">
-                  <span class="cv-count">{{ item.questions.length }} 个</span>
-                  <small class="cv-question-preview">{{ item.questions[0]!.question }}</small>
-                </template>
-                <template v-else>
-                  <span class="cv-muted">—</span>
-                  <small class="cv-question-preview">内容发布后才能生成核验问题。</small>
-                </template>
               </td>
               <td>
                 <span class="cv-result is-success">{{ citedQuestionCount(item) }} / {{ item.questions.length }} 个问题有官网</span>
@@ -136,7 +130,7 @@ function closeItem() {
       :open="!!selectedItem"
       :title="selectedItem?.contentTitle ?? ''"
       eyebrow="品牌内容核验"
-      :subtitle="selectedItem ? `${selectedItem.taskId} · 有官网 · ${selectedItem.publishedAt}` : undefined"
+      :subtitle="selectedItem ? `${selectedItem.taskId} · ${selectedItem.publishedAt}` : undefined"
       :size="920"
       @close="closeItem"
     >
@@ -166,14 +160,12 @@ function closeItem() {
                 <h3>{{ question.question }}</h3>
                 <p>{{ question.intent }} · 围绕企业事实生成</p>
               </div>
-              <span class="cv-status is-success">有官网</span>
             </header>
 
             <div class="cv-platform-list">
               <article v-for="answer in question.answers" :key="answer.platform" class="cv-platform">
                 <header class="cv-platform__head">
                   <span class="cv-platform__name">{{ answer.platformLabel }}</span>
-                  <span class="cv-platform__state is-success">有官网</span>
                 </header>
 
                 <details class="cv-answer">
@@ -233,22 +225,16 @@ function closeItem() {
 .cv-card__head h2 { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; }
 .cv-card__head p { margin: 4px 0 0; color: var(--text-secondary); }
 .cv-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-default); border-radius: 10px; }
-table { width: 100%; min-width: 960px; border-collapse: collapse; text-align: left; }
+table { width: 100%; min-width: 880px; border-collapse: collapse; text-align: left; }
 thead { color: var(--text-secondary); background: var(--background-subtle); }
-th, td { padding: 12px; border-bottom: 1px solid var(--border-default); vertical-align: top; }
+th, td { padding: 12px; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
 th { font-weight: 600; white-space: nowrap; }
-tbody th { width: 330px; font-weight: 400; white-space: normal; }
-tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
-.cv-content-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.cv-content-title strong { font-weight: 500; overflow-wrap: anywhere; }
-.cv-status { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 11px; line-height: 17px; white-space: nowrap; }
-.cv-status.is-success { color: var(--status-success-foreground); background: var(--status-success-background); }
-.cv-task-link { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; margin-top: 6px; color: var(--action-accent); font-size: 12px; line-height: 18px; text-decoration: none; overflow-wrap: anywhere; }
+tbody tr:last-child td { border-bottom: 0; }
+.cv-index { width: 56px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.cv-task-name { min-width: 260px; font-weight: 500; overflow-wrap: anywhere; }
+.cv-task-link { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; color: var(--action-accent); font-size: 12px; line-height: 18px; text-decoration: none; overflow-wrap: anywhere; }
 .cv-task-link:hover { text-decoration: underline; }
 .cv-task-link:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
-.cv-content-summary { display: block; margin-top: 6px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
-.cv-count { display: block; color: var(--text-primary); font-weight: 600; }
-.cv-question-preview { display: block; max-width: 280px; margin-top: 5px; color: var(--text-secondary); font-size: 12px; line-height: 18px; }
 .cv-result { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 11px; line-height: 17px; white-space: nowrap; }
 .cv-result.is-success { color: var(--status-success-foreground); background: var(--status-success-background); }
 .cv-platform-summary { display: block; max-width: 220px; margin-top: 6px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
@@ -273,13 +259,10 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 .cv-question__copy { flex: 1 1 auto; min-width: 0; }
 .cv-question__copy h3 { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; overflow-wrap: anywhere; }
 .cv-question__copy p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; line-height: 18px; }
-.cv-question__head > .cv-status { flex: 0 0 auto; margin-top: 3px; }
 .cv-platform-list { display: grid; gap: 8px; }
 .cv-platform { padding: 12px; border: 1px solid var(--border-default); border-radius: 9px; background: var(--background-subtle); }
-.cv-platform__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cv-platform__head { display: flex; align-items: center; gap: 10px; }
 .cv-platform__name { color: var(--text-primary); font-size: 13px; font-weight: 600; }
-.cv-platform__state { display: inline-flex; padding: 2px 7px; border-radius: 999px; font-size: 11px; line-height: 17px; white-space: nowrap; }
-.cv-platform__state.is-success { color: var(--status-success-foreground); background: var(--status-success-background); }
 .cv-answer { margin-top: 8px; }
 .cv-answer summary { color: var(--text-secondary); font-size: 12px; line-height: 18px; cursor: pointer; }
 .cv-answer p { margin: 8px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 21px; white-space: pre-wrap; overflow-wrap: anywhere; }
