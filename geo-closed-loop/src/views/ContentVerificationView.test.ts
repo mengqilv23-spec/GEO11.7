@@ -35,7 +35,7 @@ describe('content verification view', () => {
       '航空应用页：补充材料适用范围与服务边界',
     ])
     expect(wrapper.findAll('.cv-task-link').map(item => item.text())).toEqual(['T-2404', 'T-2405', 'T-2406'])
-    expect(wrapper.findAll('.cv-count').map(item => item.text())).toEqual(['1 个', '1 个', '2 个'])
+    expect(wrapper.find('.cv-count').exists()).toBe(false)
     expect(wrapper.get('[data-task-id="T-2404"] .cv-question-preview').text()).toBe('APW 是不是有五轴水刀系统？')
     expect(wrapper.find('.cv-status').exists()).toBe(false)
     expect(wrapper.findAll('tbody tr')).toHaveLength(3)

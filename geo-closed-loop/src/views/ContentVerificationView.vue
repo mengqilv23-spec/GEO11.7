@@ -103,8 +103,7 @@ function closeItem() {
               </td>
               <td>
                 <template v-if="item.questions.length">
-                  <span class="cv-count">{{ item.questions.length }} 个</span>
-                  <small class="cv-question-preview">{{ item.questions[0]!.question }}</small>
+                  <span class="cv-question-preview">{{ item.questions[0]!.question }}</span>
                 </template>
                 <template v-else>
                   <span class="cv-muted">—</span>
@@ -248,8 +247,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .cv-task-link { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; color: var(--action-accent); font-size: 12px; line-height: 18px; text-decoration: none; overflow-wrap: anywhere; }
 .cv-task-link:hover { text-decoration: underline; }
 .cv-task-link:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
-.cv-count { display: block; color: var(--text-primary); font-weight: 600; }
-.cv-question-preview { display: block; max-width: 230px; margin-top: 5px; color: var(--text-secondary); font-size: 12px; line-height: 18px; }
+.cv-question-preview { display: block; max-width: 230px; color: var(--text-secondary); font-size: 13px; line-height: 20px; }
 .cv-result { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 11px; line-height: 17px; white-space: nowrap; }
 .cv-result.is-success { color: var(--status-success-foreground); background: var(--status-success-background); }
 .cv-platform-summary { display: block; max-width: 220px; margin-top: 6px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
