@@ -5,7 +5,7 @@ import GeoWorkbenchToolbar from './GeoWorkbenchToolbar.vue'
 
 function createToolbar() {
   return mount(GeoWorkbenchToolbar, {
-    props: { activePage: 'overview', role: 'ops' },
+    props: { activePage: 'overview' },
     global: {
       plugins: [createPinia()],
       stubs: {
@@ -27,22 +27,15 @@ describe('geoWorkbenchToolbar', () => {
     expect(wrapper.find('[aria-label="市场语言"]').exists()).toBe(false)
   })
 
-  it('keeps page tabs and role controls alongside the market selector', () => {
+  it('keeps page tabs alongside the market selector', () => {
     const wrapper = createToolbar()
     const market = wrapper.get('.geo-workbench-toolbar__market')
 
     expect(wrapper.get('.geo-workbench-toolbar__main').element.lastElementChild).toBe(market.element)
     expect(wrapper.find('[data-test="page-tabs"]').exists()).toBe(true)
     expect(wrapper.find('.geo-workbench-toolbar__controls').exists()).toBe(false)
+    expect(wrapper.find('.geo-role-switch').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('展示时长')
-  })
-
-  it('emits local role changes from the simulator controls', async () => {
-    const wrapper = createToolbar()
-
-    await wrapper.get('.geo-role-switch button[aria-pressed="false"]').trigger('click')
-
-    expect(wrapper.emitted('update:role')).toEqual([['client']])
   })
 })
 

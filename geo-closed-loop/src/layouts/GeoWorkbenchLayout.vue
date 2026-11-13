@@ -981,9 +981,20 @@ provide(geoWorkbenchRouteContextKey, {
           </div>
         </div>
       </div>
+      <div v-if="!isOnboardingPage && productMode !== 'agent'" class="geo-workbench-sidebar__role" aria-label="本地模拟角色">
+        <span>本地角色</span>
+        <div class="geo-role-switch" role="group" aria-label="切换体验角色">
+          <button type="button" :aria-pressed="role === 'ops'" :class="{ 'is-active': role === 'ops' }" @click="role = 'ops'">
+            专家
+          </button>
+          <button type="button" :aria-pressed="role === 'client'" :class="{ 'is-active': role === 'client' }" @click="role = 'client'">
+            客户
+          </button>
+        </div>
+      </div>
     </aside>
     <div class="geo-main" :class="{ 'geo-main--onboarding': isOnboardingPage }">
-      <GeoWorkbenchToolbar v-if="!isOnboardingPage" :active-page="activePage" :role="role" :service-mode="productMode" @update:role="role = $event" @update:service-mode="changeProductMode($event)" />
+      <GeoWorkbenchToolbar v-if="!isOnboardingPage" :active-page="activePage" />
       <section v-if="processingPage && !processingReady" class="geo-processing" role="status" aria-live="polite">
         <span class="geo-processing__spinner" aria-hidden="true" />
         <h1>{{ dataProcessing.labels[processingPage] }}数据处理中</h1>

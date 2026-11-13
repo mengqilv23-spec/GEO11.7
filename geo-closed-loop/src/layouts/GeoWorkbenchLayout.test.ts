@@ -157,12 +157,14 @@ it('separates product versions from roles and keeps changes scoped to the two re
   await router.push('/diagnosis')
   await router.isReady()
   const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
-    GeoWorkbenchToolbar: { emits: ['update:serviceMode'], template: '<button data-test="select-client" @click="$emit(\'update:serviceMode\', \'agent\')">客户版</button>' },
+    GeoWorkbenchToolbar: true,
     GeoDrawer: true, RouterLink: true,
   } } })
-  await wrapper.get('[data-test="select-client"]').trigger('click')
+  expect(wrapper.find('.geo-workbench-sidebar__role .geo-role-switch').exists()).toBe(true)
+  await wrapper.get('.geo-workbench-sidebar__product select').setValue('agent')
   await flushPromises()
   expect(wrapper.get('[data-test="mode-role"]').text()).toBe('agent/client')
+  expect(wrapper.find('.geo-workbench-sidebar__role').exists()).toBe(false)
   await wrapper.get('[data-test="choose-finding"]').trigger('click')
   expect(wrapper.get('[data-test="selected"]').text()).toBe('false')
   await wrapper.get('[data-test="adopt-strategy"]').trigger('click')
@@ -195,13 +197,13 @@ it('lets the agent customer ignore a strategy without a reason or explanation', 
   await router.push('/diagnosis')
   await router.isReady()
   const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
-    GeoWorkbenchToolbar: { emits: ['update:serviceMode'], template: '<button data-test="select-client" @click="$emit(\'update:serviceMode\', \'agent\')">客户版</button>' },
+    GeoWorkbenchToolbar: true,
     GeoSectionNav: true,
     RouterLink: true,
     GeoDrawer: { props: ['open', 'title', 'subtitle', 'eyebrow', 'size', 'titleFirst'], template: '<div v-if="open" class="test-drawer"><header><h2>{{ title }}</h2></header><slot /><footer><slot name="footer" /></footer></div>' },
   } } })
 
-  await wrapper.get('[data-test="select-client"]').trigger('click')
+  await wrapper.get('.geo-workbench-sidebar__product select').setValue('agent')
   await wrapper.get('[data-test="open-strategy"]').trigger('click')
   await flushPromises()
   const ignoreButton = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '不处理')
@@ -310,7 +312,9 @@ it.each(['client', 'managed'])('persists reviewer priority changes including P3 
     await wrapper.get('[data-test="review-priority"]').trigger('click')
     expect(wrapper.getComponent(PrioritySelect).props('modelValue')).toBe('P3')
     if (version === 'managed') {
-      wrapper.findComponent({ name: 'GeoWorkbenchToolbar' }).vm.$emit('update:role', 'client')
+      const clientButton = wrapper.findAll('.geo-role-switch button').find(button => button.text() === '客户')
+      expect(clientButton).toBeTruthy()
+      await clientButton!.trigger('click')
       await flushPromises()
       expect(wrapper.findComponent(PrioritySelect).exists()).toBe(false)
     }
