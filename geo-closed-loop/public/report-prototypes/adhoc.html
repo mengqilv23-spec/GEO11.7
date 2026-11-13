@@ -534,7 +534,7 @@
             <div class="report-section-heading"><div><h2 id="details-title">四、监测明细</h2></div></div>
             <div class="detail-module" id="metrics" aria-labelledby="metrics-title"><div class="detail-module-heading"><h3 id="metrics-title">4.1 主指标与辅助指标</h3><span>四项主指标 · 辅助指标</span></div><div id="metrics-content"></div></div>
             <div class="detail-module" id="platforms" aria-labelledby="platforms-title"><div class="detail-module-heading"><h3 id="platforms-title">4.2 平台表现</h3><span>平台提及 · 官网引用</span></div><div id="platforms-content"></div></div>
-            <div class="detail-module" id="trends" aria-labelledby="trends-title"><div class="detail-module-heading"><h3 id="trends-title">4.3 人设、关键词与意图</h3><span>人设 · 关键词 · 意图</span></div><div id="trends-content"></div></div>
+            <div class="detail-module" id="trends" aria-labelledby="trends-title"><div class="detail-module-heading"><h3 id="trends-title">4.3 人设、关键词与意图</h3><span>人设 · 主题 · 意图</span></div><div id="trends-content"></div></div>
             <div class="detail-module" id="questions" aria-labelledby="questions-title"><div class="detail-module-heading"><h3 id="questions-title">4.4 问题命中明细</h3><span>67 个监测问题</span></div><div id="questions-content"></div></div>
             <div class="detail-module" id="sources" aria-labelledby="sources-title"><div class="detail-module-heading"><h3 id="sources-title">4.5 来源域名与被引页面</h3><span>引用 · 我方提及 · 页面竞品</span></div><div id="sources-content"></div></div>
             <div class="detail-module" id="sample-method" aria-labelledby="sample-method-title"><div class="detail-module-heading"><h3 id="sample-method-title">4.6 采集与样本情况</h3><span>采集口径 · 样本稳定性</span></div><div id="credibility-content"></div></div>
@@ -693,7 +693,7 @@
             ['售后评价（背书）', '17%', '样本较少']
           ].map((row) => `<div class="dimension-row"><strong>${row[0]}</strong><span>${row[1]}</span><small>${row[2]}</small></div>`).join('');
 
-          return `<div class="dimension-grid"><div class="dimension-panel"><h3>买家人设 × 关键词</h3><p>颜色越深表示品牌提及率（SOA）越高；单格只作为维度观察。</p><div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th>人设画像</th><th>碳纤维切割</th><th>五轴水刀选型</th><th>水刀 vs 激光</th><th>钛合金加工</th></tr></thead><tbody>${topicRows}</tbody></table></div></div><div class="dimension-panel"><h3>买家人设 × 意图阶段</h3><p>展示不同采购决策阶段的品牌提及率（SOA），观察 AI 主动推荐我方的表现。</p><div class="dimension-list">${intentRows}</div></div></div>`;
+          return `<div class="dimension-grid"><div class="dimension-panel"><h3>买家人设 × 核心主题</h3><p>颜色越深表示品牌提及率（SOA）越高；单格只作为维度观察。</p><div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th>人设画像</th><th>碳纤维切割</th><th>五轴水刀选型</th><th>水刀 vs 激光</th><th>钛合金加工</th></tr></thead><tbody>${topicRows}</tbody></table></div></div><div class="dimension-panel"><h3>买家人设 × 意图阶段</h3><p>决策阶段的分布低于认知和评估阶段，需要结合问题证据观察。</p><div class="dimension-list">${intentRows}</div></div></div>`;
         }
 
         function renderTrends() {
@@ -825,4 +825,3 @@
     </script>
 </body>
 </html>
-

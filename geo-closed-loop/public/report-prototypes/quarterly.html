@@ -535,7 +535,7 @@
             <div class="report-section-heading"><div><h2 id="details-title">四、监测明细</h2></div></div>
             <div class="detail-module" id="metrics" aria-labelledby="metrics-title"><div class="detail-module-heading"><h3 id="metrics-title">4.1 主指标与辅助指标</h3><span>四项主指标 · 辅助指标</span></div><div id="metrics-content"></div></div>
             <div class="detail-module" id="platforms" aria-labelledby="platforms-title"><div class="detail-module-heading"><h3 id="platforms-title">4.2 平台表现</h3><span>平台提及 · 官网引用</span></div><div id="platforms-content"></div></div>
-            <div class="detail-module" id="trends" aria-labelledby="trends-title"><div class="detail-module-heading"><h3 id="trends-title">4.3 人设、关键词与意图</h3><span>趋势 · 人设 · 关键词 · 意图</span></div><div id="trends-content"></div></div>
+            <div class="detail-module" id="trends" aria-labelledby="trends-title"><div class="detail-module-heading"><h3 id="trends-title">4.3 人设、关键词与意图</h3><span>趋势 · 人设 · 主题 · 意图</span></div><div id="trends-content"></div></div>
             <div class="detail-module" id="questions" aria-labelledby="questions-title"><div class="detail-module-heading"><h3 id="questions-title">4.4 问题命中明细</h3><span>67 个监测问题 · 本周期聚合</span></div><div id="questions-content"></div></div>
             <div class="detail-module" id="sources" aria-labelledby="sources-title"><div class="detail-module-heading"><h3 id="sources-title">4.5 来源域名与被引页面</h3><span>引用 · 我方提及 · 页面竞品</span></div><div id="sources-content"></div></div>
             <div class="detail-module" id="sample-method" aria-labelledby="sample-method-title"><div class="detail-module-heading"><h3 id="sample-method-title">4.6 采集与样本情况</h3><span>采集口径 · 样本稳定性</span></div><div id="credibility-content"></div></div>
@@ -699,7 +699,7 @@ const chartSeries = [
             ['售后评价（背书）', '23%', '样本较少']
           ].map((row) => `<div class="dimension-row"><strong>${row[0]}</strong><span>${row[1]}</span><small>${row[2]}</small></div>`).join('');
 
-          return `<div class="dimension-grid"><div class="dimension-panel"><h3>买家人设 × 关键词</h3><p>颜色越深表示品牌提及率（SOA）越高；单格只作为维度观察。</p><div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th>人设画像</th><th>碳纤维切割</th><th>五轴水刀选型</th><th>水刀 vs 激光</th><th>钛合金加工</th></tr></thead><tbody>${topicRows}</tbody></table></div></div><div class="dimension-panel"><h3>买家人设 × 意图阶段</h3><p>展示不同采购决策阶段的品牌提及率（SOA），观察 AI 主动推荐我方的表现。</p><div class="dimension-list">${intentRows}</div></div></div>`;
+          return `<div class="dimension-grid"><div class="dimension-panel"><h3>买家人设 × 核心主题</h3><p>颜色越深表示品牌提及率（SOA）越高；单格只作为维度观察。</p><div class="heatmap-wrap"><table class="heatmap-table"><thead><tr><th>人设画像</th><th>碳纤维切割</th><th>五轴水刀选型</th><th>水刀 vs 激光</th><th>钛合金加工</th></tr></thead><tbody>${topicRows}</tbody></table></div></div><div class="dimension-panel"><h3>买家人设 × 意图阶段</h3><p>决策阶段的分布低于认知和评估阶段，需要结合问题证据观察。</p><div class="dimension-list">${intentRows}</div></div></div>`;
         }
 
         function renderTrends() {
@@ -744,7 +744,7 @@ const chartSeries = [
 
         function renderStrategy() {
           const items = [
-            ['优先补齐钛合金加工问题的品牌证据', '围绕季度内 SOA 持续偏低的关键词与人设组合，先核对问题、平台回答和引用来源，再决定补充哪些经业务确认的技术信息。', 'P0', '季度人设 × 关键词汇总与逐题证据'],
+            ['优先补齐钛合金加工问题的品牌证据', '围绕季度内 SOA 持续偏低的关键词与人设组合，先核对问题、平台回答和引用来源，再决定补充哪些经业务确认的技术信息。', 'P0', '季度人设 × 主题汇总与逐题证据'],
             ['集中改善采购决策问题的可见性', '复盘高购买意向问题中品牌提及、推荐和官网引用的季度表现，选择跨多个监测周期重复出现的缺口作为内容工作重点。', 'P1', '季度问题命中明细'],
             ['建立官网与第三方信源的季度跟踪', '持续观察主要第三方来源、我方官网页面和竞品共现情况；只有在同口径数据持续支持时，再调整下一季度的内容与外部信源投入。', 'P1', '季度引用来源变化']
           ];
@@ -831,4 +831,3 @@ const chartSeries = [
     </script>
 </body>
 </html>
-
