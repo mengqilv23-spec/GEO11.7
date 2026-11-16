@@ -92,6 +92,8 @@ function stringValue(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback
 }
 
+const isPerplexityPlatform = (value: string) => value.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'perplexity'
+
 function formatPlatformList(value: unknown): string {
   let platforms: unknown[]
   if (Array.isArray(value)) {
@@ -114,7 +116,6 @@ function formatPlatformList(value: unknown): string {
   const labels: Record<string, string> = {
     chatgpt: 'ChatGPT',
     gemini: 'Gemini',
-    perplexity: 'Perplexity',
     googleai: 'Google AI',
     googleaioverviews: 'Google AI Overviews',
     claude: 'Claude',
@@ -123,6 +124,7 @@ function formatPlatformList(value: unknown): string {
     .filter((platform): platform is string => typeof platform === 'string')
     .map(platform => platform.trim())
     .filter(Boolean)
+    .filter(platform => !isPerplexityPlatform(platform))
     .map((platform) => {
       const key = platform.toLowerCase().replace(/[\s_-]+/g, '')
       return labels[key] ?? platform
@@ -192,13 +194,12 @@ function questionPlatformSummary(value: string, fallbackPlatform: string, rankVa
   const platformLabels: Record<string, string> = {
     chatgpt: 'ChatGPT',
     gemini: 'Gemini',
-    perplexity: 'Perplexity',
     googleai: 'Google AI',
     googleaioverviews: 'Google AI Overviews',
     claude: 'Claude',
   }
   const platformLabel = (name: string) => platformLabels[name.toLowerCase().replace(/[\s_-]+/g, '')] ?? name
-  const fallback = fallbackPlatform
+  const fallback = fallbackPlatform && !isPerplexityPlatform(fallbackPlatform)
     ? `${platformLabel(fallbackPlatform)}${rankValue == null ? '' : `：第 ${rankValue} 位${rankTotal == null ? '' : ` / ${rankTotal}`}`}`
     : ''
   if (!value.trim())
@@ -206,11 +207,12 @@ function questionPlatformSummary(value: string, fallbackPlatform: string, rankVa
 
   try {
     const parsed: unknown = JSON.parse(value)
-    const records = Array.isArray(parsed)
-      ? parsed.filter(isRecord).map(item => [stringValue(item.platform, stringValue(item.platformName, stringValue(item.name))), item])
+    const records = (Array.isArray(parsed)
+      ? parsed.filter(isRecord).map(item => [stringValue(item.platform, stringValue(item.platformName, stringValue(item.name))), item] as const)
       : isRecord(parsed)
-        ? Object.entries(parsed).map(([name, item]) => [name, isRecord(item) ? item : { value: item }])
-        : []
+        ? Object.entries(parsed).map(([name, item]) => [name, isRecord(item) ? item : { value: item }] as const)
+        : [])
+      .filter(([name]) => !isPerplexityPlatform(name))
     const summaries = records.map(([name, item]) => {
       const rawPlatform = stringValue(name)
       const platform = platformLabel(rawPlatform)
@@ -324,7 +326,7 @@ export function mapReportDetailBundle(bundle: ReportDetailBundle): ReportDetailP
     status: ({ 0: 'generating', 1: 'generated', 2: 'failed', 3: 'archived' } as const)[header.status] ?? 'outline',
     metrics: mappedMetrics,
     highlights,
-    platforms: platforms.map(platform => ({
+    platforms: platforms.filter(platform => !isPerplexityPlatform(platform.platform)).map(platform => ({
       name: platform.platform,
       mention: formatPercent(platform.mentionRate),
       citations: formatPercent(platform.citationRate),

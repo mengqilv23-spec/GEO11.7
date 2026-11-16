@@ -17,7 +17,7 @@ describe('latest report card monitoring scope', () => {
     const meta = wrapper.get('[data-testid="monitoring-scope"]')
     expect(meta.text()).toContain('德国 × 德语')
     expect(meta.text()).toContain('20 条问题')
-    expect(meta.text()).toContain('6 个 AI 平台')
+    expect(meta.text()).toContain('4 个 AI 平台')
     expect(meta.findAll('strong, span')).toHaveLength(3)
   })
 
@@ -106,7 +106,7 @@ describe('latest report card monitoring scope', () => {
     expect(wrapper.emitted('generate')).toEqual([[{
       scopeLabel: '德国 × 德语',
       questionCount: 20,
-      platformCount: 6,
+      platformCount: 4,
     }]])
   })
 

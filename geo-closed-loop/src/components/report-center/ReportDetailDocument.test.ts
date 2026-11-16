@@ -237,11 +237,11 @@ describe('report detail document', () => {
       isLiveData: true,
       sources: [
         { domain: 'external.example', citations: '8', answers: '3', platforms: 'ChatGPT', ourMentioned: '否' },
-        { domain: 'brand.example', citations: '2', answers: '1', platforms: 'Perplexity', ourMentioned: '是' },
+        { domain: 'brand.example', citations: '2', answers: '1', platforms: 'Google AI', ourMentioned: '是' },
       ],
       sourcePages: [
         { title: '外部文章', domain: 'external.example', citations: '8', url: 'https://external.example/page', questionCount: '3', platforms: 'ChatGPT', ourMentioned: '否', competitors: '竞争品牌' },
-        { title: '品牌页面', domain: 'brand.example', citations: '2', url: 'https://brand.example/page', questionCount: '1', platforms: 'Perplexity', ourMentioned: '是', competitors: '—' },
+        { title: '品牌页面', domain: 'brand.example', citations: '2', url: 'https://brand.example/page', questionCount: '1', platforms: 'Google AI', ourMentioned: '是', competitors: '—' },
       ],
     }
     const wrapper = mount(ReportDetailDocument, { props: { profile } })
@@ -286,7 +286,7 @@ describe('report detail document', () => {
       questions: [{
         question: '监测问题示例',
         persona: '复材技术主管',
-        platforms: 'ChatGPT：第 1 位 · Perplexity：第 3 位',
+        platforms: 'ChatGPT：第 1 位 · Google AI：第 3 位',
         officialEvidence: '是',
         trend: '',
         answer: '不应展示在此表格中的回答摘录',
@@ -298,7 +298,7 @@ describe('report detail document', () => {
     const wrapper = mount(ReportDetailDocument, { props: { profile } })
     const row = wrapper.get('.question-table tbody tr')
 
-    expect(row.findAll('.question-platform-tag').map(tag => tag.text())).toEqual(['ChatGPT：第 1 位', 'Perplexity：第 3 位'])
+    expect(row.findAll('.question-platform-tag').map(tag => tag.text())).toEqual(['ChatGPT：第 1 位', 'Google AI：第 3 位'])
     expect(row.text()).toContain('是')
     expect(row.text()).not.toContain('APW 页面')
     expect(row.text()).toContain('第 1 位 / 3')

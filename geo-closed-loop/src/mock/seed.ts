@@ -13,9 +13,9 @@ const competitorSeed = [
 ]
 
 const recommendationSeed = [
-  { id: 201, recommendationId: 201, competitorName: 'Shopify', domain: 'shopify.com', aliasNames: 'Shopify Inc.', competitorDesc: '面向企业的电商基础设施平台。', isCoreSov: 0, sourceType: 2, status: 1, occurrenceCount: 17, questionIds: ['Q01', 'Q03'], platformNames: ['ChatGPT', 'Perplexity'], recommendationStatus: 'pending' as const },
+  { id: 201, recommendationId: 201, competitorName: 'Shopify', domain: 'shopify.com', aliasNames: 'Shopify Inc.', competitorDesc: '面向企业的电商基础设施平台。', isCoreSov: 0, sourceType: 2, status: 1, occurrenceCount: 17, questionIds: ['Q01', 'Q03'], platformNames: ['ChatGPT', 'Google AI'], recommendationStatus: 'pending' as const },
   { id: 202, recommendationId: 202, competitorName: 'Flow X', domain: 'flowwaterjet.com', aliasNames: 'Flow International', competitorDesc: '高压水刀切割系统与自动化解决方案供应商。', isCoreSov: 0, sourceType: 2, status: 1, occurrenceCount: 12, questionIds: ['Q02', 'Q04'], platformNames: ['ChatGPT', 'Google AI'], recommendationStatus: 'pending' as const },
-  { id: 203, recommendationId: 203, competitorName: 'STM Waterjet', domain: 'stm-waterjet.com', aliasNames: 'STM', competitorDesc: '工业水刀设备和切割方案供应商。', isCoreSov: 0, sourceType: 2, status: 1, occurrenceCount: 8, questionIds: ['Q05'], platformNames: ['Perplexity'], recommendationStatus: 'pending' as const },
+  { id: 203, recommendationId: 203, competitorName: 'STM Waterjet', domain: 'stm-waterjet.com', aliasNames: 'STM', competitorDesc: '工业水刀设备和切割方案供应商。', isCoreSov: 0, sourceType: 2, status: 1, occurrenceCount: 8, questionIds: ['Q05'], platformNames: ['Google AI'], recommendationStatus: 'pending' as const },
   { id: 204, recommendationId: 204, competitorName: 'Webflow', domain: 'https://www.webflow.com/platform', aliasNames: 'Webflow Inc.', competitorDesc: '可视化网站设计与内容管理平台。', isCoreSov: 0, sourceType: 2, status: 1, occurrenceCount: 4, questionIds: ['Q06'], platformNames: ['ChatGPT'], recommendationStatus: 'pending' as const },
 ]
 

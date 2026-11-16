@@ -328,7 +328,7 @@ async function handleExport(payload: { format: 'pdf' | 'html', sections: string[
             <span>报告日期：{{ profile.date || '—' }}</span><span>统计周期：{{ profile.cycle || '—' }}</span><span>范围：{{ profile.scopeSummary || (profile.isLiveData ? '—' : '德国 / 德语') }}</span>
           </div>
           <div class="report-scope" aria-label="本报告监测口径">
-            <span>{{ profile.scopeSummary || (profile.isLiveData ? '范围暂无数据' : '德国 / 德语') }}</span><span>{{ profile.cadence || '—' }}</span><span>{{ profile.personaCount ?? (profile.isLiveData ? '—' : 6) }} 类人设</span><span>{{ profile.intentCount ?? (profile.isLiveData ? '—' : 4) }} 类意图</span><span>{{ profile.keywordCount ?? (profile.isLiveData ? '—' : 5) }} 个关键词</span><span>{{ profile.questionCount ?? (profile.isLiveData ? '—' : 67) }} 个监测问题</span><span>{{ profile.platformCount ?? (profile.isLiveData ? '—' : 5) }} 个 AI 平台</span>
+            <span>{{ profile.scopeSummary || (profile.isLiveData ? '范围暂无数据' : '德国 / 德语') }}</span><span>{{ profile.cadence || '—' }}</span><span>{{ profile.personaCount ?? (profile.isLiveData ? '—' : 6) }} 类人设</span><span>{{ profile.intentCount ?? (profile.isLiveData ? '—' : 4) }} 类意图</span><span>{{ profile.keywordCount ?? (profile.isLiveData ? '—' : 5) }} 个关键词</span><span>{{ profile.questionCount ?? (profile.isLiveData ? '—' : 67) }} 个监测问题</span><span>{{ profile.platformCount ?? (profile.isLiveData ? '—' : 4) }} 个 AI 平台</span>
           </div>
         </header>
 
@@ -342,7 +342,7 @@ async function handleExport(payload: { format: 'pdf' | 'html', sections: string[
               {{ profile.summaryCopy || profile.focus || (profile.isLiveData ? '暂无管理层结论。' : '') }}
             </p>
             <div class="summary-meta">
-              <span>{{ profile.cycle || profile.date || '—' }}</span><span>{{ profile.scopeSummary || (profile.isLiveData ? '范围暂无数据' : '德国 / 德语') }} · {{ profile.questionCount ?? (profile.isLiveData ? '—' : 67) }} 个监测问题 · {{ profile.platformCount ?? (profile.isLiveData ? '—' : 5) }} 个 AI 平台</span>
+              <span>{{ profile.cycle || profile.date || '—' }}</span><span>{{ profile.scopeSummary || (profile.isLiveData ? '范围暂无数据' : '德国 / 德语') }} · {{ profile.questionCount ?? (profile.isLiveData ? '—' : 67) }} 个监测问题 · {{ profile.platformCount ?? (profile.isLiveData ? '—' : 4) }} 个 AI 平台</span>
             </div>
           </div>
           <div v-if="profile.isLiveData && profile.ribbon" class="summary-ribbon">

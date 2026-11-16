@@ -66,13 +66,40 @@ function ensureReportPrototypeFixtures(state: MockState): boolean {
 
 function replaceLegacyPlatformFixture(state: MockState): boolean {
   const oldDefaultPlatforms = ['chatgpt', 'perplexity', 'google-ai', 'gemini', 'ai-mode']
-  const current = state.config.platforms
+  let changed = false
+  const current = Array.isArray(state.config.platforms) ? state.config.platforms : []
   const isOldDefault = current.length === oldDefaultPlatforms.length
     && oldDefaultPlatforms.every((platform, index) => current[index]?.platform === platform && current[index]?.enabled === 1)
-  if (!isOldDefault)
-    return false
-  state.config.platforms = createSeedState().config.platforms
-  return true
+  if (isOldDefault) {
+    state.config.platforms = createSeedState().config.platforms
+    changed = true
+  }
+
+  const configuredPlatforms = Array.isArray(state.config.platforms) ? state.config.platforms : []
+  const supportedPlatforms = configuredPlatforms.filter(item => !/^perplexity$/i.test(item.platform))
+  if (supportedPlatforms.length !== configuredPlatforms.length) {
+    state.config.platforms = supportedPlatforms.map((item, index) => ({ ...item, sort: index + 1 }))
+    changed = true
+  }
+
+  const settingsPlatforms = state.monitoring?.settings?.platforms
+  if (Array.isArray(settingsPlatforms)) {
+    const supportedSettings = settingsPlatforms.filter(platform => !/^perplexity$/i.test(platform))
+    if (supportedSettings.length !== settingsPlatforms.length) {
+      state.monitoring.settings.platforms = supportedSettings as typeof state.monitoring.settings.platforms
+      changed = true
+    }
+  }
+
+  if (state.config.recommendations?.some(item => item.platformNames?.some(name => /^perplexity$/i.test(name)))) {
+    state.config.recommendations = state.config.recommendations.map(item => ({
+      ...item,
+      platformNames: item.platformNames?.filter(name => !/^perplexity$/i.test(name)) ?? [],
+    }))
+    changed = true
+  }
+
+  return changed
 }
 
 function replaceLegacyCompetitors(state: MockState): boolean {

@@ -176,7 +176,7 @@ describe('report API adapters', () => {
       metrics: [{ label: '品牌提及率', value: '42%', note: '有效样本 100，95% 区间 39–45' }, { label: '声量份额（SOV）', value: '42%' }],
       trendPoints: [{ date: '2026-10-15', value: 42, metricCode: 'mention_rate', roundId: 4, ciLow: 39, ciHigh: 45, sort: 1 }],
       platforms: [{ name: 'chatgpt', mention: '42%', citations: '40%' }],
-      sources: [{ domain: 'example.com', citations: '4', answers: '2', platforms: 'ChatGPT · Perplexity', ourMentioned: '是' }],
+      sources: [{ domain: 'example.com', citations: '4', answers: '2', platforms: 'ChatGPT', ourMentioned: '是' }],
       sourcePages: [
         { title: '引用页面', citations: '3', url: 'https://example.com/page', questionCount: '2', platforms: 'ChatGPT · Gemini', ourMentioned: '是', competitors: 'Brand B' },
         { title: '无竞品页面', citations: '1', url: 'https://example.com/empty', questionCount: '—', platforms: 'ChatGPT', ourMentioned: '否', competitors: '—' },

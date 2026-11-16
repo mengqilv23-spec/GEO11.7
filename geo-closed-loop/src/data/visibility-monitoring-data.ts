@@ -1,7 +1,7 @@
 export type VisibilityTab = 'brand' | 'questions' | 'sources'
 export type TrendMode = 'overall' | 'engine' | 'persona' | 'competitors'
 export type SamplingFrequency = 'daily' | 'weekly' | 'monthly'
-export type MonitoringPlatformId = 'chatgpt' | 'perplexity' | 'google-ai' | 'gemini' | 'ai-mode' | 'claude'
+export type MonitoringPlatformId = 'chatgpt' | 'google-ai' | 'gemini' | 'ai-mode' | 'claude'
 export type QuestionTrend = 'up' | 'flat' | 'down'
 
 export interface TrendSeries {
@@ -109,7 +109,6 @@ const questionText = [
 const keywords = ['碳纤维 / 复材切割', '五轴水刀选型', '水刀 vs 激光', '钛合金航空加工', '中国供应商评估']
 export const visibilityMonitoringPlatforms: MonitoringPlatform[] = [
   { id: 'chatgpt', label: 'ChatGPT', enabled: true },
-  { id: 'perplexity', label: 'Perplexity', enabled: true },
   { id: 'google-ai', label: 'Google AI', enabled: true },
   { id: 'gemini', label: 'Gemini', enabled: true },
   { id: 'ai-mode', label: 'AI Mode', enabled: true },
@@ -164,17 +163,17 @@ const intentValues = [82, 60, 45, 20, 65, 75, 55, 15, 70, 40, 65, 30, 25, 10, 5,
 const matrix = (columns: string[], values: number[]): HeatmapCell[] => personas.flatMap((row, rowIndex) => columns.map((column, columnIndex) => ({ row, column, value: values[rowIndex * columns.length + columnIndex] ?? 0 })))
 
 const sources: SourceDomain[] = [
-  { id: 'source-compositesworld', domain: 'compositesworld.com', questionCount: 14, citationCount: 30, platforms: ['chatgpt', 'perplexity', 'google-ai'], ownBrandMentioned: false, competitors: ['Flow', 'OMAX', 'KMT'], pageIds: ['page-1', 'page-2', 'page-4'], platformStats: [{ platform: 'chatgpt', citationCount: 12, questionCount: 7, pageCount: 3 }, { platform: 'perplexity', citationCount: 10, questionCount: 5, pageCount: 3 }, { platform: 'google-ai', citationCount: 8, questionCount: 4, pageCount: 3 }] },
-  { id: 'source-reddit', domain: 'reddit.com', questionCount: 8, citationCount: 18, platforms: ['chatgpt', 'perplexity'], ownBrandMentioned: false, competitors: ['Flow'], pageIds: [] },
-  { id: 'source-apw', domain: 'apw.com', questionCount: 11, citationCount: 17, platforms: ['chatgpt', 'perplexity', 'google-ai'], ownBrandMentioned: true, competitors: [], pageIds: ['page-3'] },
+  { id: 'source-compositesworld', domain: 'compositesworld.com', questionCount: 14, citationCount: 20, platforms: ['chatgpt', 'google-ai'], ownBrandMentioned: false, competitors: ['Flow', 'OMAX', 'KMT'], pageIds: ['page-1', 'page-2', 'page-4'], platformStats: [{ platform: 'chatgpt', citationCount: 12, questionCount: 7, pageCount: 3 }, { platform: 'google-ai', citationCount: 8, questionCount: 4, pageCount: 3 }] },
+  { id: 'source-reddit', domain: 'reddit.com', questionCount: 8, citationCount: 10, platforms: ['chatgpt'], ownBrandMentioned: false, competitors: ['Flow'], pageIds: [] },
+  { id: 'source-apw', domain: 'apw.com', questionCount: 11, citationCount: 11, platforms: ['chatgpt', 'google-ai'], ownBrandMentioned: true, competitors: [], pageIds: ['page-3'] },
   { id: 'source-fabricator', domain: 'thefabricator.com', questionCount: 6, citationCount: 14, platforms: ['chatgpt', 'google-ai'], ownBrandMentioned: true, competitors: ['KMT'], pageIds: [] },
   { id: 'source-youtube', domain: 'youtube.com', questionCount: 5, citationCount: 11, platforms: ['google-ai'], ownBrandMentioned: false, competitors: ['OMAX'], pageIds: [] },
 ]
 const citedPages: CitedPage[] = [
-  { id: 'page-1', domainId: 'source-compositesworld', title: 'CFRP 切割：水刀与激光方案对比', summary: '行业媒体对 CFRP 切割工艺、水刀与激光适用性的对比说明。', questionIds: ['Q01', 'Q02', 'Q03', 'Q04', 'Q05', 'Q06', 'Q07'], citations: 12, platforms: ['chatgpt', 'perplexity', 'google-ai'], ownBrandMentioned: false, platformStats: [{ platform: 'chatgpt', citationCount: 5, questionCount: 7 }, { platform: 'perplexity', citationCount: 4, questionCount: 7 }, { platform: 'google-ai', citationCount: 3, questionCount: 7 }] },
-  { id: 'page-2', domainId: 'source-compositesworld', title: '5 轴水刀系统与复材加工', summary: '复合材料加工中 5 轴水刀、锥度补偿与边缘质量的技术讨论。', questionIds: ['Q01', 'Q04'], citations: 10, platforms: ['chatgpt', 'perplexity', 'google-ai'], ownBrandMentioned: false },
-  { id: 'page-3', domainId: 'source-apw', title: 'Carbon Fiber Solutions - APW Waterjet', summary: 'CFRP 加工解决方案、工艺参数与案例。', questionIds: ['Q01', 'Q05'], citations: 7, platforms: ['chatgpt', 'perplexity'], ownBrandMentioned: true },
-  { id: 'page-4', domainId: 'source-compositesworld', title: '钛合金与厚板水刀加工', summary: '材料加工场景下的钛合金、厚板和工业水刀选型信息。', questionIds: ['Q03', 'Q05', 'Q07'], citations: 8, platforms: ['chatgpt', 'perplexity', 'google-ai'], ownBrandMentioned: false },
+  { id: 'page-1', domainId: 'source-compositesworld', title: 'CFRP 切割：水刀与激光方案对比', summary: '行业媒体对 CFRP 切割工艺、水刀与激光适用性的对比说明。', questionIds: ['Q01', 'Q02', 'Q03', 'Q04', 'Q05', 'Q06', 'Q07'], citations: 8, platforms: ['chatgpt', 'google-ai'], ownBrandMentioned: false, platformStats: [{ platform: 'chatgpt', citationCount: 5, questionCount: 7 }, { platform: 'google-ai', citationCount: 3, questionCount: 7 }] },
+  { id: 'page-2', domainId: 'source-compositesworld', title: '5 轴水刀系统与复材加工', summary: '复合材料加工中 5 轴水刀、锥度补偿与边缘质量的技术讨论。', questionIds: ['Q01', 'Q04'], citations: 6, platforms: ['chatgpt', 'google-ai'], ownBrandMentioned: false },
+  { id: 'page-3', domainId: 'source-apw', title: 'Carbon Fiber Solutions - APW Waterjet', summary: 'CFRP 加工解决方案、工艺参数与案例。', questionIds: ['Q01', 'Q05'], citations: 5, platforms: ['chatgpt'], ownBrandMentioned: true },
+  { id: 'page-4', domainId: 'source-compositesworld', title: '钛合金与厚板水刀加工', summary: '材料加工场景下的钛合金、厚板和工业水刀选型信息。', questionIds: ['Q03', 'Q05', 'Q07'], citations: 5, platforms: ['chatgpt', 'google-ai'], ownBrandMentioned: false },
 ]
 
 export const visibilityMonitoringData = {
@@ -192,7 +191,7 @@ export const visibilityMonitoringData = {
     intentCount: 4,
     keywordCount: 5,
     samplingExecutionCount: 10050,
-    platformCount: 6,
+    platformCount: 4,
     samplingLevel: '决策级',
     observations: 1200,
     validResponses: 1169,
@@ -221,7 +220,6 @@ export const visibilityMonitoringData = {
   trendSeries,
   engineSeries: [
     overall('ChatGPT', 'ChatGPT', '#2563eb', [28, 29, 30, 32, 33, 34, 36, 37, 38, 39, 41, 42]),
-    overall('Perplexity', 'Perplexity', '#7c3aed', [17, 18, 19, 20, 21, 23, 24, 25, 26, 28, 30, 31]),
     overall('Google AI', 'Google AI', '#d97706', [30, 32, 34, 35, 36, 38, 39, 40, 42, 43, 45, 46]),
     overall('Gemini', 'Gemini', '#059669', [24, 26, 28, 29, 30, 32, 33, 34, 35, 37, 38, 39]),
     overall('Claude', 'Claude', '#64748b', [16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 28]),
@@ -241,7 +239,7 @@ export const visibilityMonitoringData = {
     frequency: 'weekly' as SamplingFrequency,
     weekday: '周一',
     time: '05:00',
-    platforms: ['chatgpt', 'perplexity', 'google-ai', 'gemini', 'ai-mode'] as MonitoringPlatformId[],
+    platforms: ['chatgpt', 'google-ai', 'gemini', 'ai-mode'] as MonitoringPlatformId[],
   },
 } as const
 

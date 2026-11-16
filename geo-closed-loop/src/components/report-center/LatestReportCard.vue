@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<{
   platformCount?: number
 }>(), {
   questionCount: 20,
-  platformCount: 6,
+  platformCount: 4,
 })
 
 const emit = defineEmits<{

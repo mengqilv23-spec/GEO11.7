@@ -8,7 +8,6 @@ const props = defineProps<{ metrics: readonly PlatformMetric[] }>()
 
 const platformNames: Record<string, string> = {
   'chatgpt': 'ChatGPT',
-  'perplexity': 'Perplexity',
   'google_ai': 'Google AI',
   'google-ai': 'Google AI',
   'gemini': 'Gemini',

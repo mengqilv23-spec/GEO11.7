@@ -4,7 +4,7 @@ import { getSourceSummary } from './source-view-model'
 
 describe('getSourceSummary', () => {
   it('summarizes domain associations', () => {
-    expect(getSourceSummary(visibilityMonitoringData.sources[0]!)).toEqual({ platforms: ['chatgpt', 'perplexity', 'google-ai'], ownBrandMentioned: false, competitors: ['Flow', 'OMAX', 'KMT'] })
+    expect(getSourceSummary(visibilityMonitoringData.sources[0]!)).toEqual({ platforms: ['chatgpt', 'google-ai'], ownBrandMentioned: false, competitors: ['Flow', 'OMAX', 'KMT'] })
   })
 
   it('keeps missing associations empty', () => {

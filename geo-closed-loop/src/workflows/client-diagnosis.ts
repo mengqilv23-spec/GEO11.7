@@ -1,7 +1,7 @@
 import type { AuditCheck, AuditFinding, GeoTask, Persona, Strategy } from '../data/geo-data'
 import { officialContentSnapshot } from '../data/geo-data'
 
-export const diagnosisPlatforms = ['ChatGPT', 'Perplexity', 'Google AI'] as const
+export const diagnosisPlatforms = ['ChatGPT', 'Google AI'] as const
 export type DiagnosisPlatform = '全部平台' | typeof diagnosisPlatforms[number]
 export interface TopicAnswer { id: string, theme: string, platform?: typeof diagnosisPlatforms[number], topicPresent?: boolean, ownPositive: boolean, rivalPositive: boolean, negative: boolean }
 export function topicMetrics(answers: readonly TopicAnswer[], theme: string) {

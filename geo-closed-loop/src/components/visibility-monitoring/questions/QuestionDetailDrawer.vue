@@ -285,7 +285,6 @@ watch(() => props.question?.id, () => {
 .vm-answer summary { display: grid; grid-template-columns: 38px minmax(90px, 145px) auto minmax(0, 1fr) 20px; align-items: center; gap: 10px; min-height: 64px; padding: 10px 13px; list-style: none; cursor: pointer; }
 .vm-answer summary::-webkit-details-marker { display: none; }
 .vm-platform-mark { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 10px; color: var(--action-accent); background: color-mix(in srgb, var(--action-accent) 10%, white); font-weight: 700; }
-.vm-platform-mark.is-perplexity { color: #287ed5; background: #e8f3ff; }
 .vm-platform-mark.is-google-ai { color: var(--status-warning-foreground); background: var(--status-warning-background); }
 .vm-answer summary > strong { color: var(--text-primary); }
 .vm-answer-status { padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }

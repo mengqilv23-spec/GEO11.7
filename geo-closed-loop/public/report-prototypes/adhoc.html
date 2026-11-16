@@ -566,36 +566,35 @@
           { name: 'Google AI Overviews', group: 'Google 系', mention: '46%', cite: '18%', sample: 'n=240', delta: '+5pp' },
           { name: 'Gemini', group: 'Google 系', mention: '39%', cite: '16%', sample: 'n=240', delta: '+3pp' },
           { name: 'ChatGPT', group: '', mention: '42%', cite: '17%', sample: 'n=240', delta: '+4pp' },
-          { name: 'Perplexity', group: '', mention: '31%', cite: '14%', sample: 'n=240', delta: '+2pp' },
           { name: 'Claude', group: '', mention: '—', cite: '—', sample: '已纳入当前口径', delta: '分项待补齐' }
         ];
 
         const questions = [
-          ['Welches 5-Achs-Wasserstrahlsystem eignet sich für CFRP ohne Delamination?', '复材技术主管', 'ChatGPT：第 1 位 · Perplexity：第 3 位 · Google AI：第 1 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=52/54 · ±7.4pp'],
-          ['Wasserstrahl oder Laser für Kohlefaser — welche Anbieter empfehlen Ingenieure?', '复材技术主管', 'ChatGPT：第 1 位 · Perplexity：第 1 位 · Google AI：第 3 位', '是 · APW 对比页', '第 1 位 / 3', '↑ 上升', 'n=53/54 · ±7.1pp'],
-          ['Welche Wasserstrahlanlage eignet sich für die Bearbeitung von Titanbauteilen?', '航空部件采购经理', 'ChatGPT：第 3 位 · Perplexity：第 2 位 · Google AI：第 1 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=45/48 · ±9.6pp'],
-          ['Welche 5-Achs-Wasserstrahlmaschine ist für komplexe Geometrien geeignet?', '精密加工车间主管', 'ChatGPT：未提及 · Perplexity：第 3 位 · Google AI：第 2 位', '否', '第 2 位 / 3', '→ 持平', 'n=31/36 · ±11.4pp'],
-          ['Wie unterscheiden sich Wasserstrahlpumpen mit 60.000 PSI im industriellen Einsatz?', '复材加工技术主管', 'ChatGPT：第 2 位 · Perplexity：第 2 位 · Google AI：第 3 位', '是 · APW 页面', '第 2 位 / 3', '↑ 上升', 'n=57/60 · ±6.8pp'],
-          ['Was kostet das präzise Wasserstrahlschneiden von CFRP für kleine Serien?', '航空部件采购经理', 'ChatGPT：第 4 位 · Perplexity：未提及 · Google AI：第 2 位', '否', '第 2 位 / 3', '↓ 下降', 'n=40/45 · ±10.2pp'],
-          ['Welche Wasserstrahlanlagen empfehlen sich für Anwendungen in der Luftfahrt?', '航空部件采购经理', 'ChatGPT：第 1 位 · Perplexity：第 2 位 · Google AI：第 2 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=58/60 · ±6.6pp'],
-          ['Wie lassen sich Ausfransungen beim Schneiden von Verbundwerkstoffen vermeiden?', '精密加工车间主管', 'ChatGPT：第 2 位 · Perplexity：第 4 位 · Google AI：未提及', '否', '第 2 位 / 3', '→ 持平', 'n=36/42 · ±10.8pp'],
-          ['Welche Wasserstrahlmaschine bietet eine zuverlässige Taper-Kompensation?', '复材加工技术主管', 'ChatGPT：第 2 位 · Perplexity：第 1 位 · Google AI：第 3 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=64/66 · ±6.0pp'],
-          ['Welche Anbieter sind für das Nassschneiden von Faserverbundwerkstoffen bekannt?', '商社设备采购担当', 'ChatGPT：第 3 位 · Perplexity：未提及 · Google AI：第 4 位', '否', '第 3 位 / 4', '→ 持平', 'n=29/33 · ±12.6pp']
+          ['Welches 5-Achs-Wasserstrahlsystem eignet sich für CFRP ohne Delamination?', '复材技术主管', 'ChatGPT：第 1 位 · Google AI：第 1 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=52/54 · ±7.4pp'],
+          ['Wasserstrahl oder Laser für Kohlefaser — welche Anbieter empfehlen Ingenieure?', '复材技术主管', 'ChatGPT：第 1 位 · Google AI：第 3 位', '是 · APW 对比页', '第 1 位 / 3', '↑ 上升', 'n=53/54 · ±7.1pp'],
+          ['Welche Wasserstrahlanlage eignet sich für die Bearbeitung von Titanbauteilen?', '航空部件采购经理', 'ChatGPT：第 3 位 · Google AI：第 1 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=45/48 · ±9.6pp'],
+          ['Welche 5-Achs-Wasserstrahlmaschine ist für komplexe Geometrien geeignet?', '精密加工车间主管', 'ChatGPT：未提及 · Google AI：第 2 位', '否', '第 2 位 / 3', '→ 持平', 'n=31/36 · ±11.4pp'],
+          ['Wie unterscheiden sich Wasserstrahlpumpen mit 60.000 PSI im industriellen Einsatz?', '复材加工技术主管', 'ChatGPT：第 2 位 · Google AI：第 3 位', '是 · APW 页面', '第 2 位 / 3', '↑ 上升', 'n=57/60 · ±6.8pp'],
+          ['Was kostet das präzise Wasserstrahlschneiden von CFRP für kleine Serien?', '航空部件采购经理', 'ChatGPT：第 4 位 · Google AI：第 2 位', '否', '第 2 位 / 3', '↓ 下降', 'n=40/45 · ±10.2pp'],
+          ['Welche Wasserstrahlanlagen empfehlen sich für Anwendungen in der Luftfahrt?', '航空部件采购经理', 'ChatGPT：第 1 位 · Google AI：第 2 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=58/60 · ±6.6pp'],
+          ['Wie lassen sich Ausfransungen beim Schneiden von Verbundwerkstoffen vermeiden?', '精密加工车间主管', 'ChatGPT：第 2 位 · Google AI：未提及', '否', '第 2 位 / 3', '→ 持平', 'n=36/42 · ±10.8pp'],
+          ['Welche Wasserstrahlmaschine bietet eine zuverlässige Taper-Kompensation?', '复材加工技术主管', 'ChatGPT：第 2 位 · Google AI：第 3 位', '是 · APW 页面', '第 1 位 / 3', '↑ 上升', 'n=64/66 · ±6.0pp'],
+          ['Welche Anbieter sind für das Nassschneiden von Faserverbundwerkstoffen bekannt?', '商社设备采购担当', 'ChatGPT：第 3 位 · Google AI：第 4 位', '否', '第 3 位 / 4', '→ 持平', 'n=29/33 · ±12.6pp']
         ];
 
         const sourceDomains = [
-          ['compositesworld.com', '14', '30', 'ChatGPT / Perplexity / Google AI', '否'],
-          ['reddit.com', '8', '18', 'ChatGPT / Perplexity', '否'],
-          ['apw.com', '11', '17', 'ChatGPT / Perplexity / Google AI', '是'],
+          ['compositesworld.com', '14', '30', 'ChatGPT / Google AI', '否'],
+          ['reddit.com', '8', '18', 'ChatGPT', '否'],
+          ['apw.com', '11', '17', 'ChatGPT / Google AI', '是'],
           ['thefabricator.com', '6', '14', 'ChatGPT / Google AI', '是'],
           ['youtube.com', '5', '11', 'Google AI', '否']
         ];
 
         const sourcePages = [
-          ['CFRP 切割：水刀与激光方案对比', 'https://compositesworld.com/articles/cf-cutting', 'compositesworld.com', '7', '12', 'ChatGPT / Perplexity / Google AI', '否', 'Flow Intl、OMAX、Bystronic'],
-          ['5 轴水刀系统与复材加工', 'https://compositesworld.com/articles/5-axis-waterjet', 'compositesworld.com', '4', '10', 'ChatGPT / Perplexity / Google AI', '否', 'Flow Intl、OMAX、Bystronic'],
-          ['APW Waterjet · Carbon Fiber Solutions', 'https://apw.com/en/solutions/carbon-fiber', 'apw.com', '6', '9', 'ChatGPT / Perplexity / Google AI', '是', 'Flow Intl、OMAX、Bystronic'],
-          ['APW Waterjet · Waterjet vs Laser', 'https://apw.com/en/compare/waterjet-laser', 'apw.com', '3', '5', 'ChatGPT / Perplexity / Google AI', '是', 'Flow Intl、Bystronic'],
+          ['CFRP 切割：水刀与激光方案对比', 'https://compositesworld.com/articles/cf-cutting', 'compositesworld.com', '7', '12', 'ChatGPT / Google AI', '否', 'Flow Intl、OMAX、Bystronic'],
+          ['5 轴水刀系统与复材加工', 'https://compositesworld.com/articles/5-axis-waterjet', 'compositesworld.com', '4', '10', 'ChatGPT / Google AI', '否', 'Flow Intl、OMAX、Bystronic'],
+          ['APW Waterjet · Carbon Fiber Solutions', 'https://apw.com/en/solutions/carbon-fiber', 'apw.com', '6', '9', 'ChatGPT / Google AI', '是', 'Flow Intl、OMAX、Bystronic'],
+          ['APW Waterjet · Waterjet vs Laser', 'https://apw.com/en/compare/waterjet-laser', 'apw.com', '3', '5', 'ChatGPT / Google AI', '是', 'Flow Intl、Bystronic'],
           ['Waterjet Cutting for CFRP Applications', 'https://thefabricator.com/article/waterjet-cfrp', 'thefabricator.com', '3', '8', 'ChatGPT / Google AI', '是', 'Flow Intl、Bystronic'],
           ['CFRP Waterjet Cutting Demonstration', 'https://youtube.com/watch?v=cfrp-waterjet', 'youtube.com', '3', '7', 'Google AI', '否', 'Flow Intl']
         ];
@@ -630,7 +629,7 @@
 
         function renderSummary() {
           const lead = '本次监测中，APW 综合排名第 2；整体覆盖尚可，采购类问题的表现偏弱。';
-          const copy = '本次品牌提及率（SOA）为 <strong>42%</strong>，推荐率为 <strong>28%</strong>，官网引用率为 <strong>17%</strong>，SOV 为 <strong>27%</strong>。商社设备采购担当 SOA 为 <strong>29%</strong>，低于复材加工技术主管的 62%；在平台表现中，Google AI Overviews 提及率为 46%，Perplexity 为 31%。因此，本次优先关注采购类问题的品牌覆盖，并核对对应答案是否缺少官网证据。';
+          const copy = '本次品牌提及率（SOA）为 <strong>42%</strong>，推荐率为 <strong>28%</strong>，官网引用率为 <strong>17%</strong>，SOV 为 <strong>27%</strong>。商社设备采购担当 SOA 为 <strong>29%</strong>，低于复材加工技术主管的 62%；在平台表现中，Google AI Overviews 提及率为 46%，ChatGPT 为 42%。因此，本次优先关注采购类问题的品牌覆盖，并核对对应答案是否缺少官网证据。';
           const ribbon = `<div class="exec-ribbon"><div class="exec-ribbon-item"><span>品牌相对声量（SOV）</span><strong>27%</strong><small>本次监测结果</small></div><div class="exec-ribbon-item"><span>与头部竞品 Flow 的差距</span><strong>SOA −14pp · 推荐率 −16pp</strong><small>本次排名第 2</small></div><div class="exec-ribbon-item"><span>主要短板（人设 × 关键词）</span><strong>商社设备采购担当 × 钛合金加工</strong><small>组合 SOA：5% · 下期优先复核</small></div></div>`;
           document.getElementById('summary-content').innerHTML = `<div class="summary-band"><p class="summary-lead">${lead}</p><p class="summary-copy">${copy}</p><div class="summary-meta"><span>${config.range}</span><span>德国 / 德语 · 67 个监测问题 · 5 个 AI 平台</span></div></div>${ribbon}`;
         }
@@ -638,7 +637,7 @@
         function renderAnalysis() {
           const cards = [
             `<article class="analysis-card is-primary"><h3>整体位置与当前短板</h3><p>APW 本次综合排名第 2，SOA 为 <strong>42%</strong>、推荐率为 <strong>28%</strong>；商社设备采购担当 SOA 为 <strong>29%</strong>，低于复材加工技术主管的 62%。</p></article>`,
-            `<article class="analysis-card"><h3>平台拆解</h3><p><strong>Google AI Overviews 为 46%，Gemini 为 39%</strong>，高于 Perplexity 的 31%；</p></article>`,
+            `<article class="analysis-card"><h3>平台拆解</h3><p><strong>Google AI Overviews 为 46%，ChatGPT 为 42%，Gemini 为 39%</strong>，平台间覆盖保持稳定；</p></article>`,
             `<article class="analysis-card"><h3>人设与意图拆解</h3><p><strong>认知 61%、评估 52%、决策 43%</strong>；商社设备采购担当 SOA 为 29%，低于复材加工技术主管。</p></article>`,
             `<article class="analysis-card"><h3>来源关联</h3><p><strong>compositesworld.com 被引用 30 次</strong>，当前来源记录中 APW 未被提及。</p></article>`
           ];
@@ -650,7 +649,7 @@
         }
 
         function renderPlatforms() {
-          const summary = `<div class="platform-summary"><div class="platform-summary-item" style="border-left-color:#D97706"><strong>Google 系</strong><span>Google AI Overviews、Gemini · 46% / 39%</span></div><div class="platform-summary-item" style="border-left-color:#2563EB"><strong>ChatGPT</strong><span>品牌提及率 42% · 官网引用率 17%</span></div><div class="platform-summary-item" style="border-left-color:#7C3AED"><strong>Perplexity</strong><span>品牌提及率 31% · 官网引用率 14%</span></div></div>`;
+          const summary = `<div class="platform-summary"><div class="platform-summary-item" style="border-left-color:#D97706"><strong>Google 系</strong><span>Google AI Overviews、Gemini · 46% / 39%</span></div><div class="platform-summary-item" style="border-left-color:#2563EB"><strong>ChatGPT</strong><span>品牌提及率 42% · 官网引用率 17%</span></div></div>`;
           const rows = platforms.map((platform) => `<tr><td class="platform-name">${platform.name}${platform.group ? `<span class="platform-group">${platform.group}</span>` : ''}<small>${platform.sample} · ${platform.delta}</small></td><td><strong>${platform.mention}</strong></td><td><strong>${platform.cite}</strong></td><td>${platform.mention === '—' ? '<span class="source-flag is-pending">平台已纳入，分项待补齐</span>' : '<span class="source-flag is-yes">已展示</span>'}</td></tr>`).join('');
           document.getElementById('platforms-content').innerHTML = `${summary}<div class="table-wrap"><table><caption hidden>AI 平台表现</caption><thead><tr><th>AI 平台</th><th>品牌提及率（SOA）</th><th>官网引用率</th><th>当前状态</th></tr></thead><tbody>${rows}</tbody></table></div>`;
         }
@@ -728,7 +727,7 @@
           document.getElementById('evidence-content').innerHTML = `<div class="comp-overview">
             <section class="comp-block"><div class="comp-block-head"><h3>本期总结排名</h3><span>全部监测问题汇总 · 同口径比较</span></div><div class="comp-table-wrap"><table class="comp-leaderboard"><thead><tr><th>排名</th><th>品牌</th><th>提及率</th><th>推荐率</th><th>官网引用率</th></tr></thead><tbody>${rows}</tbody></table></div><div class="comp-insight"><strong>模块总结：</strong>提及率、推荐率按全部有效回答统计；官网引用率统计回答引用该品牌官网的比例。APW 综合排名第 2：与排名第一的 Flow 相比，提及率低 <strong>14 个百分点</strong>、推荐率低 <strong>16 个百分点</strong>；与 OMAX 相比，APW 提及率高 4 个百分点、推荐率高 1 个百分点。差距主要集中在 Flow，并非所有竞品都领先。</div></section>
             <section class="comp-block"><div class="comp-block-head"><h3>差距拆解：本品与竞品同维对照</h3><span>逐题回答中的品牌记录聚合；细分样例共 10 个问题</span></div><div class="gap-breakdown">
-              <article class="gap-panel"><div class="gap-panel-head"><h4>1. AI 平台 × 品牌提及</h4><span>样例回答命中数 / 20 条回答</span></div><div class="comp-table-wrap"><table class="comp-table"><thead><tr><th>平台</th><th>APW Waterjet</th><th>Flow</th><th>OMAX</th><th>KMT</th></tr></thead><tbody>${[['ChatGPT',[20,16,0,0]],['Perplexity',[19,18,1,0]],['Google AI',[19,17,0,0]]].map(([name,v])=>`<tr><td>${name}</td>${v.map((n,i)=>`<td class="${i===0?'num':''}">${n}/20 · ${Math.round(n/20*100)}%</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="gap-takeaway"><strong>模块总结：</strong>10 条代表问题中，APW 在 ChatGPT、Perplexity 和 Google AI 的品牌提及覆盖均高于 Flow；OMAX、KMT 覆盖较低。</p></article>
+              <article class="gap-panel"><div class="gap-panel-head"><h4>1. AI 平台 × 品牌提及</h4><span>样例回答命中数 / 20 条回答</span></div><div class="comp-table-wrap"><table class="comp-table"><thead><tr><th>平台</th><th>APW Waterjet</th><th>Flow</th><th>OMAX</th><th>KMT</th></tr></thead><tbody>${[['ChatGPT',[20,16,0,0]],['Google AI',[19,17,0,0]]].map(([name,v])=>`<tr><td>${name}</td>${v.map((n,i)=>`<td class="${i===0?'num':''}">${n}/20 · ${Math.round(n/20*100)}%</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="gap-takeaway"><strong>模块总结：</strong>10 条代表问题中，APW 在 ChatGPT 和 Google AI 的品牌提及覆盖均高于 Flow；OMAX、KMT 覆盖较低。</p></article>
               <article class="gap-panel"><div class="gap-panel-head"><h4>2. 买家人设 × 意图 × 品牌提及</h4><span>同一组问题与回答样例，按品牌出现次数计算</span></div><div class="comp-table-wrap"><table class="comp-table gap-matrix"><thead><tr><th>人设 × 意图</th><th>APW</th><th>Flow</th><th>OMAX</th><th>KMT</th></tr></thead><tbody>${[['复材加工技术主管 × 信息查询',[17,15,1,0,18]],['复材加工技术主管 × 方案比较',[5,0,0,0,6]],['航空部件采购经理 × 设备决策',[12,12,0,0,12]],['精密加工车间主管 × 推荐',[12,12,0,0,12]],['航空部件采购经理 × 方案比较',[6,6,0,0,6]],['商社设备采购担当 × 方案比较',[6,6,0,0,6]]].map(([name,v])=>`<tr><td>${name}</td>${v.slice(0,4).map((n,i)=>`<td class="${i===0?'num':''}">${Math.round(n/v[4]*100)}%</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="gap-takeaway"><strong>模块总结：</strong>样例里 APW 在复材信息查询高于 Flow（17/18 对 15/18），在航空采购、精密加工和商社场景与 Flow 接近；样例覆盖有限，暂不能将这些差异外推到全部人设与意图。</p></article>
               <article class="gap-panel"><div class="gap-panel-head"><h4>3. 引用来源 × 品牌共现</h4><span>来源页被引用次数；同时列出页面记录中的品牌</span></div><div class="comp-table-wrap"><table class="comp-table"><thead><tr><th>被引页面</th><th>引用次数</th><th>平台</th><th>APW</th><th>竞品出现在该页面</th></tr></thead><tbody>${sourcePages.map((row)=>`<tr><td>${row[0]}</td><td>${row[4]}</td><td>${row[5]}</td><td>${row[6]}</td><td>${row[7]}</td></tr>`).join('')}</tbody></table></div><p class="gap-takeaway"><strong>模块总结：</strong>compositesworld.com 与 reddit.com 的引用次数合计高于 APW 官网，且样例页面列有多个竞品；说明当前 AI 答案的外部信源覆盖更广。引用次数衡量页面被采纳频次，不等于品牌推荐，需结合逐条回答里的品牌提及与推荐共同判断。</p></article>
             </div></section>
@@ -738,7 +737,7 @@
 
         function renderStrategy() {
           const items = [
-            ['补齐采购场景的官网答案', '优先检查“小批量成本”和“供应商选择”两类问题。将报价影响因素、产品适用范围、交付与服务能力整理成经业务确认、可被引用的页面内容。下期复测品牌提及、推荐、官网引用及 Perplexity 覆盖。', 'P0', '监测问题 Q6 / Q10'],
+            ['补齐采购场景的官网答案', '优先检查“小批量成本”和“供应商选择”两类问题。将报价影响因素、产品适用范围、交付与服务能力整理成经业务确认、可被引用的页面内容。下期复测品牌提及、推荐与官网引用覆盖。', 'P0', '监测问题 Q6 / Q10'],
             ['强化碳纤维与水刀 / 激光对比页', '核对 APW 碳纤维方案页和水刀 / 激光对比页，补齐公开可验证的技术依据、适用边界和选择条件。下期检查官网引用是否出现在对应问题，并确认引用内容是否支持答案。', 'P1', '官网页面与引用来源'],
             ['缩小与领先竞品的推荐差距', '围绕 Flow 与 APW 的提及率、推荐率差距，优先复盘差距最大的 AI 平台和买家意图；结合对应问题的回答与引用来源，补强官网证据，下期按同一批问题复测。', 'P1', '竞品综合表现与逐题证据']
           ];

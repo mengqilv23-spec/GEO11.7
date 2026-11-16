@@ -68,7 +68,6 @@ const commonPlatforms = [
   { name: 'Google AI Overviews', mention: '46%', citations: '18%', sample: 'n=240', movement: '↑ 5pp' },
   { name: 'Gemini', mention: '39%', citations: '16%', sample: 'n=240', movement: '↑ 3pp' },
   { name: 'ChatGPT', mention: '42%', citations: '17%', sample: 'n=240', movement: '↑ 4pp' },
-  { name: 'Perplexity', mention: '31%', citations: '14%', sample: 'n=240', movement: '↑ 2pp' },
   { name: 'Claude', mention: '—', citations: '—', sample: '已纳入当前口径', movement: '分项待补齐' },
 ]
 
@@ -80,15 +79,15 @@ const sharedPersonas = [
 ]
 
 const sharedQuestions = [
-  { question: 'Welche Wasserstrahlanlagen empfehlen sich für Anwendungen in der Luftfahrt?', persona: '航空部件采购经理', platforms: 'ChatGPT #1 · Perplexity #2 · Google AI #2', officialEvidence: 'APW 官网页面', trend: '↑ 上升' },
-  { question: 'Was kostet das präzise Wasserstrahlschneiden von CFRP für kleine Serien?', persona: '航空部件采购经理', platforms: 'ChatGPT #4 · Perplexity 未提及 · Google AI #2', officialEvidence: '缺少官网证据', trend: '↓ 下降' },
-  { question: 'Wie lassen sich Ausfransungen beim Schneiden von Verbundwerkstoffen vermeiden?', persona: '精密加工车间主管', platforms: 'ChatGPT #2 · Perplexity #4 · Google AI 未提及', officialEvidence: '缺少官网证据', trend: '→ 持平' },
+  { question: 'Welche Wasserstrahlanlagen empfehlen sich für Anwendungen in der Luftfahrt?', persona: '航空部件采购经理', platforms: 'ChatGPT #1 · Google AI #2', officialEvidence: 'APW 官网页面', trend: '↑ 上升' },
+  { question: 'Was kostet das präzise Wasserstrahlschneiden von CFRP für kleine Serien?', persona: '航空部件采购经理', platforms: 'ChatGPT #4 · Google AI #2', officialEvidence: '缺少官网证据', trend: '↓ 下降' },
+  { question: 'Wie lassen sich Ausfransungen beim Schneiden von Verbundwerkstoffen vermeiden?', persona: '精密加工车间主管', platforms: 'ChatGPT #2 · Google AI 未提及', officialEvidence: '缺少官网证据', trend: '→ 持平' },
 ]
 
 const sharedSources = [
-  { domain: 'compositesworld.com', citations: '30', answers: '14', platforms: 'ChatGPT · Perplexity · Google AI' },
-  { domain: 'apw.com', citations: '17', answers: '11', platforms: 'ChatGPT · Perplexity · Google AI' },
-  { domain: 'reddit.com', citations: '18', answers: '8', platforms: 'ChatGPT · Perplexity' },
+  { domain: 'compositesworld.com', citations: '30', answers: '14', platforms: 'ChatGPT · Google AI' },
+  { domain: 'apw.com', citations: '17', answers: '11', platforms: 'ChatGPT · Google AI' },
+  { domain: 'reddit.com', citations: '18', answers: '8', platforms: 'ChatGPT' },
   { domain: 'thefabricator.com', citations: '14', answers: '6', platforms: 'ChatGPT · Google AI' },
 ]
 
@@ -117,7 +116,7 @@ const profiles: Record<ReportType, ReportDetailProfile> = {
     ],
     highlights: [
       { title: '本周变化', description: '四项核心指标均较上周上升，品牌提及率增加 4 个百分点。' },
-      { title: '平台拆解', description: 'Google AI Overviews 为 46%、Gemini 为 39%，高于 Perplexity 的 31%。' },
+      { title: '平台拆解', description: 'Google AI Overviews 为 46%、ChatGPT 为 42%、Gemini 为 39%，平台间保持稳定。' },
       { title: '人设与意图', description: '认知、评估、决策场景提及率分别为 61%、52%、43%；采购人设仍偏弱。' },
       { title: '来源关联', description: 'compositesworld.com 被引用 30 次；官网引用仍有提升空间。' },
     ],
@@ -146,7 +145,7 @@ const profiles: Record<ReportType, ReportDetailProfile> = {
     highlights: [
       { title: '本次总体结果', description: 'APW 本次综合排名第 2，覆盖表现因平台与问题场景而异。' },
       { title: '采购问题缺口', description: '供应商选择与小批量成本相关问题需要补足第一方信息。' },
-      { title: '平台差异', description: 'Google 系平台表现相对较好；Perplexity 的覆盖仍可提升。' },
+      { title: '平台差异', description: 'Google 系平台表现相对较好；ChatGPT 的覆盖仍有提升空间。' },
       { title: '证据可信度', description: '本报告基于单次采集快照，建议与后续周期结果联合判断。' },
     ],
     platforms: commonPlatforms,
@@ -173,7 +172,7 @@ const profiles: Record<ReportType, ReportDetailProfile> = {
     ],
     highlights: [
       { title: '月度趋势', description: '本月提及率、推荐率和官网引用率较上月均有提升。' },
-      { title: '平台差异', description: '不同 AI 平台之间仍存在覆盖差异，需继续关注 Perplexity。' },
+      { title: '平台差异', description: '不同 AI 平台之间仍存在覆盖差异，需继续关注 ChatGPT 与 Google 系平台。' },
       { title: '采购场景短板', description: '商社设备采购与成本评估问题的提及率低于技术信息查询。' },
       { title: '信源结构', description: '第三方来源引用仍高于 APW 官网，需持续强化可引用页面。' },
     ],

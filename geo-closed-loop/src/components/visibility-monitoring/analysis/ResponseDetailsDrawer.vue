@@ -23,7 +23,7 @@ watch(() => [props.open, props.roundId, props.questionId] as const, ([open, roun
 function platformName(platform: string | null | undefined) {
   if (!platform)
     return '平台未返回'
-  return ({ chatgpt: 'ChatGPT', gemini: 'Gemini', perplexity: 'Perplexity', google_ai: 'Google AI', claude: 'Claude', copilot: 'Copilot' } as Record<string, string>)[platform.toLowerCase()] ?? platform
+  return ({ chatgpt: 'ChatGPT', gemini: 'Gemini', google_ai: 'Google AI', claude: 'Claude', copilot: 'Copilot' } as Record<string, string>)[platform.toLowerCase()] ?? platform
 }
 
 function collectStatus(status: number) {

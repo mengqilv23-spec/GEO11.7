@@ -18,8 +18,8 @@ const saved = (() => {
 const agentVersion = ref(saved.version ?? 3)
 const notice = ref('')
 const sourceRows = [
-  { kind: '品牌官网', title: '碳纤维方案页 · v2.4', market: '德国 / 德语', model: 'ChatGPT · Perplexity', published: '10/12 14:20', found: '10/14 09:10', cited: '10/16 11:35', foundDays: 1.8, citedDays: 3.9 },
-  { kind: '第三方信源', title: 'CompositesWorld 行业投稿', market: '德国 / 英语', model: 'Gemini · Perplexity', published: '10/09 16:00', found: '10/11 10:25', cited: '10/15 08:40', foundDays: 1.8, citedDays: 3.7 },
+  { kind: '品牌官网', title: '碳纤维方案页 · v2.4', market: '德国 / 德语', model: 'ChatGPT · Google AI', published: '10/12 14:20', found: '10/14 09:10', cited: '10/16 11:35', foundDays: 1.8, citedDays: 3.9 },
+  { kind: '第三方信源', title: 'CompositesWorld 行业投稿', market: '德国 / 英语', model: 'Gemini · Google AI', published: '10/09 16:00', found: '10/11 10:25', cited: '10/15 08:40', foundDays: 1.8, citedDays: 3.7 },
   { kind: '品牌官网', title: '交期与产能页 · v1.6', market: '德国 / 德语', model: 'ChatGPT · Gemini', published: '10/08 12:00', found: '10/10 15:30', cited: '尚未观测到', foundDays: 2.1, citedDays: null },
   { kind: '第三方信源', title: '行业技术访谈 · 德国市场', market: '德国 / 德语', model: 'ChatGPT · Gemini', published: '10/06 09:00', found: '10/08 18:00', cited: '尚未观测到', foundDays: 2.4, citedDays: null },
 ]
@@ -204,7 +204,7 @@ function simulateRollback() {
     </template>
 
     <template v-else-if="active === '信源时效'">
-      <div class="ops-filters"><label>信源类型<select v-model="sourceKindFilter"><option>全部信源</option><option>品牌官网</option><option>第三方信源</option></select></label><label>市场<select v-model="marketFilter"><option>全部市场</option><option>德国</option></select></label><label>语言<select v-model="languageFilter"><option>全部语言</option><option>德语</option><option>英语</option></select></label><label>模型<select v-model="modelFilter"><option>全部模型</option><option>ChatGPT</option><option>Gemini</option><option>Perplexity</option></select></label></div>
+      <div class="ops-filters"><label>信源类型<select v-model="sourceKindFilter"><option>全部信源</option><option>品牌官网</option><option>第三方信源</option></select></label><label>市场<select v-model="marketFilter"><option>全部市场</option><option>德国</option></select></label><label>语言<select v-model="languageFilter"><option>全部语言</option><option>德语</option><option>英语</option></select></label><label>模型<select v-model="modelFilter"><option>全部模型</option><option>ChatGPT</option><option>Gemini</option><option>Google AI</option></select></label></div>
       <div class="ops-source-stats"><article v-for="stat in sourceStats" :key="stat.kind"><div class="ops-card__head"><div><h2>{{ stat.kind }}</h2><p>{{ stat.count }} 条样本 · 按当前市场、语言和模型筛选</p></div><span class="ops-counter">独立统计</span></div><div class="ops-source-stats__metrics"><div><small>发布后首次发现均值</small><b>{{ stat.avgFound }} 天</b><span>{{ stat.foundCount }} 条有发现时间</span></div><div><small>发布后首次观测引用均值</small><b>{{ stat.avgCited }} 天</b><span>{{ stat.citedCount }} 条已观测到引用</span></div><div><small>尚未观测到引用</small><b>{{ stat.noCitationCount }} 条</b><span>单独列示，不按 0 天计入</span></div></div></article></div>
       <section class="ops-card"><div class="ops-card__head"><div><h2>信源发现与引用时效趋势</h2><p>官网与第三方信源的首次发现、首次观测引用耗时 · Mock 演示数据</p></div><span class="ops-counter">天数</span></div><MonitoringEChart :option="sourceTimingTrend" label="近五期官网与第三方信源首次发现和首次观测引用时效趋势图" /></section>
       <div class="ops-note ops-note--insight"><b>时效分析</b><span>{{ sourceTimingConclusion }}</span><small>耗时统计只纳入已有观测时间的样本；未观测到引用的内容单独列示，不按 0 天计算。</small></div>

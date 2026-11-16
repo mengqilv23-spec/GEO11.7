@@ -94,7 +94,6 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 .vm-platform-list { display: flex; flex-wrap: wrap; gap: 5px; min-width: 126px; }
 .vm-platform-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border: 1px solid var(--border-default); border-radius: 999px; color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
 .vm-platform-chip i { width: 7px; height: 7px; border-radius: 50%; background: #2563eb; }
-.platform-perplexity { background: #7c3aed !important; }
 .platform-google-ai { background: #f59e0b !important; }
 .platform-gemini { background: #059669 !important; }
 .platform-ai-mode { background: #0891b2 !important; }

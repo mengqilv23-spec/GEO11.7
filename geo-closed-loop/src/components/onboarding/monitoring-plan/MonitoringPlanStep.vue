@@ -158,7 +158,6 @@ function togglePlatform(platform: MonitoringPlatform) {
 .monitoring-plan-platform__label { flex: 0 0 auto; white-space: nowrap; }
 .monitoring-plan-platform__hint { margin-left: auto; color: var(--text-muted); font-size: 11px; font-weight: var(--weight-medium); white-space: nowrap; }
 .monitoring-plan-platform__mark { display: inline-grid; width: 30px; height: 30px; flex: 0 0 30px; place-items: center; border: 1px solid var(--border-default); border-radius: var(--radius-control); background: var(--background-primary); color: var(--text-primary); font-size: 21px; line-height: 1; }
-.monitoring-plan-platform__mark[data-platform='perplexity'] { font-size: 22px; font-weight: var(--weight-semibold); }
 .monitoring-plan-platform__mark[data-platform='google'] { color: #4285f4; }
 .monitoring-plan-platform__mark[data-platform='gemini'] { color: #7568f5; }
 .monitoring-plan-platform__mark[data-platform='ai-mode'] { color: #4983f5; }
