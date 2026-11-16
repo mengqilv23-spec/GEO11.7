@@ -323,10 +323,9 @@ const reviewing = computed(() => ['client_content_review', 'human', 'client_revi
 const contentReviewVisible = computed(() => ['todo', 'running', 'client_content_review', 'human', 'client_review'].includes(props.task.progress))
 const operationsContentReview = computed(() => props.task.progress === 'human' && props.role === 'ops')
 const aiWritingBlocked = computed(() => props.serviceMode === 'managed' && props.role === 'client' && props.task.progress === 'human')
-const websiteContentReadOnly = computed(() => props.task.type === 'web')
 const codeContentTask = computed(() => isCodeContentTask(props.task))
-const contentReviewLocked = computed(() => websiteContentReadOnly.value && reviewing.value)
-const aiWritingAvailable = computed(() => contentReviewVisible.value && !aiWritingBlocked.value && !websiteContentReadOnly.value)
+const contentReviewLocked = computed(() => codeContentTask.value && reviewing.value)
+const aiWritingAvailable = computed(() => contentReviewVisible.value && !aiWritingBlocked.value && !codeContentTask.value)
 const canEditWebSupplement = computed(() => editableBrief.value || reviewing.value || (props.role === 'client' && ['todo', 'running'].includes(props.task.progress)))
 const outputDirty = computed(() => draft.title !== flow.value.output.title || draft.body !== flow.value.output.body)
 const briefDirty = computed(() => directInstruction.value !== (flow.value.brief.contentInstruction || '')
@@ -337,8 +336,9 @@ const hasUnsavedContent = computed(() => (props.task.type === 'web' || props.tas
     || (props.task.executionKind === 'verification' && props.task.progress !== 'done' && draft.body !== flow.value.output.body)))
 const siteOwner = computed(() => props.role === (props.serviceMode === 'managed' ? 'ops' : 'client'))
 const outputEditable = computed(() => !contentReviewLocked.value && (reviewing.value || (props.task.progress === 'site_failed' && siteOwner.value)))
-const rejectLimitReached = computed(() => props.serviceMode === 'managed' && props.role === 'client' && websiteContentReadOnly.value && props.task.progress === 'client_review' && customerRevisionRequests.value >= 3)
+const rejectLimitReached = computed(() => props.serviceMode === 'managed' && props.role === 'client' && codeContentTask.value && props.task.progress === 'client_review' && customerRevisionRequests.value >= 3)
 const canRejectOutput = computed(() => contentReviewLocked.value && reviewing.value)
+const canRequestAgentRevision = computed(() => props.serviceMode === 'managed' && props.role === 'client' && props.task.type === 'web' && props.task.progress === 'client_review' && !codeContentTask.value && customerRevisionRequests.value < 3)
 const finalQualityVisible = computed(() => props.task.type !== 'repair' && !codeContentTask.value && Boolean(flow.value.output.body))
 const outputEmptyMessage = computed(() => {
   if (props.task.progress === 'brief')
@@ -382,9 +382,9 @@ const waitingFor = computed(() => {
   if (props.task.progress === 'brief')
     return flow.value.briefStatus === 'changes_requested' ? '等待专家审核客户意见，再由 Agent 重整 Brief。' : '专家确认 Brief 后才启动执行；客户可查看任务目标与执行范围。'
   if (props.task.progress === 'client_content_review')
-    return websiteContentReadOnly.value ? '请查看生成内容；内容只读，只能选择通过或拒绝。' : '请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。'
+    return codeContentTask.value ? '请查看生成内容；内容只读，只能选择通过或拒绝。' : '请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。'
   if (['human', 'client_review'].includes(props.task.progress)) {
-    if (websiteContentReadOnly.value && reviewOwner(props.task, props.serviceMode) === 'client')
+    if (codeContentTask.value && reviewOwner(props.task, props.serviceMode) === 'client')
       return '请查看生成内容；内容只读，只能选择通过或拒绝。'
     return reviewOwner(props.task, props.serviceMode) === 'ops' ? '等待专家完成修复专业审核，再交客户确认。' : '等待客户确认产物、业务事实与交付范围。'
   }
@@ -426,16 +426,16 @@ const actionbarDescription = computed(() => {
   if (props.task.completionOutcome === 'expired-unexecuted')
     return '未执行优化。本任务已超出处理时限并关闭，不能继续处理。'
   if (customerFinalReview.value) {
-    if (websiteContentReadOnly.value)
+    if (codeContentTask.value)
       return props.serviceMode === 'managed' ? `请查看生成内容；内容只读，只能选择通过或拒绝。拒绝后按修改次数规则退回处理（最多 3 次，已使用 ${customerRevisionRequests.value} 次）。` : '请查看生成内容；内容只读，只能选择通过或拒绝。'
     return props.serviceMode === 'managed' ? `请确认最新文案；如需修改，可填写意见退回专家继续优化（最多 3 次，已使用 ${customerRevisionRequests.value} 次）。` : '请确认文案结果；需要修改时可直接编辑正文。'
   }
   if (operationsWaitingForClientReview.value)
     return '专家已审核通过，当前等待客户查看最新保存版本并确认最终稿。'
   if (operationsContentReview.value)
-    return websiteContentReadOnly.value ? '请查看生成内容；内容只读，只能选择通过或拒绝。通过后交客户确认，拒绝则退回重新生成。' : '请检查并修改内容；审核通过后，客户才能确认最终稿。'
+    return codeContentTask.value ? '请查看生成内容；内容只读，只能选择通过或拒绝。通过后交客户确认，拒绝则退回重新生成。' : '请检查并修改内容；审核通过后，客户才能确认最终稿。'
   if (props.task.progress === 'client_content_review')
-    return websiteContentReadOnly.value ? '请查看生成内容；内容只读，只能选择通过或拒绝。' : '请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。'
+    return codeContentTask.value ? '请查看生成内容；内容只读，只能选择通过或拒绝。' : '请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。'
   if (props.task.progress === 'site_failed')
     return '官网验证未通过。请返回内容审核改写后重新提交；如不再处理，可选择忽略。'
   if (props.task.progress === 'site_submit')
@@ -575,6 +575,13 @@ function openEditor(kind: Exclude<NonNullable<typeof drawer.value>, 'upload'>) {
   draft.title = flow.value.output.title
   draft.body = flow.value.output.body
   drawer.value = kind
+}
+function requestAgentRevision() {
+  if (!saveInlineOutput())
+    return
+  if (!canRequestAgentRevision.value)
+    return
+  openEditor('feedback')
 }
 function toggleMethod(method: string) {
   draft.methods = draft.methods.includes(method) ? draft.methods.filter(item => item !== method) : [...draft.methods, method]
@@ -896,13 +903,13 @@ function versionDiff(index: number) {
                 </div>
                 <div class="tw-output-review-layout">
                   <div class="tw-output-review-main">
-                    <p v-if="aiWritingBlocked && !websiteContentReadOnly" class="tw-ai-guard" role="status">
+                    <p v-if="aiWritingBlocked && !codeContentTask" class="tw-ai-guard" role="status">
                       专家正在审核内容，客户当前不能使用 AI 写作。审核完成后可继续查看或确认。
                     </p>
                     <p v-if="contentReviewLocked" class="tw-ai-guard" role="status">
                       生成内容为只读，当前只能选择通过或拒绝。
                     </p>
-                    <TaskRichTextEditor v-model="draft.body" :editable="outputEditable" :ai-optimize="!websiteContentReadOnly && (aiWritingAvailable || task.progress === 'site_failed')" :ai-calls-remaining="aiCallsRemaining" :external-claims="flow.output.externalClaims || []" :can-confirm-external-claims="role === 'client'" :full-width="true" :heading="flow.output.title" label="生成内容正文编辑器" @ai-call="consumeAiCall" @confirm-external-claim="confirmExternalClaim">
+                    <TaskRichTextEditor v-model="draft.body" :editable="outputEditable" :ai-optimize="!codeContentTask && (aiWritingAvailable || task.progress === 'site_failed')" :ai-calls-remaining="aiCallsRemaining" :external-claims="flow.output.externalClaims || []" :can-confirm-external-claims="role === 'client'" :full-width="true" :heading="flow.output.title" label="生成内容正文编辑器" @ai-call="consumeAiCall" @confirm-external-claim="confirmExternalClaim">
                       <template v-if="finalQualityVisible" #ai-dock-below>
                         <TaskReviewInsights v-bind="qualityInput" />
                       </template>
@@ -972,11 +979,17 @@ function versionDiff(index: number) {
             <Button v-if="outputEditable" variant="secondary" data-test="save-inline-output" @click="saveInlineOutputFromButton">
               保存正文
             </Button>
-            <Button v-if="canRejectOutput && !rejectLimitReached" variant="secondary" data-test="reject-output" @click="openEditor('feedback')">
+            <Button v-if="canRequestAgentRevision" variant="secondary" data-test="request-agent-revision" @click="requestAgentRevision">
+              退回专家修改（还可提 {{ 3 - customerRevisionRequests }} 次）
+            </Button>
+            <Button v-else-if="canRejectOutput && !rejectLimitReached" variant="secondary" data-test="reject-output" @click="openEditor('feedback')">
               拒绝
             </Button>
             <span v-else-if="contentReviewLocked && rejectLimitReached" class="tw-revision-limit" role="status">
               已达到 3 次拒绝上限
+            </span>
+            <span v-else-if="serviceMode === 'managed' && task.type === 'web' && !codeContentTask && customerFinalReview && customerRevisionRequests >= 3" class="tw-revision-limit" role="status">
+              已达到 3 次修改上限
             </span>
             <Button variant="primary" data-test="approve-output" @click="approveReview">
               {{ contentReviewLocked ? (role === 'ops' ? '通过，交客户确认' : '通过') : operationsContentReview ? '专家审核通过，交客户确认' : role === 'ops' ? '审核通过，交客户确认' : '客户确认最终稿' }}

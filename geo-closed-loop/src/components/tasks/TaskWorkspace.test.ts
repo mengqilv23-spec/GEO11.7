@@ -156,7 +156,7 @@ describe('task workspace task confirmation', () => {
     ensureWorkflow(reviewTask)
     const reviewView = mountWorkspace('ops', reviewTask)
 
-    expect(reviewView.get('[data-test="approve-output"]').text()).toBe('通过，交客户确认')
+    expect(reviewView.get('[data-test="approve-output"]').text()).toBe('专家审核通过，交客户确认')
     reviewView.unmount()
   })
 
@@ -311,8 +311,9 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(true)
   })
 
-  it('offers only reject and approve at the customer final review', async () => {
+  it('offers only reject and approve for code content at the customer final review', async () => {
     const task = makeTask()
+    task.source = 'F9'
     task.progress = 'client_review'
     ensureWorkflow(task)
     const wrapper = mountWorkspace('client', task)
@@ -356,9 +357,10 @@ describe('task workspace task confirmation', () => {
     expect((customerView.get('[data-test="ignore-task"]').element as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('shows an enabled ignore control outside the read-only content review', () => {
+  it('shows an enabled ignore control at every website workflow step for its owner', () => {
     const ownerByStage = [
       ['brief', 'ops'],
+      ['human', 'ops'],
       ['site_publish', 'client'],
       ['recheck', 'ops'],
     ] as const
@@ -379,9 +381,10 @@ describe('task workspace task confirmation', () => {
       wrapper.unmount()
     }
 
-    const readOnlyReview = makeTask()
-    readOnlyReview.progress = 'human'
-    const reviewWrapper = mountWorkspace('ops', readOnlyReview)
+    const codeReview = makeTask()
+    codeReview.source = 'F9'
+    codeReview.progress = 'human'
+    const reviewWrapper = mountWorkspace('ops', codeReview)
     expect(reviewWrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(false)
     expect(reviewWrapper.find('[data-test="reject-output"]').exists()).toBe(true)
   })
@@ -576,7 +579,7 @@ describe('task workspace task confirmation', () => {
     expect(failed.get('[data-test="repair-result"] .tw-repair-result-card__heading').text()).toContain('官网已返回处理结果')
   })
 
-  it('renders generated content as read-only during the review step', async () => {
+  it('uses a rich-text editor for the generated content review step', async () => {
     const task = makeTask()
     task.progress = 'human'
     const flow = ensureWorkflow(task)
@@ -586,18 +589,19 @@ describe('task workspace task confirmation', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
 
     expect(wrapper.find('.ProseMirror').exists()).toBe(true)
-    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('false')
-    expect(wrapper.find('.task-rich-editor__toolbar').exists()).toBe(false)
-    expect(wrapper.find('button[aria-label="加粗"]').exists()).toBe(false)
-    expect(wrapper.get('.tw-actionbar').text()).toContain('请查看生成内容；内容只读，只能选择通过或拒绝。通过后交客户确认，拒绝则退回重新生成。')
-    expect(wrapper.get('[data-test="approve-output"]').text()).toBe('通过，交客户确认')
+    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('true')
+    expect(wrapper.find('.task-rich-editor__toolbar').exists()).toBe(true)
+    expect(wrapper.find('button[aria-label="加粗"]').exists()).toBe(true)
+    expect(wrapper.get('.tw-actionbar').text()).toContain('请检查并修改内容；审核通过后，客户才能确认最终稿。')
+    expect(wrapper.get('[data-test="approve-output"]').text()).toBe('专家审核通过，交客户确认')
     expect(wrapper.find('.tw-actionbar strong').exists()).toBe(false)
-    expect(wrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(false)
-    expect(wrapper.get('[data-test="reject-output"]').text()).toBe('拒绝')
-    expect(wrapper.find('[data-test="save-inline-output"]').exists()).toBe(false)
+    expect(wrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(true)
+    expect(wrapper.get('[data-test="save-inline-output"]').text()).toBe('保存正文')
+    expect((wrapper.get('[data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(false)
     expect(wrapper.findAll('.tw-actionbar button').map(button => button.text())).toEqual([
-      '拒绝',
-      '通过，交客户确认',
+      '忽略',
+      '保存正文',
+      '专家审核通过，交客户确认',
     ])
     expect(wrapper.find('[data-test="save-output"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="copy-output"]').exists()).toBe(false)
@@ -606,8 +610,8 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.get('[data-test="review-insights"]').text()).toContain('段落问题')
     expect(wrapper.get('[data-test="review-insights"]').text()).toContain('1 个长段落建议人工确认')
     expect(wrapper.get('[data-test="review-insights"]').text()).toContain('3/4 通过')
-    expect(wrapper.find('[data-test="open-ai-optimize"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="regenerate-article"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="open-ai-optimize"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="regenerate-article"]').exists()).toBe(true)
     expect(wrapper.find('.tw-output-status').exists()).toBe(false)
     expect(wrapper.find('[data-test="external-claim-summary"]').exists()).toBe(false)
     expect(wrapper.get('.task-rich-editor__page').classes()).toContain('is-full-width')
@@ -647,52 +651,55 @@ describe('task workspace task confirmation', () => {
     expect(task.progress).toBe('done')
   })
 
-  it('keeps operations from editing generated content during review', async () => {
+  it('saves inline body edits from the operations review action bar without advancing the task', async () => {
     const task = makeTask()
     task.progress = 'human'
-    const originalBody = ensureWorkflow(task).output.body
     const wrapper = mountWorkspace('ops', task)
     await new Promise(resolve => setTimeout(resolve, 0))
     const proseMirror = wrapper.get('.ProseMirror')
     proseMirror.element.textContent = '运营保存后的正文'
     await proseMirror.trigger('input')
 
-    expect(wrapper.find('[data-test="save-inline-output"]').exists()).toBe(false)
-    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('false')
+    const saveButton = wrapper.get('[data-test="save-inline-output"]')
+    expect((saveButton.element as HTMLButtonElement).disabled).toBe(false)
+    await saveButton.trigger('click')
 
-    await wrapper.get('[data-test="approve-output"]').trigger('click')
-
-    expect(task.workflow?.output.body).toBe(originalBody)
-    expect(task.workflow?.output.revision).toBe(1)
-    expect(task.progress).toBe('client_review')
+    expect(task.workflow?.output.body).toContain('运营保存后的正文')
+    expect(task.workflow?.output.revision).toBe(2)
+    expect(task.progress).toBe('human')
+    expect((wrapper.get('[data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(false)
+    expect(wrapper.get('.tw-actionbar .tw-success').text()).toContain('保存产物修改')
   })
 
-  it('does not warn before leaving a read-only content review', async () => {
+  it('warns before leaving an edited content review and allows return after saving', async () => {
     const task = makeTask()
     task.progress = 'human'
     const wrapper = mountWorkspace('ops', task)
     await new Promise(resolve => setTimeout(resolve, 0))
     const editor = wrapper.get('.ProseMirror')
-    editor.element.textContent = '只读内容不应触发未保存提示'
+    editor.element.textContent = '待保存的正文修改'
     await editor.trigger('input')
 
     await wrapper.get('.tw-back-button').trigger('click')
     expect(task.progress).toBe('human')
-    expect(document.body.textContent).not.toContain('请确认已保存修改内容')
+    expect(document.body.textContent).toContain('请确认已保存修改内容')
+    expect(wrapper.emitted('back')).toBeUndefined()
+
+    await wrapper.get('[data-test="save-inline-output"]').trigger('click')
+    await wrapper.get('.tw-back-button').trigger('click')
     expect(wrapper.emitted('back')).toHaveLength(1)
   })
 
-  it('gives the customer only reject and approve while reviewing generated content', async () => {
+  it('offers a separate save action to the customer while reviewing generated content', async () => {
     const task = makeTask()
     task.progress = 'client_review'
     ensureWorkflow(task)
     const wrapper = mountWorkspace('client', task, vi.fn(), false, 'agent')
     await new Promise(resolve => setTimeout(resolve, 0))
 
-    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('false')
-    expect(wrapper.find('[data-test="save-inline-output"]').exists()).toBe(false)
-    expect(wrapper.get('[data-test="reject-output"]').text()).toBe('拒绝')
-    expect(wrapper.get('[data-test="approve-output"]').text()).toBe('通过')
+    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('true')
+    expect(wrapper.get('[data-test="save-inline-output"]').text()).toBe('保存正文')
+    expect(wrapper.get('[data-test="approve-output"]').text()).toBe('客户确认最终稿')
     expect(task.progress).toBe('client_review')
   })
 
@@ -778,7 +785,8 @@ describe('task workspace task confirmation', () => {
     expect(operationsView.find('.tw-actionbar .tw-success').exists()).toBe(false)
 
     const customerView = mountWorkspace('client', task)
-    expect(customerView.get('.tw-actionbar').text()).toContain('请查看生成内容；内容只读，只能选择通过或拒绝。')
+    expect(customerView.get('.tw-actionbar').text()).toContain('请确认最新文案；如需修改，可填写意见退回专家继续优化（最多 3 次，已使用 0 次）。')
+    expect(customerView.get('[data-test="request-agent-revision"]').text()).toBe('退回专家修改（还可提 3 次）')
     expect(customerView.find('[data-test="waiting-client-final-review"]').exists()).toBe(false)
   })
 
@@ -841,7 +849,7 @@ describe('task workspace task confirmation', () => {
     expect(customerView.findAll('.tw-flow-steps li')).toHaveLength(7)
 
     const operationsView = mountWorkspace('ops', task)
-    expect(operationsView.get('[data-test="approve-output"]').text()).toBe('通过，交客户确认')
+    expect(operationsView.get('[data-test="approve-output"]').text()).toBe('专家审核通过，交客户确认')
   })
 
   it('removes the current-permission strip from both customer and operations views', () => {
@@ -850,13 +858,14 @@ describe('task workspace task confirmation', () => {
     const customerView = mountWorkspace('client', task)
 
     expect(customerView.find('.tw-stage-permission').exists()).toBe(false)
-    expect(customerView.get('.tw-actionbar').text()).toContain('请查看生成内容；内容只读，只能选择通过或拒绝。拒绝后按修改次数规则退回处理（最多 3 次，已使用 0 次）。')
+    expect(customerView.get('.tw-actionbar').text()).toContain('请确认最新文案；如需修改，可填写意见退回专家继续优化（最多 3 次，已使用 0 次）。')
     expect(customerView.find('.tw-actionbar strong').exists()).toBe(false)
     expect(customerView.find('[data-test="defer-task"]').exists()).toBe(false)
-    expect(customerView.find('[data-test="ignore-task"]').exists()).toBe(false)
-    expect(customerView.find('[data-test="reject-output"]').exists()).toBe(true)
+    expect(customerView.find('[data-test="ignore-task"]').exists()).toBe(true)
+    expect(customerView.find('[data-test="reject-output"]').exists()).toBe(false)
+    expect(customerView.find('[data-test="request-agent-revision"]').exists()).toBe(true)
     expect(customerView.find('[data-test="request-output-feedback"]').exists()).toBe(false)
-    expect(customerView.get('[data-test="approve-output"]').text()).toBe('通过')
+    expect(customerView.get('[data-test="approve-output"]').text()).toBe('客户确认最终稿')
     expect(customerView.get('.tw-actionbar button:last-child').attributes('data-variant')).toBe('primary')
     expect(customerView.find('.tw-confirmation').exists()).toBe(false)
 
@@ -906,10 +915,9 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.findAll('.tw-flow-steps li')[2]?.classes()).toContain('current')
   })
 
-  it('does not persist edits when the reviewer approves read-only content', async () => {
+  it('saves inline rich-text edits when the reviewer approves them', async () => {
     const task = makeTask()
     task.progress = 'human'
-    const originalBody = ensureWorkflow(task).output.body
     const wrapper = mountWorkspace('ops', task)
     await new Promise(resolve => setTimeout(resolve, 0))
     const proseMirror = wrapper.get('.ProseMirror')
@@ -917,9 +925,8 @@ describe('task workspace task confirmation', () => {
     await proseMirror.trigger('input')
     await wrapper.get('[data-test="approve-output"]').trigger('click')
 
-    expect(task.workflow?.output.body).toBe(originalBody)
-    expect(task.workflow?.output.body).not.toContain('修改后的成稿')
-    expect(task.workflow?.output.revision).toBe(1)
+    expect(task.workflow?.output.body).toContain('修改后的成稿')
+    expect(task.workflow?.output.revision).toBe(2)
     expect(task.progress).toBe('client_review')
     expect(wrapper.find('[data-test="drawer"]').exists()).toBe(false)
   })
@@ -1025,9 +1032,9 @@ it.each(['web', 'external'] as const)('lets the customer confirm a %s Brief and 
   expect(task.progress).toBe('client_review')
   expect(wrapper.find('[data-test="review-insights"]').exists()).toBe(true)
   expect(wrapper.find('.task-rich-editor__ai-dock').exists()).toBe(true)
-  expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe(type === 'web' ? 'false' : 'true')
-  expect(wrapper.find('[data-test="save-inline-output"]').exists()).toBe(type === 'external')
-  expect(wrapper.find('[data-test="open-ai-optimize"]').exists()).toBe(type === 'external')
+  expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('true')
+  expect(wrapper.find('[data-test="save-inline-output"]').exists()).toBe(true)
+  expect(wrapper.find('[data-test="open-ai-optimize"]').exists()).toBe(true)
   expect(wrapper.get('.tw-actionbar').text()).not.toContain('提交修改意见')
   expect(wrapper.find('[data-test="request-output-feedback"]').exists()).toBe(false)
   await wrapper.get('[data-test="approve-output"]').trigger('click')
