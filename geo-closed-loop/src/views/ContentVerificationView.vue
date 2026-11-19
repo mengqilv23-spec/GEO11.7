@@ -19,13 +19,11 @@ import { contentVerificationRounds } from '../data/content-verification-data'
 import { useContentProductionStore } from '../stores/content-production'
 
 type ContentFilter = 'all' | ContentProductionGroup
-type CreateTab = 'ai' | 'published'
 
 const workbenchContext = inject(geoWorkbenchRouteContextKey, null)
 const store = useContentProductionStore()
 const selectedId = shallowRef<string | null>(null)
 const createOpen = ref(false)
-const createInitialTab = ref<CreateTab>('ai')
 const filter = ref<ContentFilter>('all')
 const monthlyLimit = ref(20)
 const planName = ref('专业版')
@@ -111,12 +109,11 @@ onMounted(async () => {
   }
 })
 
-function openCreate(tab: CreateTab = 'ai') {
+function openCreate() {
   if (!canCreate.value) {
     notify('本月核验文章额度已用完，请先完成进行中的文章。', 'warning')
     return
   }
-  createInitialTab.value = tab
   createOpen.value = true
 }
 
@@ -187,10 +184,7 @@ function actionLabel(stage: ContentProductionStage) {
       :description="introDescription"
     >
       <template #actions>
-        <Button v-if="!isAgentVersion && !isClientRole" type="button" variant="secondary" :disabled="!canCreate" data-test="create-import" @click="openCreate('published')">
-          导入已发布文章
-        </Button>
-        <Button v-if="!isAgentVersion && !isClientRole" type="button" variant="primary" :disabled="!canCreate" data-test="create-content" @click="openCreate('ai')">
+        <Button v-if="!isAgentVersion && !isClientRole" type="button" variant="primary" :disabled="!canCreate" data-test="create-content" @click="openCreate">
           AI 写核验文章
         </Button>
       </template>
@@ -344,7 +338,6 @@ function actionLabel(stage: ContentProductionStage) {
 
     <ContentProductionCreateDrawer
       :open="createOpen"
-      :initial-tab="createInitialTab"
       @close="createOpen = false"
       @created="handleCreated"
     />

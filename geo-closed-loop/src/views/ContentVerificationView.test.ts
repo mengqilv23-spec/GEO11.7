@@ -27,11 +27,6 @@ function mountViewWithRole(productMode: ServiceMode = 'managed', initialRole: Us
         },
         RouterLink: { template: '<a><slot /></a>' },
         Button: { template: '<button><slot /></button>' },
-        Modal: {
-          props: ['open', 'title'],
-          emits: ['update:open'],
-          template: '<div v-if="open" data-test="published-body-modal"><h2>{{ title }}</h2><slot /><slot name="footer" /></div>',
-        },
       },
     },
   })
@@ -118,7 +113,6 @@ describe('content verification view', () => {
 
     expect(wrapper.get('[data-test="intro"]').text()).toBe('品牌内容核验')
     expect(wrapper.find('[data-test="create-content"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="create-import"]').exists()).toBe(false)
     expect(wrapper.find('.cv-quota').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('本月核验文章')
     expect(wrapper.find('.cv-sample-note').exists()).toBe(false)
@@ -168,7 +162,6 @@ describe('content verification view', () => {
   it('hides creation and question confirmation from a client in managed mode', async () => {
     const wrapper = mountView('managed', 'client')
 
-    expect(wrapper.find('[data-test="create-import"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="create-content"]').exists()).toBe(false)
     expect(wrapper.get('[data-content-id="CV-2602"] .cv-link').text()).toBe('查看问题')
 
@@ -282,43 +275,6 @@ describe('content verification view', () => {
     expect(drawer.find('.cpd-question__input').exists()).toBe(false)
     expect(drawer.text()).not.toContain('业务范围 / 航空复材')
     expect(drawer.text()).not.toContain('APW 是不是做钛合金切割？')
-    wrapper.unmount()
-  })
-
-  it('imports a published task by task number with a body preview instead of manual entry', async () => {
-    const wrapper = mountView()
-
-    await wrapper.get('[data-test="create-import"]').trigger('click')
-    expect(wrapper.get('[data-test="drawer"] h2').text()).toBe('导入已发布文章')
-    expect(wrapper.find('.cp-create__tabs').exists()).toBe(false)
-
-    expect(wrapper.find('[data-test="published-url"]').exists()).toBe(false)
-    expect(wrapper.get('.cp-form').text()).not.toContain('核心事实')
-    expect(wrapper.find('[data-test="published-body"]').exists()).toBe(false)
-
-    await wrapper.get('[data-test="published-task"]').setValue('T-2404')
-    expect((wrapper.get('[data-test="published-title"]').element as HTMLInputElement).value).toBe('APW Waterjet · Carbon Fiber Solutions')
-
-    await wrapper.get('[data-test="published-body-preview"]').trigger('click')
-    const preview = wrapper.get('[data-test="published-body-modal"]')
-    expect(preview.text()).toContain('碳纤维复材水刀切割')
-    expect(preview.text()).toContain('25 mm CFRP 切割表面粗糙度 Ra ≤ 3.2 µm')
-
-    const closePreview = preview.findAll('button').find(button => button.text() === '关闭')
-    await closePreview!.trigger('click')
-    expect(wrapper.find('[data-test="published-body-modal"]').exists()).toBe(false)
-
-    await wrapper.get('.cp-form').trigger('submit')
-
-    expect(wrapper.get('[data-content-id="CV-2603"]').attributes('data-task-id')).toBe('T-2404')
-    expect(wrapper.get('[data-content-id="CV-2603"]').text()).toContain('APW Waterjet · Carbon Fiber Solutions')
-    expect(wrapper.findAll('.cpd__tabs button').map(button => button.text())).toEqual(['已发布内容', '核验问题', '核验结果'])
-    expect(wrapper.get('[data-test="drawer"]').text()).not.toContain('AI 检查')
-
-    const contentTab = wrapper.findAll('.cpd__tabs button').find(button => button.text() === '已发布内容')
-    await contentTab!.trigger('click')
-    expect(wrapper.get('[data-test="drawer"]').text()).toContain('碳纤维复材水刀切割')
-    expect(wrapper.get('[data-test="drawer"]').text()).toContain('https://apw.com/en/solutions/carbon-fiber')
     wrapper.unmount()
   })
 
