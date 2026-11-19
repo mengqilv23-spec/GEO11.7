@@ -25,7 +25,7 @@ const store = useContentProductionStore()
 const selectedId = shallowRef<string | null>(null)
 const createOpen = ref(false)
 const filter = ref<ContentFilter>('all')
-const monthlyLimit = ref(20)
+const contentLimit = ref(20)
 const planName = ref('专业版')
 const toastOpen = ref(false)
 const toastMessage = ref('')
@@ -34,8 +34,8 @@ const toastVariant = ref<'success' | 'warning' | 'error'>('success')
 
 const items = computed(() => [...store.state.items].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)))
 const verifiedItems = computed(() => items.value.filter(item => item.stage === 'verified'))
-const summary = computed(() => contentProductionSummary(items.value, monthlyLimit.value))
-const progress = computed(() => `${Math.min(100, Math.round((summary.value.publishedThisMonth / Math.max(1, summary.value.monthlyLimit)) * 100))}%`)
+const summary = computed(() => contentProductionSummary(items.value, contentLimit.value))
+const progress = computed(() => `${Math.min(100, Math.round((summary.value.published / Math.max(1, summary.value.contentLimit)) * 100))}%`)
 const isAgentVersion = computed(() => workbenchContext?.productMode.value === 'agent')
 const isClientRole = computed(() => !isAgentVersion.value && workbenchContext?.role?.value === 'client')
 const canCreate = computed(() => !isAgentVersion.value && !isClientRole.value && !summary.value.exhausted)
@@ -101,17 +101,17 @@ const filteredItems = computed<ContentProductionItem[]>(() => {
 onMounted(async () => {
   try {
     const plan = await getActivePlan()
-    monthlyLimit.value = plan.quota.monthlyContentLimit ?? monthlyContentLimitForPlan(plan.quota.planCode, plan.quota.planName)
+    contentLimit.value = plan.quota.monthlyContentLimit ?? monthlyContentLimitForPlan(plan.quota.planCode, plan.quota.planName)
     planName.value = plan.quota.planName
   }
   catch {
-    monthlyLimit.value = 20
+    contentLimit.value = 20
   }
 })
 
 function openCreate() {
   if (!canCreate.value) {
-    notify('本月核验文章额度已用完，请先完成进行中的文章。', 'warning')
+    notify('核验文章额度已用完，请先完成进行中的文章。', 'warning')
     return
   }
   createOpen.value = true
@@ -191,37 +191,39 @@ function actionLabel(stage: ContentProductionStage) {
     </GeoPageIntro>
 
     <section class="cv-overview" :class="{ 'is-agent': isAgentVersion }" aria-label="品牌内容核验概览">
-      <article v-if="!isAgentVersion" class="cv-quota" :class="{ 'is-exhausted': summary.exhausted }" aria-label="本月核验文章额度">
+      <article v-if="!isAgentVersion" class="cv-quota" :class="{ 'is-exhausted': summary.exhausted }" aria-label="核验文章额度">
         <div class="cv-quota__main">
           <div class="cv-quota__copy">
-            <span>本月核验文章</span>
-            <strong>{{ summary.publishedThisMonth }}<small>/ {{ summary.monthlyLimit }}</small></strong>
+            <span>已发布的内容</span>
+            <strong>{{ summary.published }}<small>/ {{ summary.contentLimit }}</small></strong>
           </div>
-          <div class="cv-quota__bar" role="progressbar" :aria-valuenow="summary.publishedThisMonth" :aria-valuemin="0" :aria-valuemax="summary.monthlyLimit">
+          <div class="cv-quota__bar" role="progressbar" :aria-valuenow="summary.published" :aria-valuemin="0" :aria-valuemax="summary.contentLimit">
             <span :style="{ width: progress }" />
           </div>
         </div>
         <div class="cv-quota__side">
-          <span>{{ planName }} · 每月 {{ summary.monthlyLimit }} 篇</span>
-          <small>剩余 {{ summary.remaining }} 篇 · {{ summary.resetLabel }} 重置</small>
+          <span>{{ planName }} · 共 {{ summary.contentLimit }} 篇</span>
+          <small>按已发布到官网 Blog 累计</small>
         </div>
       </article>
       <article class="cv-stat">
-        <span>已发布的内容</span><strong>{{ summary.published }}</strong><small>已发布到官网 Blog</small>
+        <span>{{ isAgentVersion ? '已发布的内容' : '剩余可发布' }}</span>
+        <strong>{{ isAgentVersion ? summary.published : summary.remaining }}</strong>
+        <small>{{ isAgentVersion ? '已发布到官网 Blog' : '总额度内剩余篇数' }}</small>
       </article>
       <article class="cv-stat">
         <span>已核验的内容</span><strong>{{ summary.verified }}</strong><small>已完成 AI 引用核验</small>
       </article>
     </section>
     <p v-if="!isAgentVersion && summary.exhausted" class="cv-quota-note">
-      本月额度已用完，仍可继续完成已创建的文章；下月 1 日会重新计算。
+      核验文章额度已用完，仍可继续完成已创建的文章。
     </p>
 
     <div class="cv-list-meta" :class="{ 'is-agent': isAgentVersion }">
       <p v-if="!isAgentVersion" class="cv-sample-note">
         <AppIcon name="info" :size="14" />
         <span>
-          每月按已发布到官网 Blog 的核验文章计数；同一篇文章修改或重新核验不重复计数。
+          按已发布到官网 Blog 的核验文章累计；同一篇文章修改或重新核验不重复计数。
         </span>
       </p>
       <label class="cv-round-select">

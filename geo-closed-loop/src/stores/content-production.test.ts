@@ -137,6 +137,6 @@ describe('content production store', () => {
     expect(item.source).toBe('imported')
     expect(item.questions).toHaveLength(0)
     expect(item.questionCandidates).toHaveLength(5)
-    expect(after.publishedThisMonth).toBe(before.publishedThisMonth + 1)
+    expect(after.published).toBe(before.published + 1)
   })
 })

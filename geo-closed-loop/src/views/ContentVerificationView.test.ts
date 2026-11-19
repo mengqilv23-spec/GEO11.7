@@ -46,11 +46,13 @@ describe('content verification view', () => {
     const wrapper = mountView()
 
     expect(wrapper.get('[data-test="intro"]').text()).toBe('品牌内容核验')
-    expect(wrapper.text()).toContain('本月核验文章')
-    expect(wrapper.text()).toContain('专业版 · 每月 20 篇')
-    expect(wrapper.text()).toContain('每月按已发布到官网 Blog 的核验文章计数')
-    expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['7', '6'])
-    expect(wrapper.findAll('.cv-stat > span').map(item => item.text())).toEqual(['已发布的内容', '已核验的内容'])
+    expect(wrapper.get('.cv-quota__copy > span').text()).toBe('已发布的内容')
+    expect(wrapper.get('.cv-quota__copy strong').text()).toContain('7')
+    expect(wrapper.get('.cv-quota__copy strong').text()).toContain('20')
+    expect(wrapper.text()).toContain('专业版 · 共 20 篇')
+    expect(wrapper.text()).toContain('按已发布到官网 Blog 累计')
+    expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['13', '6'])
+    expect(wrapper.findAll('.cv-stat > span').map(item => item.text())).toEqual(['剩余可发布', '已核验的内容'])
     expect(wrapper.findAll('thead th').map(item => item.text())).toEqual(['序号', '任务序号', '内容', '状态', '核验问题', '发布状态', '操作'])
     expect(wrapper.findAll('tbody tr')).toHaveLength(8)
     expect(wrapper.get('[data-content-id="CV-2601"]').text()).toContain('待客户确认')
@@ -114,7 +116,7 @@ describe('content verification view', () => {
     expect(wrapper.get('[data-test="intro"]').text()).toBe('品牌内容核验')
     expect(wrapper.find('[data-test="create-content"]').exists()).toBe(false)
     expect(wrapper.find('.cv-quota').exists()).toBe(false)
-    expect(wrapper.text()).not.toContain('本月核验文章')
+    expect(wrapper.text()).not.toContain('剩余可发布')
     expect(wrapper.find('.cv-sample-note').exists()).toBe(false)
     expect(wrapper.findAll('.cv-stat > span').map(item => item.text())).toEqual(['已发布的内容', '已核验的内容'])
     expect(wrapper.findAll('tbody tr')).toHaveLength(3)
@@ -210,7 +212,7 @@ describe('content verification view', () => {
     await wrapper.get('[data-content-id="CV-2601"] .cv-link').trigger('click')
 
     const drawer = wrapper.get('[data-test="drawer"]')
-    expect(drawer.findAll('.cpd__tabs button').map(button => button.text())).toEqual(['内容', 'AI 检查', '发布', '核验问题', '核验结果'])
+    expect(drawer.findAll('.cpd-step__label').map(label => label.text())).toEqual(['内容', '发布', '核验问题', '核验结果'])
     expect(drawer.text()).toContain('等待客户确认')
     expect(drawer.text()).toContain('演示时可切换到左侧「客户」角色完成确认')
     expect(drawer.find('[data-test="confirm-client"]').exists()).toBe(false)
@@ -224,8 +226,7 @@ describe('content verification view', () => {
 
     await wrapper.get('[data-content-id="CV-2602"] .cv-link').trigger('click')
     const drawer = wrapper.get('[data-test="drawer"]')
-    const questionTab = drawer.findAll('.cpd__tabs button').find(button => button.text() === '核验问题')
-    await questionTab!.trigger('click')
+    await drawer.get('[data-test="step-questions"]').trigger('click')
 
     expect(drawer.text()).toContain('内容发布后需等待 48 小时生效')
     await drawer.findAll('.cpd-question-option input[type="radio"]')[0]!.setValue(true)
@@ -278,6 +279,38 @@ describe('content verification view', () => {
     wrapper.unmount()
   })
 
+  it('checks content on the content step and blocks submission until it passes', async () => {
+    const wrapper = mountView()
+
+    await wrapper.get('[data-test="create-content"]').trigger('click')
+    await wrapper.get('[data-test="create-theme"]').setValue('钛合金航空结构件 · 服务边界')
+    await wrapper.get('.cp-form').trigger('submit')
+    await flushPromises()
+
+    let editor = wrapper.get('[data-test="detail-body"] .ProseMirror')
+    editor.element.textContent = '正文未提及品牌名称。'
+    await editor.trigger('input')
+    await wrapper.get('.cpd-form').trigger('submit')
+
+    expect(wrapper.text()).toContain('AI 检查未通过')
+    expect(wrapper.findAll('.cpd-check-list li strong').map(item => item.text())).toEqual(['品牌口径', '承诺边界'])
+
+    await wrapper.get('[data-test="step-publish"]').trigger('click')
+    expect(wrapper.find('[data-test="submit-client"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('AI 检查未通过，请先在「内容」中修改并重新检查。')
+
+    await wrapper.get('[data-test="step-content"]').trigger('click')
+    editor = wrapper.get('[data-test="detail-body"] .ProseMirror')
+    editor.element.textContent = 'APW Waterjet 提供钛合金切割支持。'
+    await editor.trigger('input')
+    await wrapper.get('.cpd-form').trigger('submit')
+
+    expect(wrapper.text()).toContain('AI 检查通过')
+    await wrapper.get('[data-test="step-publish"]').trigger('click')
+    expect(wrapper.find('[data-test="submit-client"]').exists()).toBe(true)
+    wrapper.unmount()
+  })
+
   it('runs a new article from AI draft through customer confirmation, Blog publishing, question confirmation and verification', async () => {
     const { wrapper, role } = mountViewWithRole()
 
@@ -285,6 +318,14 @@ describe('content verification view', () => {
     expect(wrapper.get('[data-test="drawer"] h2').text()).toBe('AI 写核验文章')
     await wrapper.get('[data-test="create-theme"]').setValue('钛合金航空结构件 · 服务边界')
     expect(wrapper.get('.cp-form').text()).not.toContain('核心事实')
+    expect(wrapper.get('.cp-form').text()).not.toContain('目标读者')
+    expect(wrapper.get('.cp-form').text()).not.toContain('需要确认的边界')
+    expect(wrapper.get('.cp-form').text()).toContain('知识库内容')
+    expect(wrapper.get('[data-test="create-knowledge-trigger"]').text()).toContain('已选 3 项')
+    await wrapper.get('[data-test="create-knowledge-trigger"]').trigger('click')
+    const knowledgeOptions = wrapper.findAll('[data-test="create-knowledge"]')
+    expect(knowledgeOptions).toHaveLength(3)
+    expect(knowledgeOptions.every(option => (option.element as HTMLInputElement).checked)).toBe(true)
     await wrapper.get('.cp-form').trigger('submit')
 
     expect(wrapper.text()).toContain('钛合金航空结构件 · 服务边界')
@@ -292,15 +333,14 @@ describe('content verification view', () => {
     await flushPromises()
     expect(wrapper.find('[data-test="detail-body"] textarea').exists()).toBe(false)
     expect(wrapper.find('[data-test="detail-body"] .ProseMirror').text()).toContain('钛合金航空结构件')
-    expect(wrapper.findAll('.cpd__tabs button').map(button => button.text())).toEqual(['内容', 'AI 检查', '发布', '核验问题', '核验结果'])
+    expect(wrapper.findAll('.cpd-step__label').map(label => label.text())).toEqual(['内容', '发布', '核验问题', '核验结果'])
+    expect(wrapper.get('[data-test="save-and-check"]').text()).toBe('保存并 AI 检查')
 
-    await wrapper.get('[data-test="tab-check"]').trigger('click')
-    const startCheck = wrapper.findAll('button').find(button => button.text() === '开始 AI 检查')
-    expect(startCheck).toBeTruthy()
-    await startCheck!.trigger('click')
+    await wrapper.get('.cpd-form').trigger('submit')
     expect(wrapper.text()).toContain('AI 检查通过')
+    expect(wrapper.findAll('.cpd-check-list li strong').map(item => item.text())).toEqual(['品牌口径', '承诺边界'])
 
-    await wrapper.get('[data-test="tab-publish"]').trigger('click')
+    await wrapper.get('[data-test="step-publish"]').trigger('click')
     await wrapper.get('[data-test="submit-client"]').trigger('click')
     expect(wrapper.find('[data-test="confirm-client"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('等待客户确认')
@@ -318,6 +358,8 @@ describe('content verification view', () => {
     expect(wrapper.text()).toContain('选择 1 个核验问题')
     expect(wrapper.text()).toContain('AI 已生成 5 个候选')
     const produced = useContentProductionStore().state.items.find(item => item.title.includes('钛合金航空结构件'))!
+    expect(produced.knowledge).toHaveLength(3)
+    expect(produced.brief.notes).toContain('知识库')
     produced.publishedAt = new Date(Date.now() - 49 * 60 * 60 * 1000).toISOString()
     await wrapper.vm.$nextTick()
     const options = wrapper.findAll('.cpd-question-option')

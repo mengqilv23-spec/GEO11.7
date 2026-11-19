@@ -20,7 +20,14 @@ import Button from '../ui/ce/button/Button.vue'
 import AppIcon from '../ui/icons/AppIcon.vue'
 import GeoDrawer from '../workbench/shared/GeoDrawer.vue'
 
-type DetailTab = 'content' | 'check' | 'publish' | 'questions' | 'results'
+type DetailTab = 'content' | 'publish' | 'questions' | 'results'
+type StepState = 'done' | 'current' | 'pending'
+
+interface WorkflowStep {
+  id: DetailTab
+  label: string
+  state: StepState
+}
 
 const props = withDefaults(defineProps<{
   open: boolean
@@ -46,30 +53,46 @@ const customQuestion = ref('')
 const customActive = ref(false)
 
 const customerFacing = computed(() => props.clientView || props.customerView)
+const showSteps = computed(() => !customerFacing.value && item.value?.source !== 'imported')
 const tabs = computed<Array<{ id: DetailTab, label: string }>>(() => {
-  if (customerFacing.value) {
-    if (!item.value?.publishedAt)
-      return [{ id: 'content', label: '内容确认' }]
-    return [
-      { id: 'content', label: '已发布内容' },
-      { id: 'questions', label: '核验问题' },
-      { id: 'results', label: '核验结果' },
-    ]
-  }
-  if (item.value?.source === 'imported') {
-    return [
-      { id: 'content', label: '已发布内容' },
-      { id: 'questions', label: '核验问题' },
-      { id: 'results', label: '核验结果' },
-    ]
-  }
+  if (customerFacing.value && !item.value?.publishedAt)
+    return [{ id: 'content', label: '内容确认' }]
   return [
+    { id: 'content', label: '已发布内容' },
+    { id: 'questions', label: '核验问题' },
+    { id: 'results', label: '核验结果' },
+  ]
+})
+
+function stepDone(value: ContentProductionItem, id: DetailTab): boolean {
+  if (id === 'content') {
+    if (value.source === 'upload')
+      return true
+    return ['pending_client', 'ready_to_publish', 'questions_pending', 'questions_confirmed', 'verifying', 'verified'].includes(value.stage)
+      || (value.stage === 'ai_checked' && Boolean(value.aiCheck?.passed))
+  }
+  if (id === 'publish')
+    return Boolean(value.publishedAt)
+  if (id === 'questions')
+    return Boolean(value.questions[0]?.confirmed)
+  return value.stage === 'verified'
+}
+
+const workflowSteps = computed<WorkflowStep[]>(() => {
+  const value = item.value
+  if (!value)
+    return []
+  const order: Array<{ id: DetailTab, label: string }> = [
     { id: 'content', label: '内容' },
-    { id: 'check', label: 'AI 检查' },
     { id: 'publish', label: '发布' },
     { id: 'questions', label: '核验问题' },
     { id: 'results', label: '核验结果' },
   ]
+  const firstPending = order.find(entry => !stepDone(value, entry.id))?.id
+  return order.map(entry => ({
+    ...entry,
+    state: stepDone(value, entry.id) ? 'done' : entry.id === firstPending ? 'current' : 'pending',
+  }))
 })
 
 const description = computed(() => item.value
@@ -77,8 +100,7 @@ const description = computed(() => item.value
   : '')
 
 const canEdit = computed(() => Boolean(item.value && !customerFacing.value && ['draft', 'ai_checked', 'client_rejected'].includes(item.value.stage)))
-const canCheck = computed(() => Boolean(item.value && !customerFacing.value && ['draft', 'ai_checked', 'client_rejected'].includes(item.value.stage)))
-const canSubmit = computed(() => Boolean(item.value && !customerFacing.value && ['draft', 'ai_checked', 'client_rejected'].includes(item.value.stage)))
+const canSubmit = computed(() => Boolean(item.value && !customerFacing.value && ['draft', 'ai_checked', 'client_rejected'].includes(item.value.stage) && item.value.aiCheck?.passed))
 const canPublish = computed(() => Boolean(item.value && !customerFacing.value && item.value.stage === 'ready_to_publish' && item.value.clientConfirmation?.status === 'confirmed'))
 const canEditQuestions = computed(() => Boolean(item.value && !customerFacing.value && item.value.publishedAt && !['verifying', 'verified'].includes(item.value.stage)))
 const canConfirmAsClient = computed(() => Boolean(props.customerView && item.value?.clientConfirmation?.status === 'pending'))
@@ -103,7 +125,7 @@ const hasResults = computed(() => Boolean(item.value?.questions.some(question =>
 const checkSummary = computed(() => {
   if (!item.value?.aiCheck)
     return ''
-  return item.value.aiCheck.passed ? 'AI 检查通过' : 'AI 检查完成，有需确认项'
+  return item.value.aiCheck.passed ? 'AI 检查通过' : 'AI 检查未通过，请修改后重新检查'
 })
 
 const contentNote = computed(() => {
@@ -140,13 +162,9 @@ function defaultTab(value: ContentProductionItem): DetailTab {
       return 'content'
     return value.stage === 'verified' ? 'results' : 'questions'
   }
-  if (value.stage === 'verified')
-    return 'results'
-  if (['questions_pending', 'questions_confirmed', 'verifying'].includes(value.stage))
-    return 'questions'
-  if (['ai_checked', 'pending_client', 'ready_to_publish'].includes(value.stage))
-    return 'publish'
-  return 'content'
+  if (value.source === 'imported')
+    return value.stage === 'verified' ? 'results' : 'questions'
+  return (['content', 'publish', 'questions', 'results'] as DetailTab[]).find(id => !stepDone(value, id)) ?? 'results'
 }
 
 function resetDraft() {
@@ -174,22 +192,17 @@ function formatDateTime(value: Date) {
   return value.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-function saveDraft() {
+function saveAndCheck() {
   if (!item.value)
     return
   store.updateDraft(item.value.id, {
     title: draftTitle.value,
     body: draftBody.value,
   })
-  emit('notify', '内容已保存，请重新执行 AI 检查。')
-}
-
-function runAiCheck() {
-  if (!item.value)
-    return
   store.runAiCheck(item.value.id)
-  tab.value = 'check'
-  emit('notify', 'AI 检查已完成。')
+  emit('notify', item.value.aiCheck?.passed
+    ? '内容已保存，AI 检查通过。'
+    : '内容已保存，AI 检查未通过，请修改后重新检查。')
 }
 
 function submitToClient() {
@@ -296,7 +309,29 @@ function questionStateLabel(question: ProductionQuestion) {
         {{ description }}
       </p>
 
-      <div class="cpd__tabs" role="tablist" aria-label="文章详情">
+      <ol v-if="showSteps" class="cpd-steps" aria-label="文章处理进度">
+        <li
+          v-for="(step, index) in workflowSteps"
+          :key="step.id"
+          class="cpd-step"
+          :class="[`is-${step.state}`, { 'is-active': tab === step.id }]"
+        >
+          <button
+            type="button"
+            :aria-current="tab === step.id ? 'step' : undefined"
+            :data-test="`step-${step.id}`"
+            @click="tab = step.id"
+          >
+            <span class="cpd-step__index">
+              <AppIcon v-if="step.state === 'done'" name="check" :size="12" />
+              <template v-else>{{ index + 1 }}</template>
+            </span>
+            <span class="cpd-step__label">{{ step.label }}</span>
+          </button>
+          <span v-if="index < workflowSteps.length - 1" class="cpd-step__line" aria-hidden="true" />
+        </li>
+      </ol>
+      <div v-else class="cpd__tabs" role="tablist" aria-label="文章详情">
         <button
           v-for="entry in tabs"
           :key="entry.id"
@@ -312,7 +347,7 @@ function questionStateLabel(question: ProductionQuestion) {
       </div>
 
       <section v-if="tab === 'content'" class="cpd__panel">
-        <form v-if="canEdit" class="cpd-form" @submit.prevent="saveDraft">
+        <form v-if="canEdit" class="cpd-form" @submit.prevent="saveAndCheck">
           <label class="cpd-field">
             <span>Blog 标题</span>
             <input v-model="draftTitle" data-test="detail-title">
@@ -321,14 +356,30 @@ function questionStateLabel(question: ProductionQuestion) {
             <span>正文</span>
             <TaskRichTextEditor v-model="draftBody" label="正文" data-test="detail-body" />
           </div>
+          <div v-if="item.aiCheck" class="cpd-check-panel" data-test="content-ai-check">
+            <div class="cpd-check-summary" :class="item.aiCheck.passed ? 'is-pass' : 'is-warn'">
+              <strong>{{ checkSummary }}</strong>
+              <span>{{ formatDate(item.aiCheck.checkedAt) }}</span>
+            </div>
+            <ul class="cpd-check-list">
+              <li v-for="check in item.aiCheck.items" :key="check.key">
+                <span class="cpd-check__dot" :class="`is-${check.status}`" />
+                <div>
+                  <strong>{{ check.label }}</strong>
+                  <p>{{ check.detail }}</p>
+                </div>
+                <span class="cpd-check__status" :class="`is-${check.status}`">{{ check.status === 'pass' ? '通过' : '需确认' }}</span>
+              </li>
+            </ul>
+          </div>
           <div class="cpd-actions">
-            <Button type="submit" variant="primary">
-              保存修改
-            </Button>
-            <Button v-if="canCheck" type="button" @click="runAiCheck">
-              AI 检查
+            <Button type="submit" variant="primary" data-test="save-and-check">
+              保存并 AI 检查
             </Button>
           </div>
+          <p v-if="!item.aiCheck" class="cpd-note">
+            保存并 AI 检查后，检查结果会显示在这里。
+          </p>
         </form>
         <div v-else class="cpd-preview">
           <article class="cp-blog-preview">
@@ -365,36 +416,6 @@ function questionStateLabel(question: ProductionQuestion) {
         </div>
       </section>
 
-      <section v-else-if="tab === 'check'" class="cpd__panel">
-        <template v-if="item.aiCheck">
-          <div class="cpd-check-summary" :class="item.aiCheck.passed ? 'is-pass' : 'is-warn'">
-            <strong>{{ checkSummary }}</strong>
-            <span>{{ formatDate(item.aiCheck.checkedAt) }}</span>
-          </div>
-          <ul class="cpd-check-list">
-            <li v-for="check in item.aiCheck.items" :key="check.key">
-              <span class="cpd-check__dot" :class="`is-${check.status}`" />
-              <div>
-                <strong>{{ check.label }}</strong>
-                <p>{{ check.detail }}</p>
-              </div>
-              <span class="cpd-check__status" :class="`is-${check.status}`">{{ check.status === 'pass' ? '通过' : '需确认' }}</span>
-            </li>
-          </ul>
-          <div v-if="canCheck" class="cpd-actions">
-            <Button type="button" @click="runAiCheck">
-              重新检查
-            </Button>
-          </div>
-        </template>
-        <div v-else class="cpd-empty">
-          <p>尚未执行 AI 检查。</p>
-          <Button v-if="canCheck" type="button" variant="primary" @click="runAiCheck">
-            开始 AI 检查
-          </Button>
-        </div>
-      </section>
-
       <section v-else-if="tab === 'publish'" class="cpd__panel">
         <div class="cpd-channel">
           <AppIcon name="globe" :size="16" />
@@ -405,7 +426,10 @@ function questionStateLabel(question: ProductionQuestion) {
 
         <article class="cpd-confirm">
           <h3>客户确认</h3>
-          <p v-if="!item.clientConfirmation" class="cpd-note">
+          <p v-if="item.source === 'ai' && !item.aiCheck?.passed" class="cpd-note">
+            AI 检查未通过，请先在「内容」中修改并重新检查。
+          </p>
+          <p v-else-if="!item.clientConfirmation" class="cpd-note">
             内容提交客户确认后，才能发布到 Blog。
           </p>
           <template v-else-if="item.clientConfirmation.status === 'pending'">
@@ -620,6 +644,20 @@ function questionStateLabel(question: ProductionQuestion) {
 .cpd-stage.is-pending_client, .cpd-stage.is-questions_pending { color: #92400e; background: #fef3c7; }
 .cpd-stage.is-verifying { color: #6d28d9; background: #ede9fe; }
 .cpd-stage.is-verified { color: #166534; background: #dcfce7; }
+.cpd-steps { display: flex; align-items: center; gap: 0; margin: 0; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--background-subtle); list-style: none; }
+.cpd-step { display: flex; flex: 1; align-items: center; min-width: 0; }
+.cpd-step:last-child { flex: 0 0 auto; }
+.cpd-step button { display: inline-flex; align-items: center; gap: 7px; min-width: 0; padding: 2px 4px; border: 0; border-radius: 7px; color: var(--text-muted); background: none; font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.cpd-step button:hover { color: var(--text-primary); }
+.cpd-step button:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
+.cpd-step__index { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 22px; height: 22px; border: 1px solid var(--border-default); border-radius: 999px; color: var(--text-muted); background: var(--background-primary); font-size: 11px; font-weight: 600; }
+.cpd-step__label { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cpd-step__line { flex: 1; height: 1px; margin: 0 10px; background: var(--border-default); }
+.cpd-step.is-current button { color: var(--action-accent); font-weight: 600; }
+.cpd-step.is-current .cpd-step__index { border-color: var(--action-accent); color: #fff; background: var(--action-accent); }
+.cpd-step.is-done .cpd-step__index { border-color: var(--action-accent); color: var(--action-accent); background: var(--action-subtle-background); }
+.cpd-step.is-done .cpd-step__line { background: color-mix(in srgb, var(--action-accent) 45%, var(--border-default)); }
+.cpd-step.is-active .cpd-step__label { text-decoration: underline; text-underline-offset: 3px; }
 .cpd__tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--border-default); }
 .cpd__tabs button { padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; color: var(--text-secondary); background: none; font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
 .cpd__tabs button:hover { color: var(--text-primary); }
@@ -647,6 +685,7 @@ function questionStateLabel(question: ProductionQuestion) {
 .cpd-published { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 19px; overflow-wrap: anywhere; }
 .cpd-published a { color: var(--action-accent); text-decoration: none; }
 .cpd-published a:hover { text-decoration: underline; }
+.cpd-check-panel { display: grid; gap: 8px; }
 .cpd-check-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: 10px; font-size: 12px; line-height: 19px; }
 .cpd-check-summary.is-pass { color: var(--status-success-foreground); background: var(--status-success-background); }
 .cpd-check-summary.is-warn { color: #92400e; background: #fef3c7; }
@@ -701,5 +740,5 @@ function questionStateLabel(question: ProductionQuestion) {
 .cv-snapshot-link { display: inline-flex; width: fit-content; color: var(--action-accent); font-size: 12px; font-weight: 600; line-height: 18px; text-decoration: none; }
 .cv-snapshot-link:hover { text-decoration: underline; }
 .cv-snapshot-link:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
-@media (max-width: 560px) { .cpd__tabs button { flex: 1 1 auto; } .cpd-check-list li { grid-template-columns: auto minmax(0, 1fr); } .cpd-check__status { grid-column: 2; } }
+@media (max-width: 560px) { .cpd__tabs button { flex: 1 1 auto; } .cpd-steps { flex-direction: column; align-items: stretch; gap: 4px; } .cpd-step, .cpd-step:last-child { flex: none; } .cpd-step__line { display: none; } .cpd-check-list li { grid-template-columns: auto minmax(0, 1fr); } .cpd-check__status { grid-column: 2; } }
 </style>

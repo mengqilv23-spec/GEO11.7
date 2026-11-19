@@ -1,5 +1,6 @@
 import type {
   ContentBrief,
+  ContentKnowledge,
   ContentProductionItem,
   ProductionQuestion,
 } from '../data/content-production-data'
@@ -27,6 +28,7 @@ interface ContentProductionState {
 interface CreateFromBriefInput {
   brief: ContentBrief
   keyFacts: string[]
+  knowledge?: ContentKnowledge[]
 }
 
 interface ImportContentInput {
@@ -68,7 +70,7 @@ function legacyRoundAnswers(question?: ProductionQuestion): Record<string, Platf
   return (question as LegacyQuestion | undefined)?.roundAnswers ?? {}
 }
 
-const retiredAiCheckKeys = new Set(['facts', 'evidence'])
+const retiredAiCheckKeys = new Set(['facts', 'evidence', 'structure'])
 // Persisted checks may still contain retired rules; drop them and recompute
 // the overall result so old drafts match the current check list.
 function normalizeAiCheck(check: ContentProductionItem['aiCheck']) {
@@ -186,6 +188,7 @@ function createFromBrief(input: CreateFromBriefInput) {
     body: draft.body,
     keyFacts,
     brief: { ...input.brief },
+    knowledge: input.knowledge?.length ? input.knowledge.map(item => ({ ...item })) : undefined,
     stage: 'draft',
     source: 'ai',
     createdAt: now(),
@@ -249,6 +252,8 @@ function updateDraft(itemId: string, patch: { title?: string, summary?: string, 
     item.body = patch.body
   if (patch.keyFacts !== undefined)
     item.keyFacts = normalizeFacts(patch.keyFacts)
+  // The check result describes the previous body; edits must be re-checked.
+  item.aiCheck = undefined
   item.stage = 'draft'
   touch(item)
 }

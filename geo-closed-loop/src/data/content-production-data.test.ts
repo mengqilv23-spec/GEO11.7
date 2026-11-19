@@ -4,6 +4,7 @@ import {
   contentProductionSummary,
   createSeedProductionItems,
   monthlyContentLimitForPlan,
+  runAiCheckFor,
   verificationAvailableAt,
 } from './content-production-data'
 
@@ -26,17 +27,28 @@ describe('content production data', () => {
     expect(canVerifyContent({}, new Date('2026-11-19T08:00:00.000Z'))).toBe(false)
   })
 
-  it('counts only verification articles published in the current month', () => {
-    const now = new Date('2026-11-17T08:00:00.000Z')
-    const items = createSeedProductionItems(now)
-    const summary = contentProductionSummary(items, 20, now)
+  it('checks only brand wording and claim boundaries', () => {
+    const brief = { theme: '钛合金切割', targetQuestion: '', audience: '', market: '', notes: '' }
+    const failed = runAiCheckFor({ title: '钛合金切割', body: '<p>钛合金切割支持。</p>', keyFacts: [], brief })
+    expect(failed.items.map(item => item.label)).toEqual(['品牌口径', '承诺边界'])
+    expect(failed.passed).toBe(false)
+
+    const passed = runAiCheckFor({ title: 'APW 钛合金切割', body: '<p>APW Waterjet 提供钛合金切割支持。</p>', keyFacts: [], brief })
+    expect(passed.items.map(item => item.label)).toEqual(['品牌口径', '承诺边界'])
+    expect(passed.passed).toBe(true)
+  })
+
+  it('counts published, remaining, and verified content against the total allowance', () => {
+    const items = createSeedProductionItems(new Date('2026-11-17T08:00:00.000Z'))
+    const summary = contentProductionSummary(items, 20)
 
     expect(summary.published).toBe(7)
-    expect(summary.publishedThisMonth).toBe(1)
     expect(summary.pendingQuestions).toBe(1)
     expect(summary.inProgress).toBe(2)
     expect(summary.verified).toBe(6)
-    expect(summary.remaining).toBe(19)
-    expect(summary.resetLabel).toBe('12-01')
+    expect(summary.remaining).toBe(13)
+    expect(summary.exhausted).toBe(false)
+    expect(contentProductionSummary(items, 7).remaining).toBe(0)
+    expect(contentProductionSummary(items, 7).exhausted).toBe(true)
   })
 })

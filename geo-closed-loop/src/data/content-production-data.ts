@@ -50,6 +50,15 @@ export interface ContentBrief {
   notes: string
 }
 
+/** Confirmed enterprise knowledge the AI draft is allowed to use. */
+export interface ContentKnowledge {
+  id: string
+  title: string
+  tag: string
+  source: string
+  content: string
+}
+
 export interface ProductionQuestion extends ContentVerificationQuestion {
   confirmed: boolean
 }
@@ -63,6 +72,8 @@ export interface ContentProductionItem {
   body: string
   keyFacts: string[]
   brief: ContentBrief
+  /** Knowledge base excerpts selected as the drafting basis. */
+  knowledge?: ContentKnowledge[]
   stage: ContentProductionStage
   source: ContentProductionSource
   createdAt: string
@@ -96,15 +107,14 @@ export interface BlogDraft {
 }
 
 export interface ContentProductionSummary {
-  monthlyLimit: number
+  /** Total article allowance for the current plan. */
+  contentLimit: number
   published: number
-  publishedThisMonth: number
   inProgress: number
   pendingQuestions: number
   verified: number
   remaining: number
   exhausted: boolean
-  resetLabel: string
 }
 
 const brand = 'APW Waterjet'
@@ -211,25 +221,6 @@ export function contentStageGroupLabel(stage: ContentProductionStage): string {
   return groupLabels[stageGroups[stage]]
 }
 
-export function isInCurrentMonth(value: string, now = new Date()) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime()))
-    return false
-  const { start, end } = currentMonthRange(now)
-  return date >= start && date < end
-}
-
-export function currentMonthRange(now = new Date()) {
-  const start = new Date(now.getFullYear(), now.getMonth(), 1)
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-  return { start, end }
-}
-
-export function nextMonthResetLabel(now = new Date()) {
-  const { end } = currentMonthRange(now)
-  return `${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
-}
-
 export function monthlyContentLimitForPlan(planCode?: string | null, planName?: string | null) {
   const plan = `${planCode ?? ''} ${planName ?? ''}`.toLocaleLowerCase()
   if (/starter|basic|入门|初级/.test(plan))
@@ -241,23 +232,20 @@ export function monthlyContentLimitForPlan(planCode?: string | null, planName?: 
 
 export function contentProductionSummary(
   items: ContentProductionItem[],
-  monthlyLimit: number,
-  now = new Date(),
+  contentLimit: number,
 ): ContentProductionSummary {
-  const publishedThisMonth = items.filter(item => item.publishedAt && isInCurrentMonth(item.publishedAt, now)).length
+  const published = items.filter(item => Boolean(item.publishedAt)).length
   // With one selected question per article, "pending" means the article is
   // published but the operator has not chosen its verification question yet.
   const pendingQuestions = items.filter(item => item.stage === 'questions_pending').length
   return {
-    monthlyLimit,
-    published: items.filter(item => Boolean(item.publishedAt)).length,
-    publishedThisMonth,
+    contentLimit,
+    published,
     inProgress: items.filter(item => item.stage !== 'verified').length,
     pendingQuestions,
     verified: items.filter(item => item.stage === 'verified').length,
-    remaining: Math.max(0, monthlyLimit - publishedThisMonth),
-    exhausted: publishedThisMonth >= monthlyLimit,
-    resetLabel: nextMonthResetLabel(now),
+    remaining: Math.max(0, contentLimit - published),
+    exhausted: published >= contentLimit,
   }
 }
 
@@ -290,12 +278,6 @@ export function runAiCheckFor(item: Pick<ContentProductionItem, 'title' | 'body'
       label: '品牌口径',
       status: new RegExp(brand, 'i').test(item.body) ? 'pass' : 'warn',
       detail: new RegExp(brand, 'i').test(item.body) ? `正文包含品牌名 ${brand}。` : `正文未出现品牌名 ${brand}。`,
-    },
-    {
-      key: 'structure',
-      label: 'Blog 结构',
-      status: /<h2/i.test(item.body) ? 'pass' : 'warn',
-      detail: /<h2/i.test(item.body) ? '包含标题层级和小节结构。' : '建议补充 H2 小节，方便 AI 提取。',
     },
     {
       key: 'claims',
@@ -508,7 +490,6 @@ function passedAiCheck(at: string): AiCheckResult {
     passed: true,
     items: [
       { key: 'brand', label: '品牌口径', status: 'pass', detail: `正文包含品牌名 ${brand}。` },
-      { key: 'structure', label: 'Blog 结构', status: 'pass', detail: '包含标题层级和小节结构。' },
       { key: 'claims', label: '承诺边界', status: 'pass', detail: '未发现绝对化承诺。' },
     ],
   }
