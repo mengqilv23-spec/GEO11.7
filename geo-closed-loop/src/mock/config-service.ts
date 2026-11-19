@@ -202,7 +202,7 @@ export async function getBrandProducts(): Promise<BrandProductRecord[]> {
 }
 export async function getActivePlan(): Promise<ActivePlanRecord> {
   await delay()
-  return { id: 1, siteId: 1001, planId: 3, quota: { planCode: 'pro', planName: '专业版', questionCountLimit: 100, aiPlatformCountLimit: 10, repeatCountLimit: 10, personaCountLimit: 6, competitorCountLimit: 5, themeCountLimit: 20, marketCountLimit: 5, monthlyReportLimit: 5 }, startDate: '2026-01-01', endDate: '2027-01-01', status: 1 }
+  return { id: 1, siteId: 1001, planId: 3, quota: { planCode: 'pro', planName: '专业版', questionCountLimit: 100, aiPlatformCountLimit: 10, repeatCountLimit: 10, personaCountLimit: 6, competitorCountLimit: 5, themeCountLimit: 20, marketCountLimit: 5, monthlyReportLimit: 5, monthlyContentLimit: 20 }, startDate: '2026-01-01', endDate: '2027-01-01', status: 1 }
 }
 export async function getCurrentConfigChange(): Promise<ConfigChangeStatus> {
   await delay()

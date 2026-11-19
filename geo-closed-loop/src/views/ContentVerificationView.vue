@@ -1,94 +1,181 @@
 <script setup lang="ts">
-import type { ContentVerificationCitation, ContentVerificationItem, PlatformVerificationAnswer } from '../data/content-verification-data'
-import { computed, shallowRef } from 'vue'
+import type { ContentProductionGroup, ContentProductionItem, ContentProductionStage } from '../data/content-production-data'
+import { computed, inject, onMounted, ref, shallowRef, watch } from 'vue'
+import { getActivePlan } from '../api/geo-config'
+import ContentProductionCreateDrawer from '../components/content-verification/ContentProductionCreateDrawer.vue'
+import ContentProductionDetailDrawer from '../components/content-verification/ContentProductionDetailDrawer.vue'
 import Button from '../components/ui/ce/button/Button.vue'
+import Toast from '../components/ui/ce/toast/Toast.vue'
 import AppIcon from '../components/ui/icons/AppIcon.vue'
-import GeoDrawer from '../components/workbench/shared/GeoDrawer.vue'
 import GeoPageIntro from '../components/workbench/shared/GeoPageIntro.vue'
-import { contentVerificationItems } from '../data/content-verification-data'
+import { geoWorkbenchRouteContextKey } from '../composables/workbench-route-context'
+import {
+  contentProductionSummary,
+  contentStageGroup,
+  contentStageGroupLabel,
+  monthlyContentLimitForPlan,
+} from '../data/content-production-data'
+import { contentVerificationRounds } from '../data/content-verification-data'
+import { useContentProductionStore } from '../stores/content-production'
 
-const selectedItem = shallowRef<ContentVerificationItem | null>(null)
+type ContentFilter = 'all' | ContentProductionGroup
+type CreateTab = 'ai' | 'published'
 
-const summary = computed(() => {
-  const questions = contentVerificationItems.flatMap(item => item.questions)
-  const platforms = new Set(questions.flatMap(question => question.answers.map(answer => answer.platform)))
-  return {
-    published: contentVerificationItems.length,
-    questions: questions.length,
-    platforms: platforms.size,
-    sampleDate: contentVerificationItems.map(item => item.lastChecked).filter(Boolean).sort().at(-1) ?? '',
+const workbenchContext = inject(geoWorkbenchRouteContextKey, null)
+const store = useContentProductionStore()
+const selectedId = shallowRef<string | null>(null)
+const createOpen = ref(false)
+const createInitialTab = ref<CreateTab>('ai')
+const filter = ref<ContentFilter>('all')
+const monthlyLimit = ref(20)
+const planName = ref('专业版')
+const toastOpen = ref(false)
+const toastMessage = ref('')
+const toastMessageId = ref(0)
+const toastVariant = ref<'success' | 'warning' | 'error'>('success')
+
+const items = computed(() => [...store.state.items].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)))
+const verifiedItems = computed(() => items.value.filter(item => item.stage === 'verified'))
+const summary = computed(() => contentProductionSummary(items.value, monthlyLimit.value))
+const progress = computed(() => `${Math.min(100, Math.round((summary.value.publishedThisMonth / Math.max(1, summary.value.monthlyLimit)) * 100))}%`)
+const isAgentVersion = computed(() => workbenchContext?.productMode.value === 'agent')
+const isClientRole = computed(() => !isAgentVersion.value && workbenchContext?.role?.value === 'client')
+const canCreate = computed(() => !isAgentVersion.value && !isClientRole.value && !summary.value.exhausted)
+const activeRoundId = ref(contentVerificationRounds.at(-1)?.id ?? '')
+const availableRounds = computed(() => {
+  if (!isAgentVersion.value)
+    return contentVerificationRounds
+  return contentVerificationRounds.filter(round => verifiedItems.value.some(item => item.roundId === round.id))
+})
+const activeRound = computed(() => availableRounds.value.find(round => round.id === activeRoundId.value) ?? availableRounds.value.at(-1) ?? null)
+const agentRoundId = computed({
+  get: () => activeRound.value?.id ?? '',
+  set: (value: string) => { activeRoundId.value = value },
+})
+const managedRoundId = ref('all')
+const isRoundView = computed(() => !isAgentVersion.value && managedRoundId.value !== 'all')
+const selectedItem = computed(() => selectedId.value ? store.findItem(selectedId.value) ?? null : null)
+const introDescription = computed(() => {
+  if (isAgentVersion.value)
+    return '查看已完成的品牌内容核验结果，可切换检测轮次查看 AI 回答与官网引用。'
+  if (isClientRole.value)
+    return '确认专家提交的内容；发布后可查看核验结果。'
+  return '从 AI 写稿、客户确认、官网 Blog 发布到核验问题生成，记录每篇内容是否被 AI 引用。'
+})
+const listDescription = computed(() => {
+  if (isAgentVersion.value)
+    return '仅展示已完成核验的内容。'
+  if (isRoundView.value)
+    return '历史检测轮次仅展示已完成的核验结果，只能查看。'
+  if (isClientRole.value)
+    return '待确认的内容会显示在这里；确认后由专家发布并执行核验。'
+  return '发布前完成 AI 检查与客户确认；发布后生成 5 个核验问题，内容生效 48 小时后可开始核验。'
+})
+
+watch(isAgentVersion, (agent) => {
+  if (agent) {
+    createOpen.value = false
+    filter.value = 'all'
   }
 })
 
-function citedQuestionCount(item: ContentVerificationItem) {
-  return item.questions.filter(question => question.state === 'cited').length
-}
-function citedPlatformCount(item: ContentVerificationItem) {
-  return new Set(item.questions.flatMap(question => question.answers.map(answer => answer.platform))).size
-}
-function openItem(item: ContentVerificationItem) {
-  selectedItem.value = item
-}
-function closeItem() {
-  selectedItem.value = null
-}
-function primaryCitations(answer: PlatformVerificationAnswer): ContentVerificationCitation[] {
-  return answer.citations.filter(citation => citation.isPrimary)
-}
-interface AnswerPart {
-  text: string
-  href?: string
-  official?: boolean
-}
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-function answerParts(answer: string): AnswerPart[] {
-  const item = selectedItem.value
-  if (!item)
-    return [{ text: answer }]
+const filterTabs: Array<{ id: ContentFilter, label: string }> = [
+  { id: 'all', label: '全部' },
+  { id: 'active', label: '进行中' },
+  { id: 'client', label: '待客户确认' },
+  { id: 'verify', label: '待核验' },
+  { id: 'verified', label: '已核验' },
+]
 
-  const brand = item.contentTitle.split('·')[0]!.trim()
-  const brandAliases = [...new Set([brand, brand.split(/\s+/)[0]!].filter(Boolean))]
-  let domain = ''
+const filteredItems = computed<ContentProductionItem[]>(() => {
+  if (isAgentVersion.value) {
+    const roundId = activeRound.value?.id
+    return verifiedItems.value.filter(item => item.roundId === roundId)
+  }
+  // A specific round is a read-only archive of that round's verified results.
+  if (isRoundView.value)
+    return verifiedItems.value.filter(item => item.roundId === managedRoundId.value)
+  if (filter.value !== 'all')
+    return items.value.filter(item => contentStageGroup(item.stage) === filter.value)
+  return items.value
+})
+
+onMounted(async () => {
   try {
-    domain = new URL(item.url).hostname.replace(/^www\./, '')
+    const plan = await getActivePlan()
+    monthlyLimit.value = plan.quota.monthlyContentLimit ?? monthlyContentLimitForPlan(plan.quota.planCode, plan.quota.planName)
+    planName.value = plan.quota.planName
   }
   catch {
-    domain = ''
+    monthlyLimit.value = 20
   }
+})
 
-  const terms = [
-    ...(domain
-      ? [
-          `https?:\\/\\/[^\\s，。；、）)]*${escapeRegExp(domain)}[^\\s，。；、）)]*`,
-          `(?:www\\.)?${escapeRegExp(domain)}(?:\\/[^\\s，。；、）)]*)?`,
-        ]
-      : []),
-    ...brandAliases.map(escapeRegExp),
-  ]
-  if (!terms.length)
-    return [{ text: answer }]
-
-  const pattern = new RegExp(terms.join('|'), 'gi')
-  const parts: AnswerPart[] = []
-  let lastIndex = 0
-  for (const match of answer.matchAll(pattern)) {
-    const index = match.index ?? 0
-    if (index > lastIndex)
-      parts.push({ text: answer.slice(lastIndex, index) })
-    const text = match[0]
-    const isDomain = Boolean(domain) && text.toLowerCase().includes(domain.toLowerCase())
-    parts.push({
-      text,
-      href: isDomain ? (text.startsWith('http') ? text : `https://${text.replace(/^www\./, '')}`) : undefined,
-      official: !isDomain,
-    })
-    lastIndex = index + text.length
+function openCreate(tab: CreateTab = 'ai') {
+  if (!canCreate.value) {
+    notify('本月核验文章额度已用完，请先完成进行中的文章。', 'warning')
+    return
   }
-  if (lastIndex < answer.length)
-    parts.push({ text: answer.slice(lastIndex) })
-  return parts.length ? parts : [{ text: answer }]
+  createInitialTab.value = tab
+  createOpen.value = true
+}
+
+function handleCreated(itemId: string) {
+  createOpen.value = false
+  selectedId.value = itemId
+}
+
+function openItem(item: ContentProductionItem) {
+  selectedId.value = item.id
+}
+
+function closeDetail() {
+  selectedId.value = null
+}
+
+function notify(message: string, variant: 'success' | 'warning' | 'error' = 'success') {
+  toastMessage.value = message
+  toastVariant.value = variant
+  toastMessageId.value += 1
+  toastOpen.value = true
+}
+
+function closeToast() {
+  toastOpen.value = false
+}
+
+function formatDate(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('zh-CN')
+}
+
+function actionLabel(stage: ContentProductionStage) {
+  if (isClientRole.value) {
+    const clientLabels: Record<ContentProductionStage, string> = {
+      draft: '查看内容',
+      ai_checked: '查看内容',
+      pending_client: '客户确认',
+      client_rejected: '查看驳回',
+      ready_to_publish: '查看内容',
+      questions_pending: '查看问题',
+      questions_confirmed: '查看问题',
+      verifying: '查看问题',
+      verified: '查看结果',
+    }
+    return clientLabels[stage]
+  }
+  const labels: Record<ContentProductionStage, string> = {
+    draft: '继续编辑',
+    ai_checked: '提交客户',
+    pending_client: '查看进度',
+    client_rejected: '继续修改',
+    ready_to_publish: '发布 Blog',
+    questions_pending: '选择问题',
+    questions_confirmed: '开始核验',
+    verifying: '核验中',
+    verified: '查看核验',
+  }
+  return labels[stage]
 }
 </script>
 
@@ -97,33 +184,88 @@ function answerParts(answer: string): AnswerPart[] {
     <GeoPageIntro
       title="品牌内容核验"
       help-label="品牌内容核验说明"
-      description="每个内容对应一条官网发布任务；系统围绕已发布内容中的企业事实生成核验问题，记录 AI 回答中是否出现官网。"
-    />
+      :description="introDescription"
+    >
+      <template #actions>
+        <Button v-if="!isAgentVersion && !isClientRole" type="button" variant="secondary" :disabled="!canCreate" data-test="create-import" @click="openCreate('published')">
+          导入已发布文章
+        </Button>
+        <Button v-if="!isAgentVersion && !isClientRole" type="button" variant="primary" :disabled="!canCreate" data-test="create-content" @click="openCreate('ai')">
+          AI 写核验文章
+        </Button>
+      </template>
+    </GeoPageIntro>
 
-    <section class="cv-summary" aria-label="品牌内容核验概览">
-      <article class="cv-stat">
-        <span>已发布在官网的内容</span><strong>{{ summary.published }}</strong><small>已进入品牌内容核验</small>
+    <section class="cv-overview" :class="{ 'is-agent': isAgentVersion }" aria-label="品牌内容核验概览">
+      <article v-if="!isAgentVersion" class="cv-quota" :class="{ 'is-exhausted': summary.exhausted }" aria-label="本月核验文章额度">
+        <div class="cv-quota__main">
+          <div class="cv-quota__copy">
+            <span>本月核验文章</span>
+            <strong>{{ summary.publishedThisMonth }}<small>/ {{ summary.monthlyLimit }}</small></strong>
+          </div>
+          <div class="cv-quota__bar" role="progressbar" :aria-valuenow="summary.publishedThisMonth" :aria-valuemin="0" :aria-valuemax="summary.monthlyLimit">
+            <span :style="{ width: progress }" />
+          </div>
+        </div>
+        <div class="cv-quota__side">
+          <span>{{ planName }} · 每月 {{ summary.monthlyLimit }} 篇</span>
+          <small>剩余 {{ summary.remaining }} 篇 · {{ summary.resetLabel }} 重置</small>
+        </div>
       </article>
       <article class="cv-stat">
-        <span>核验问题</span><strong>{{ summary.questions }}</strong><small>围绕企业事实生成</small>
+        <span>已发布的内容</span><strong>{{ summary.published }}</strong><small>已发布到官网 Blog</small>
       </article>
       <article class="cv-stat">
-        <span>覆盖平台</span><strong>{{ summary.platforms }}</strong><small>本轮监测的 AI 平台</small>
+        <span>已核验的内容</span><strong>{{ summary.verified }}</strong><small>已完成 AI 引用核验</small>
       </article>
     </section>
-
-    <p class="cv-sample-note">
-      <AppIcon name="info" :size="14" />
-      <span>
-        引用结果来自 {{ summary.sampleDate || '本轮监测样本' }} 的监测样本，可点击详情查看查询结果
-      </span>
+    <p v-if="!isAgentVersion && summary.exhausted" class="cv-quota-note">
+      本月额度已用完，仍可继续完成已创建的文章；下月 1 日会重新计算。
     </p>
+
+    <div class="cv-list-meta" :class="{ 'is-agent': isAgentVersion }">
+      <p v-if="!isAgentVersion" class="cv-sample-note">
+        <AppIcon name="info" :size="14" />
+        <span>
+          每月按已发布到官网 Blog 的核验文章计数；同一篇文章修改或重新核验不重复计数。
+        </span>
+      </p>
+      <label class="cv-round-select">
+        <span>检测轮次</span>
+        <select v-if="isAgentVersion" v-model="agentRoundId" aria-label="筛选检测轮次">
+          <option v-for="round in availableRounds" :key="round.id" :value="round.id">
+            {{ round.label }} · {{ formatDate(round.date) }}
+          </option>
+        </select>
+        <select v-else v-model="managedRoundId" aria-label="筛选检测轮次">
+          <option value="all">
+            全部
+          </option>
+          <option v-for="round in availableRounds" :key="round.id" :value="round.id">
+            {{ round.label }} · {{ formatDate(round.date) }}
+          </option>
+        </select>
+      </label>
+    </div>
 
     <section class="cv-card">
       <div class="cv-card__head">
         <div>
-          <h2>内容核验清单</h2>
-          <p>按任务序号追溯内容；核验问题围绕企业事实生成，结果记录到具体 AI 平台与来源。</p>
+          <h2>核验文章清单</h2>
+          <p>{{ listDescription }}</p>
+        </div>
+        <div v-if="!isAgentVersion && !isRoundView" class="cv-filter" role="tablist" aria-label="筛选核验文章">
+          <button
+            v-for="tab in filterTabs"
+            :key="tab.id"
+            type="button"
+            role="tab"
+            :aria-selected="filter === tab.id"
+            :class="{ 'is-active': filter === tab.id }"
+            @click="filter = tab.id"
+          >
+            {{ tab.label }}
+          </button>
         </div>
       </div>
 
@@ -135,19 +277,19 @@ function answerParts(answer: string): AnswerPart[] {
                 序号
               </th>
               <th scope="col">
-                核验问题
-              </th>
-              <th scope="col">
-                任务名
-              </th>
-              <th scope="col">
                 任务序号
               </th>
               <th scope="col">
-                AI 引用结果
+                内容
               </th>
               <th scope="col">
-                最近核验
+                状态
+              </th>
+              <th scope="col">
+                核验问题
+              </th>
+              <th scope="col">
+                发布状态
               </th>
               <th scope="col">
                 操作
@@ -155,146 +297,95 @@ function answerParts(answer: string): AnswerPart[] {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(item, index) in contentVerificationItems" :key="item.taskId" :data-task-id="item.taskId">
+            <tr
+              v-for="(item, index) in filteredItems"
+              :key="item.id"
+              :data-task-id="item.taskId"
+              :data-content-id="item.id"
+            >
               <td class="cv-index">
                 {{ index + 1 }}
               </td>
-              <td>
-                <template v-if="item.questions.length">
-                  <span class="cv-question-preview">{{ item.questions[0]!.question }}</span>
-                </template>
-                <template v-else>
-                  <span class="cv-muted">—</span>
-                  <small class="cv-question-preview">内容发布后才能生成核验问题。</small>
-                </template>
+              <td class="cv-task-id">
+                {{ item.taskId ?? item.id }}
               </td>
-              <td class="cv-task-name">
-                {{ item.taskName }}
+              <td class="cv-content-cell">
+                <button class="cv-title" type="button" @click="openItem(item)">
+                  {{ item.title }}
+                </button>
+                <small v-if="item.brief.theme && !item.title.includes(item.brief.theme)">{{ item.brief.theme }}</small>
               </td>
               <td>
-                <RouterLink class="cv-task-link" :to="{ name: 'task-detail', params: { taskId: item.taskId } }">
-                  {{ item.taskId }}
-                  <AppIcon name="arrowRight" :size="13" />
-                </RouterLink>
+                <span class="cv-stage" :class="`is-${contentStageGroup(item.stage)}`">{{ contentStageGroupLabel(item.stage) }}</span>
+              </td>
+              <td class="cv-question-cell">
+                <p v-if="item.questions.length" class="cv-question-text">
+                  {{ item.questions[0]?.question }}
+                </p>
+                <span v-else class="cv-muted">{{ item.publishedAt ? '待选择' : '发布后生成' }}</span>
               </td>
               <td>
-                <span class="cv-result is-success">{{ citedQuestionCount(item) }} / {{ item.questions.length }} 个问题有官网</span>
-                <small class="cv-platform-summary">{{ citedPlatformCount(item) }} 个平台回答有官网</small>
-              </td>
-              <td>
-                <span v-if="item.lastChecked">{{ item.lastChecked }}</span>
-                <span v-else class="cv-muted">—</span>
+                <span v-if="item.publishedAt" class="cv-publish-status">已发布 {{ formatDate(item.publishedAt) }}</span>
+                <span v-else class="cv-muted">未发布</span>
               </td>
               <td>
                 <button class="cv-link" type="button" @click="openItem(item)">
-                  查看核验
+                  {{ actionLabel(item.stage) }}
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+      <div v-if="!filteredItems.length" class="cv-empty">
+        {{ isAgentVersion || isRoundView ? '当前检测轮次没有已完成的核验结果。' : '当前筛选下没有内容。' }}
+      </div>
     </section>
 
-    <GeoDrawer
+    <ContentProductionCreateDrawer
+      :open="createOpen"
+      :initial-tab="createInitialTab"
+      @close="createOpen = false"
+      @created="handleCreated"
+    />
+    <ContentProductionDetailDrawer
       :open="!!selectedItem"
-      :title="selectedItem?.contentTitle ?? ''"
-      eyebrow="品牌内容核验"
-      :subtitle="selectedItem ? `${selectedItem.taskId} · ${selectedItem.publishedAt}` : undefined"
-      :size="920"
-      @close="closeItem"
-    >
-      <div v-if="selectedItem" class="cv-detail">
-        <div class="cv-detail__meta">
-          <span><strong>任务序号</strong><RouterLink :to="{ name: 'task-detail', params: { taskId: selectedItem.taskId } }">{{ selectedItem.taskId }}</RouterLink></span>
-          <span><strong>内容版本</strong>V{{ selectedItem.revision }}</span>
-          <span><strong>发布日期</strong>{{ selectedItem.publishedAt || '—' }}</span>
-          <span v-if="selectedItem.platformCount"><strong>核验样本</strong>{{ selectedItem.platformCount }} 个平台</span>
-          <span><strong>最近核验</strong>{{ selectedItem.lastChecked || '—' }}</span>
-        </div>
-
-        <a v-if="selectedItem.url" class="cv-detail__url" :href="selectedItem.url" target="_blank" rel="noopener noreferrer">
-          {{ selectedItem.url }}
-          <AppIcon name="externalLink" :size="14" />
-        </a>
-
-        <div class="cv-facts" aria-label="内容核验要点">
-          <span v-for="fact in selectedItem.keyFacts" :key="fact">{{ fact }}</span>
-        </div>
-
-        <section class="cv-questions" aria-label="核验问题与 AI 回答">
-          <article v-for="(question, index) in selectedItem.questions" :key="question.id" class="cv-question">
-            <header class="cv-question__head">
-              <span class="cv-question__index">Q{{ index + 1 }}</span>
-              <div class="cv-question__copy">
-                <h3>{{ question.question }}</h3>
-                <p>{{ question.intent }} · 围绕企业事实生成</p>
-              </div>
-            </header>
-
-            <div class="cv-platform-list">
-              <article v-for="answer in question.answers" :key="answer.platform" class="cv-platform">
-                <header class="cv-platform__head">
-                  <span class="cv-platform__name">{{ answer.platformLabel }}</span>
-                </header>
-
-                <details class="cv-answer">
-                  <summary>查看 AI 回答</summary>
-                  <p>
-                    <template v-for="(part, partIndex) in answerParts(answer.answer)" :key="partIndex">
-                      <a
-                        v-if="part.href"
-                        class="cv-answer__official"
-                        :href="part.href"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >{{ part.text }}</a>
-                      <span v-else-if="part.official" class="cv-answer__official">{{ part.text }}</span>
-                      <template v-else>
-                        {{ part.text }}
-                      </template>
-                    </template>
-                  </p>
-                </details>
-
-                <div v-if="primaryCitations(answer).length" class="cv-citations">
-                  <a
-                    v-for="citation in primaryCitations(answer)"
-                    :key="citation.key"
-                    class="cv-citation"
-                    :href="citation.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div class="cv-citation__head">
-                      <strong>{{ citation.title }}</strong>
-                      <span class="cv-citation__badge is-primary">官网引用</span>
-                    </div>
-                    <span class="cv-citation__domain">{{ citation.domain }}</span>
-                    <p>{{ citation.excerpt }}</p>
-                  </a>
-                </div>
-              </article>
-            </div>
-          </article>
-        </section>
-      </div>
-
-      <template #footer>
-        <RouterLink v-if="selectedItem" class="cv-footer-task" :to="{ name: 'task-detail', params: { taskId: selectedItem.taskId } }">
-          查看关联任务
-        </RouterLink>
-        <Button type="button" @click="closeItem">
-          关闭
-        </Button>
-      </template>
-    </GeoDrawer>
+      :item="selectedItem"
+      :client-view="isAgentVersion"
+      :customer-view="isClientRole"
+      :historical="isRoundView"
+      @close="closeDetail"
+      @notify="notify"
+    />
+    <Toast :open="toastOpen" :message-id="toastMessageId" :variant="toastVariant" close-label="关闭提示" @close="closeToast">
+      {{ toastMessage }}
+    </Toast>
   </div>
 </template>
 
 <style scoped>
 .cv-page { display: grid; min-width: 0; align-content: start; gap: 24px; padding: 0; font-size: var(--font-size-body); line-height: var(--line-height-body); }
-.cv-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cv-overview { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 12px; }
+.cv-overview.is-agent { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cv-quota { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-width: 0; padding: 16px 18px; border: 1px solid var(--border-default); border-radius: 12px; background: var(--background-primary); }
+.cv-quota.is-exhausted { border-color: #f59e0b; background: #fffbeb; }
+.cv-quota__main { display: flex; flex: 1 1 auto; align-items: center; gap: 14px; min-width: 0; }
+.cv-quota__copy { display: grid; gap: 2px; min-width: 0; }
+.cv-quota__copy > span { color: var(--text-secondary); font-size: 12px; line-height: 18px; }
+.cv-quota__copy strong { color: var(--text-primary); font-size: 28px; line-height: 34px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cv-quota__copy small { margin-left: 2px; color: var(--text-muted); font-size: 14px; font-weight: 400; }
+.cv-quota__bar { flex: 1 1 56px; height: 8px; overflow: hidden; border-radius: 999px; background: var(--background-subtle); }
+.cv-quota__bar span { display: block; height: 100%; border-radius: inherit; background: var(--action-accent); transition: width 180ms ease; }
+.cv-quota__side { display: grid; flex: 0 0 auto; gap: 2px; text-align: right; }
+.cv-quota__side span { color: var(--text-primary); font-size: 12px; line-height: 18px; font-weight: 500; }
+.cv-quota__side small { color: var(--text-muted); font-size: 12px; line-height: 18px; }
+.cv-quota-note { margin: -16px 0 0; color: #b45309; font-size: 12px; line-height: 19px; }
+.cv-list-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; margin: -10px 0 0; }
+.cv-list-meta.is-agent { justify-content: flex-end; }
+.cv-list-meta .cv-sample-note { margin: 0; }
+.cv-round-select { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 12px; line-height: 18px; }
+.cv-round-select select { height: 32px; padding: 0 30px 0 10px; border: 1px solid var(--border-default); border-radius: 8px; color: var(--text-primary); background: var(--background-primary); font: inherit; font-size: 12px; cursor: pointer; }
+.cv-round-select select:focus-visible { border-color: var(--action-accent); outline: 2px solid color-mix(in srgb, var(--action-accent) 24%, transparent); outline-offset: 1px; }
 .cv-stat { display: grid; gap: 6px; min-width: 0; padding: 16px; border: 1px solid var(--border-default); border-radius: 12px; background: var(--background-primary); }
 .cv-stat > span { color: var(--text-secondary); font-size: 12px; }
 .cv-stat strong { color: var(--text-primary); font-size: 26px; line-height: 34px; font-weight: 600; }
@@ -305,65 +396,37 @@ function answerParts(answer: string): AnswerPart[] {
 .cv-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .cv-card__head h2 { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; }
 .cv-card__head p { margin: 4px 0 0; color: var(--text-secondary); }
+.cv-filter { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px; border: 1px solid var(--border-default); border-radius: 9px; background: var(--background-subtle); }
+.cv-filter button { padding: 5px 9px; border: 0; border-radius: 6px; color: var(--text-secondary); background: transparent; font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; white-space: nowrap; }
+.cv-filter button:hover { color: var(--text-primary); background: var(--background-primary); }
+.cv-filter button.is-active { color: var(--action-accent); background: var(--background-primary); box-shadow: 0 1px 2px rgb(15 23 42 / 8%); font-weight: 600; }
+.cv-filter button:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
 .cv-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-default); border-radius: 10px; }
-table { width: 100%; min-width: 1020px; border-collapse: collapse; text-align: left; }
+table { width: 100%; min-width: 1060px; border-collapse: collapse; text-align: left; }
 thead { color: var(--text-secondary); background: var(--background-subtle); }
 th, td { padding: 12px; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
 th { font-weight: 600; white-space: nowrap; }
 tbody tr:last-child td { border-bottom: 0; }
 .cv-index { width: 56px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.cv-task-name { min-width: 230px; font-weight: 500; overflow-wrap: anywhere; }
-.cv-task-link { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; color: var(--action-accent); font-size: 12px; line-height: 18px; text-decoration: none; overflow-wrap: anywhere; }
-.cv-task-link:hover { text-decoration: underline; }
-.cv-task-link:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
-.cv-question-preview { display: block; max-width: 230px; color: var(--text-secondary); font-size: 13px; line-height: 20px; }
-.cv-result { display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 11px; line-height: 17px; white-space: nowrap; }
-.cv-result.is-success { color: var(--status-success-foreground); background: var(--status-success-background); }
-.cv-platform-summary { display: block; max-width: 220px; margin-top: 6px; color: var(--text-muted); font-size: 12px; line-height: 18px; }
+.cv-task-id { width: 100px; color: var(--text-secondary); font-size: 12px; line-height: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cv-content-cell { min-width: 280px; }
+.cv-title { display: block; max-width: 100%; padding: 0; border: 0; color: var(--text-primary); background: none; font: inherit; font-size: 13px; line-height: 20px; font-weight: 500; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.cv-title:hover { color: var(--action-accent); }
+.cv-title:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
+.cv-content-cell small { display: block; margin-top: 3px; color: var(--text-muted); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+.cv-stage { display: inline-flex; padding: 3px 8px; border-radius: 999px; color: var(--text-secondary); background: var(--background-subtle); font-size: 11px; line-height: 17px; white-space: nowrap; }
+.cv-stage.is-active { color: #1d4ed8; background: #dbeafe; }
+.cv-stage.is-client { color: #92400e; background: #fef3c7; }
+.cv-stage.is-verify { color: #6d28d9; background: #ede9fe; }
+.cv-stage.is-verified { color: #166534; background: #dcfce7; }
+.cv-question-cell { min-width: 260px; max-width: 360px; }
+.cv-question-text { margin: 0; color: var(--text-primary); font-size: 13px; line-height: 20px; overflow-wrap: anywhere; }
+.cv-publish-status { color: var(--text-secondary); font-size: 12px; line-height: 18px; white-space: nowrap; }
 .cv-muted { color: var(--text-muted); font-size: 12px; line-height: 18px; }
 .cv-link { padding: 0; color: var(--action-accent); background: none; border: 0; font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; white-space: nowrap; }
 .cv-link:hover { text-decoration: underline; }
 .cv-link:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 3px; }
-.cv-detail { display: grid; gap: 16px; min-width: 0; }
-.cv-detail__meta { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--background-subtle); color: var(--text-secondary); font-size: 12px; line-height: 19px; }
-.cv-detail__meta span { display: inline-flex; align-items: center; gap: 6px; }
-.cv-detail__meta strong { color: var(--text-muted); font-weight: 400; }
-.cv-detail__meta a { color: var(--action-accent); text-decoration: none; }
-.cv-detail__meta a:hover { text-decoration: underline; }
-.cv-detail__url { display: inline-flex; align-items: flex-start; gap: 4px; color: var(--action-accent); font-size: 12px; line-height: 18px; text-decoration: none; overflow-wrap: anywhere; }
-.cv-detail__url:hover { text-decoration: underline; }
-.cv-facts { display: flex; flex-wrap: wrap; gap: 6px; }
-.cv-facts span { display: inline-flex; padding: 4px 9px; border: 1px solid var(--border-default); border-radius: 999px; color: var(--text-secondary); background: var(--background-subtle); font-size: 12px; line-height: 18px; }
-.cv-questions { display: grid; gap: 14px; }
-.cv-question { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border-default); border-radius: 12px; background: var(--background-primary); }
-.cv-question__head { display: flex; align-items: flex-start; gap: 10px; }
-.cv-question__index { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--action-subtle-background); color: var(--action-accent); font-size: 12px; font-weight: 600; }
-.cv-question__copy { flex: 1 1 auto; min-width: 0; }
-.cv-question__copy h3 { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; overflow-wrap: anywhere; }
-.cv-question__copy p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; line-height: 18px; }
-.cv-platform-list { display: grid; gap: 8px; }
-.cv-platform { padding: 12px; border: 1px solid var(--border-default); border-radius: 9px; background: var(--background-subtle); }
-.cv-platform__head { display: flex; align-items: center; gap: 10px; }
-.cv-platform__name { color: var(--text-primary); font-size: 13px; font-weight: 600; }
-.cv-answer { margin-top: 8px; }
-.cv-answer summary { color: var(--text-secondary); font-size: 12px; line-height: 18px; cursor: pointer; }
-.cv-answer p { margin: 8px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 21px; white-space: pre-wrap; overflow-wrap: anywhere; }
-.cv-answer__official { color: var(--action-accent); font-weight: 500; text-decoration: none; }
-a.cv-answer__official:hover { text-decoration: underline; }
-.cv-answer__official:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
-.cv-citations { display: grid; gap: 7px; margin-top: 10px; }
-.cv-citation { display: block; padding: 10px; border: 1px solid var(--border-default); border-radius: 8px; background: var(--background-primary); color: inherit; text-decoration: none; }
-.cv-citation:hover { border-color: var(--action-accent); }
-.cv-citation:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
-.cv-citation__head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.cv-citation__head strong { color: var(--text-primary); font-size: 12px; line-height: 18px; font-weight: 500; overflow-wrap: anywhere; }
-.cv-citation__badge { display: inline-flex; padding: 2px 7px; border-radius: 999px; color: var(--text-secondary); background: var(--background-subtle); font-size: 10px; line-height: 16px; white-space: nowrap; }
-.cv-citation__badge.is-primary { color: var(--status-success-foreground); background: var(--status-success-background); }
-.cv-citation__domain { display: block; margin-top: 3px; color: var(--text-muted); font-family: var(--font-family-mono); font-size: 10px; line-height: 16px; }
-.cv-citation p { margin: 6px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 19px; }
-.cv-footer-task { margin-right: auto; color: var(--action-accent); font-size: 13px; line-height: 20px; text-decoration: none; }
-.cv-footer-task:hover { text-decoration: underline; }
-.cv-footer-task:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 3px; }
-@media (max-width: 900px) { .cv-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cv-card__head { flex-direction: column; } }
-@media (max-width: 560px) { .cv-page { gap: 18px; } .cv-summary { grid-template-columns: 1fr; } .cv-card { padding: 16px; } }
+.cv-empty { padding: 24px 12px 8px; color: var(--text-muted); font-size: 12px; line-height: 19px; text-align: center; }
+@media (max-width: 900px) { .cv-card__head { flex-direction: column; } .cv-quota__side { text-align: left; } .cv-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); } .cv-quota { grid-column: 1 / -1; } }
+@media (max-width: 560px) { .cv-page { gap: 18px; } .cv-overview { grid-template-columns: 1fr; } .cv-quota { grid-column: auto; } .cv-card { padding: 16px; } }
 </style>

@@ -173,6 +173,7 @@ export interface GeoPlanQuota {
   themeCountLimit: number
   marketCountLimit: number
   monthlyReportLimit: number
+  monthlyContentLimit?: number
 }
 
 export interface ActivePlanRecord {

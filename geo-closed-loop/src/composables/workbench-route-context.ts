@@ -9,6 +9,7 @@ export interface GeoWorkbenchRouteContext {
   strategies: Strategy[]
   tasks: GeoTask[]
   strategyLayer: Ref<StrategyLayer>
+  productMode: Ref<ServiceMode>
   serviceMode: Ref<ServiceMode>
   role: Ref<UserRole>
   highlightedStrategy: Ref<string | undefined>
@@ -37,4 +38,3 @@ export function useGeoWorkbenchRouteContext() {
     throw new Error('GEO route views must be rendered inside GeoWorkbenchLayout')
   return context
 }
-

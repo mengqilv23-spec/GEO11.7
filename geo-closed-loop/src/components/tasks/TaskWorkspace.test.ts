@@ -338,6 +338,32 @@ describe('task workspace task confirmation', () => {
     expect(task.workflow?.reviews.at(-1)?.note).toContain('拒绝当前内容，退回重新处理')
   })
 
+  it('versions customer edits and records a normal website revision request for the expert', async () => {
+    const task = makeTask()
+    task.progress = 'client_review'
+    const flow = ensureWorkflow(task)
+    const initialVersions = flow.versions.length
+    const wrapper = mountWorkspace('client', task)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('true')
+    const editor = wrapper.get('.ProseMirror')
+    editor.element.textContent = '客户补充后的正文'
+    await editor.trigger('input')
+    await wrapper.get('[data-test="request-agent-revision"]').trigger('click')
+
+    expect(flow.versions).toHaveLength(initialVersions + 1)
+    expect(flow.versions.at(-1)?.note).toBe('人工修改产物')
+    expect(flow.versions.at(-1)?.output).toContain('客户补充后的正文')
+
+    await wrapper.get('[data-test="drawer"] textarea').setValue('请补充德国本地服务说明。')
+    await wrapper.get('[data-test="drawer"] footer button:last-child').trigger('click')
+
+    expect(task.progress).toBe('human')
+    expect(flow.customerRevisionRequests).toBe(1)
+    expect(flow.reviews.at(-1)?.note).toContain('要求 Agent 修改产物')
+  })
+
   it('places the operations Brief ignore control beside confirmation and keeps other stages in the bottom bar', async () => {
     const brief = mountWorkspace('client')
     expect(brief.find('.tw-actionbar').exists()).toBe(false)

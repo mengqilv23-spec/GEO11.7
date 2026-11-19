@@ -883,6 +883,7 @@ provide(geoWorkbenchRouteContextKey, {
   strategies: strategyState,
   tasks,
   strategyLayer,
+  productMode,
   serviceMode,
   role,
   highlightedStrategy,
