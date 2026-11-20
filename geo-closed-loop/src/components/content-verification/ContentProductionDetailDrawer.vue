@@ -200,7 +200,10 @@ function saveAndCheck() {
     body: draftBody.value,
   })
   store.runAiCheck(item.value.id)
-  emit('notify', item.value.aiCheck?.passed
+  const passed = Boolean(item.value.aiCheck?.passed)
+  if (passed)
+    tab.value = 'publish'
+  emit('notify', passed
     ? '内容已保存，AI 检查通过。'
     : '内容已保存，AI 检查未通过，请修改后重新检查。')
 }
