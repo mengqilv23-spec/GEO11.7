@@ -294,6 +294,7 @@ describe('content verification view', () => {
 
     expect(wrapper.text()).toContain('AI 检查未通过')
     expect(wrapper.findAll('.cpd-check-list li strong').map(item => item.text())).toEqual(['品牌口径', '承诺边界'])
+    expect(wrapper.find('[data-test="next-step"]').exists()).toBe(false)
     // A failing check keeps the operator on the content step for edits.
     expect(wrapper.get('[data-test="step-content"]').attributes('aria-current')).toBe('step')
 
@@ -307,7 +308,11 @@ describe('content verification view', () => {
     await editor.trigger('input')
     await wrapper.get('.cpd-form').trigger('submit')
 
-    // A passing check advances straight to publishing; no extra click needed.
+    // A passing check stays on the content step and offers the next step.
+    expect(wrapper.text()).toContain('AI 检查通过')
+    expect(wrapper.get('[data-test="next-step"]').text()).toBe('下一步')
+
+    await wrapper.get('[data-test="next-step"]').trigger('click')
     expect(wrapper.get('[data-test="step-publish"]').attributes('aria-current')).toBe('step')
     expect(wrapper.find('[data-test="submit-client"]').exists()).toBe(true)
     wrapper.unmount()
@@ -339,7 +344,8 @@ describe('content verification view', () => {
     expect(wrapper.get('[data-test="save-and-check"]').text()).toBe('保存并 AI 检查')
 
     await wrapper.get('.cpd-form').trigger('submit')
-    // The passing check moves the workflow straight to the publish step.
+    expect(wrapper.text()).toContain('AI 检查通过')
+    await wrapper.get('[data-test="next-step"]').trigger('click')
     expect(wrapper.get('[data-test="step-publish"]').attributes('aria-current')).toBe('step')
 
     await wrapper.get('[data-test="submit-client"]').trigger('click')

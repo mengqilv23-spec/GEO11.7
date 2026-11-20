@@ -200,12 +200,13 @@ function saveAndCheck() {
     body: draftBody.value,
   })
   store.runAiCheck(item.value.id)
-  const passed = Boolean(item.value.aiCheck?.passed)
-  if (passed)
-    tab.value = 'publish'
-  emit('notify', passed
+  emit('notify', item.value.aiCheck?.passed
     ? '内容已保存，AI 检查通过。'
     : '内容已保存，AI 检查未通过，请修改后重新检查。')
+}
+
+function goToPublish() {
+  tab.value = 'publish'
 }
 
 function submitToClient() {
@@ -376,8 +377,11 @@ function questionStateLabel(question: ProductionQuestion) {
             </ul>
           </div>
           <div class="cpd-actions">
-            <Button type="submit" variant="primary" data-test="save-and-check">
+            <Button type="submit" :variant="item.aiCheck?.passed ? 'secondary' : 'primary'" data-test="save-and-check">
               保存并 AI 检查
+            </Button>
+            <Button v-if="item.aiCheck?.passed" type="button" variant="primary" data-test="next-step" @click="goToPublish">
+              下一步
             </Button>
           </div>
           <p v-if="!item.aiCheck" class="cpd-note">
