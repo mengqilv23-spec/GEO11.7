@@ -40,9 +40,10 @@ export function diagnosisStrategyStatus(strategy: Strategy, tasks: readonly GeoT
   const taskStatus = statusFromTask(taskForStrategy(strategy, tasks))
   if (taskStatus)
     return taskStatus
-  // Ignored items, recorded business gaps and confirmed-but-not-yet-tasked
-  // strategies are already decisions rather than pending reviews.
-  if (strategy.ignored || strategy.businessGapRecorded)
+  // Ignored items, recorded business gaps, completed reason checks and
+  // confirmed-but-not-yet-tasked strategies are already decisions rather than
+  // pending reviews.
+  if (strategy.ignored || strategy.businessGapRecorded || strategy.verification)
     return '已完成'
   if (strategy.confirmed)
     return '处理中'

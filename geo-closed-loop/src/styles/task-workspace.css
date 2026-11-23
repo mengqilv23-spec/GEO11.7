@@ -58,8 +58,8 @@
 .tw-site-strip.is-failed { border-color:var(--status-error-border,var(--border-default)); border-left-color:var(--status-error-foreground); background:color-mix(in srgb,var(--status-error-background) 42%,var(--background-primary)); }
 .tw-site-strip.is-ready { border-color:var(--status-success-border,var(--border-default)); border-left-color:var(--status-success-foreground); background:color-mix(in srgb,var(--status-success-background) 42%,var(--background-primary)); }
 .tw-site-strip__text { flex:1; min-width:0; overflow:hidden; color:var(--text-secondary); font-size:13px; line-height:20px; text-overflow:ellipsis; white-space:nowrap; }
-.tw-preview-link { display:inline-flex; flex:none; min-height:30px; align-items:center; justify-content:center; padding:0 11px; border:1px solid var(--action-accent); border-radius:8px; background:var(--background-primary); color:var(--action-accent); font-size:13px; font-weight:600; text-decoration:none; white-space:nowrap; }
-.tw-preview-link:hover { background:var(--action-subtle-background); }
+.tw-simulate-failure { display:inline-flex; flex:none; align-items:center; gap:6px; color:var(--text-secondary); font-size:13px; line-height:20px; white-space:nowrap; cursor:pointer; }
+.tw-simulate-failure input { margin:0; accent-color:var(--status-error-foreground); }
 .tw-more-details { margin:0 0 20px; }
 .tw-more-details > summary { width:max-content; max-width:100%; padding:7px 0; color:var(--text-muted); font-size:var(--font-size-body); line-height:var(--line-height-body); cursor:pointer; }
 .tw-more-details > summary:hover { color:var(--action-accent); }
@@ -215,6 +215,7 @@
 .tw-check { display:flex; justify-content:flex-start; align-items:center; gap:8px; min-height:32px; cursor:pointer; }
 .tw-check input { accent-color:var(--action-accent); flex-shrink:0; }
 .tw-methods { display:flex; flex-wrap:wrap; gap:8px 16px; border:1px solid var(--border-default); border-radius:8px; padding:12px; }
+.tw-verification-reminder { margin:0; padding:12px 14px; border:1px solid var(--border-default); border-radius:8px; background:var(--background-secondary); color:var(--text-secondary); font-size:13px; line-height:20px; }
 .tw-methods legend { padding:0 6px; color:var(--text-secondary); }
 .tw-inline { display:flex; gap:8px; align-items:flex-end; }
 .tw-inline .tw-field { flex:1; }

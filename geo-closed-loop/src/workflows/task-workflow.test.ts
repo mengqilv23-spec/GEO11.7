@@ -59,7 +59,7 @@ describe('prototype task ownership and backend-driven repair status', () => {
     const payload = { brief: flow.brief, methods: task.methods, knowledge: flow.knowledge }
 
     expect(applyAction(task, 'client', 'managed', 'save_brief', payload)).toContain('不能编辑 Brief')
-    expect(applyAction(task, 'client', 'managed', 'request_brief_changes', { note: '请调整' })).toContain('仅运营')
+    expect(applyAction(task, 'client', 'managed', 'request_brief_changes', { note: '请调整' })).toContain('仅专家')
     expect(applyAction(task, 'client', 'managed', 'ignore_task', { ignoreReason: '其他', note: '说明' })).toContain('当前步骤负责人')
     expect(applyAction(task, 'ops', 'managed', 'save_brief', payload)).toBeNull()
   })
@@ -78,27 +78,42 @@ describe('prototype task ownership and backend-driven repair status', () => {
     expect(task.progress).toBe('client_review')
   })
 
-  it('completes a website task when customer final approval receives the simulated site success', () => {
+  it('publishes a website task after customer approval and completes on the simulated success result', () => {
     const task = makeTask('web', 'client_review')
     const flow = ensureWorkflow(task)
 
     expect(applyAction(task, 'client', 'managed', 'approve_client')).toBeNull()
-
-    expect(task.progress).toBe('done')
+    expect(task.progress).toBe('site_submit')
     expect(flow.site.requirements).toContain(flow.brief.executionTarget)
-    expect(flow.reviews.at(-1)?.note).toContain('建站接口模拟成功')
-    expect(getTaskBucket(task)).toBe('done')
-  })
 
-  it('auto-completes legacy site submission tasks as a simulated successful API response', () => {
-    const task = makeTask('web', 'site_submit')
-    const flow = ensureWorkflow(task)
-
-    expect(hasAutomaticStep(task)).toBe(true)
+    expect(applyAction(task, 'ops', 'managed', 'submit_site')).toBeNull()
+    expect(task.progress).toBe('site_submitted')
+    expect(advanceAutomatic(task)).toBe(true)
+    expect(advanceAutomatic(task)).toBe(true)
     expect(advanceAutomatic(task)).toBe(true)
 
     expect(task.progress).toBe('done')
-    expect(flow.reviews.at(-1)?.note).toContain('建站接口模拟成功')
+    expect(flow.site.result).toContain('发布成功')
+    expect(flow.reviews.at(-1)?.note).toContain('发布成功')
+    expect(getTaskBucket(task)).toBe('done')
+  })
+
+  it('waits for an explicit site submission before automatically completing publishing', () => {
+    const task = makeTask('web', 'site_submit')
+    const flow = ensureWorkflow(task)
+
+    expect(hasAutomaticStep(task)).toBe(false)
+    expect(advanceAutomatic(task)).toBe(false)
+    expect(task.progress).toBe('site_submit')
+
+    expect(applyAction(task, 'ops', 'managed', 'submit_site')).toBeNull()
+    expect(hasAutomaticStep(task)).toBe(true)
+    expect(advanceAutomatic(task)).toBe(true)
+    expect(advanceAutomatic(task)).toBe(true)
+    expect(advanceAutomatic(task)).toBe(true)
+
+    expect(task.progress).toBe('done')
+    expect(flow.site.result).toContain('发布成功')
   })
 
   it('routes generated external content through customer review before operations review', () => {
@@ -141,13 +156,13 @@ describe('prototype task ownership and backend-driven repair status', () => {
     const flow = ensureWorkflow(task)
     const reason = 'Agent 判断错误 / 策略不适用'
 
-    expect(applyAction(task, 'client', 'managed', 'ignore_brief', { ignoreReason: reason, note: '当前业务不适用' })).toContain('仅运营')
+    expect(applyAction(task, 'client', 'managed', 'ignore_brief', { ignoreReason: reason, note: '当前业务不适用' })).toContain('仅专家')
     expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: reason, note: '当前业务不适用' })).toBeNull()
 
     expect(task.progress).toBe('brief')
     expect(task.source).toBe('F1')
     expect(task.strategy).toBe('GS1')
-    expect(flow.ignoredBrief).toMatchObject({ reason, explanation: '当前业务不适用', actor: '运营' })
+    expect(flow.ignoredBrief).toMatchObject({ reason, explanation: '当前业务不适用', actor: '专家' })
     expect(getTaskBucket(task)).toBe('ignored')
     expect(taskStageLabel(task)).toBe('已忽略')
     expect(flow.reviews.at(-1)?.note).toContain(`忽略本次审核事项：${reason}；当前业务不适用`)
@@ -157,7 +172,7 @@ describe('prototype task ownership and backend-driven repair status', () => {
     const task = makeTask('web', 'brief')
     ensureWorkflow(task)
 
-    expect(applyAction(task, 'client', 'managed', 'ignore_brief')).toContain('仅运营')
+    expect(applyAction(task, 'client', 'managed', 'ignore_brief')).toContain('仅专家')
     expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: '其他' })).toContain('忽略说明')
     expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: '其他', note: '说明' })).toBeNull()
     expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: '其他', note: '再次提交' })).toContain('已忽略')
@@ -167,7 +182,7 @@ describe('prototype task ownership and backend-driven repair status', () => {
     const task = makeTask('web', 'brief')
     ensureWorkflow(task).knowledge.push({ ...knowledgeLibrary[0]! })
 
-    expect(applyAction(task, 'client', 'managed', 'confirm_brief')).toContain('仅运营')
+    expect(applyAction(task, 'client', 'managed', 'confirm_brief')).toContain('仅专家')
     expect(applyAction(task, 'ops', 'managed', 'confirm_brief')).toBeNull()
     expect(task.progress).toBe('todo')
   })
@@ -282,12 +297,14 @@ describe('prototype task ownership and backend-driven repair status', () => {
     expect(flow.reviews.at(-1)?.note).toContain('完成本次官网核验')
   })
 
-  it('lets the client confirm publishing without requiring a URL in the prototype', () => {
-    const task = makeTask('web', 'site_publish')
-    ensureWorkflow(task)
+  it('completes publishing automatically when the website build returns success', () => {
+    const task = makeTask('web', 'site_verifying')
+    const flow = ensureWorkflow(task)
 
-    expect(applyAction(task, 'client', 'managed', 'publish')).toBeNull()
-    expect(task.progress).toBe('recheck')
+    expect(advanceAutomatic(task)).toBe(true)
+    expect(task.progress).toBe('done')
+    expect(flow.site.result).toContain('发布成功')
+    expect(hasAutomaticStep(task)).toBe(false)
   })
 
   it('normalizes legacy repair execution fields to the technical-repair package', () => {
@@ -324,7 +341,7 @@ describe('customer-only review journeys', () => {
     }
     expect(task.progress).toBe('done')
     expect(flow.reviews.some(item => item.actor === '运营')).toBe(false)
-    expect(flow.output.body).toContain('任务目标')
+    expect(flow.output.body).toContain('执行范围')
   })
 
   it('allows knowledge and instruction supplements while protecting AI-defined methods and goals', () => {

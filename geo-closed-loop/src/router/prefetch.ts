@@ -14,7 +14,6 @@ export const pageLoaders = {
   'report-center': () => import('../views/ReportCenterView.vue'),
   'onboarding': () => import('../views/OnboardingView.vue'),
   'market-setup': () => import('../views/MarketSetupView.vue'),
-  'task-preview': () => import('../views/TaskPreviewView.vue'),
   'report-detail': () => import('../views/ReportDetailView.vue'),
 } as const
 

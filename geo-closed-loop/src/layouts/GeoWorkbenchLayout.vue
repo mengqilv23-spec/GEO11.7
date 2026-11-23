@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DropdownSelectOption } from '../components/ui/ce/dropdown-select/types'
-import type { AuditCheck, AuditFinding, GeoPage, GeoTask, Priority, ServiceMode, Strategy, StrategyLayer, TaskFilter, UserRole } from '../data/geo-data'
+import type { AuditCheck, AuditFinding, GeoPage, GeoTask, Priority, ServiceMode, Strategy, StrategyLayer, TaskFilter, UserRole, VerificationOutcome } from '../data/geo-data'
 import { computed, onUnmounted, provide, reactive, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/ui/ce/button/Button.vue'
@@ -21,7 +21,7 @@ import { diagnosisFindingStatus, diagnosisStrategyStatus } from '../workflows/di
 import { findingHasTask, findingRouteLabel, findingTreatment, isAdviceFinding, isKnowledgeFinding, isReadOnlyFinding } from '../workflows/finding-treatment'
 import { isDirectRepairFinding, isDirectRepairTask } from '../workflows/direct-repair'
 import { advanceAutomatic, ensureWorkflow, knowledgeLibrary, taskStageLabel } from '../workflows/task-workflow'
-import { normalizeClientFindings, createClientFindingTask, strategyGapEvidence, strategyGapSummaries, strategyCoverageGapRefs, platformGapBreakdown, clientStrategyPlan, createVerificationTask } from '../workflows/client-diagnosis'
+import { normalizeClientFindings, createClientFindingTask, strategyGapEvidence, strategyGapSummaries, strategyCoverageGapRefs, platformGapBreakdown, clientStrategyPlan } from '../workflows/client-diagnosis'
 import type { ProcessingPage } from '../workflows/data-processing'
 import { updateDataProcessing, useDataProcessing } from '../workflows/data-processing'
 import '../styles/geo-workbench.css'
@@ -87,11 +87,21 @@ const reviewText = ref('')
 const reviewCategory = ref('')
 const deferMode = ref(false)
 const strategyIgnoreMode = ref(false)
+const strategyVerificationOutcome = ref<VerificationOutcome>()
+const strategyVerificationNote = ref('')
 const deferReason = ref('')
 const reviewCategoryOptions: DropdownSelectOption[] = [
   { value: '优先级判断错误', label: '优先级判断错误' },
   { value: '标题生成不准确', label: '标题生成不准确' },
 ]
+const verificationOutcomeLabels: Record<VerificationOutcome, string> = {
+  'add-content': '官网具备该能力，但尚未介绍',
+  'edit-content': '官网已有介绍，但表达不明确',
+  'technical': '内容完整，但存在读取障碍',
+  'external': '需要补充第三方来源',
+  'business-gap': '实际不具备该能力',
+}
+const verificationOutcomeOptions = (Object.entries(verificationOutcomeLabels) as Array<[VerificationOutcome, string]>).map(([value, label]) => ({ value, label }))
 const deferReasonOptions: DropdownSelectOption[] = [
   { value: 'Agent 判断错误 / 策略不适用', label: 'Agent 判断错误 / 策略不适用' },
   { value: '事实 / 证据不足', label: '事实 / 证据不足' },
@@ -152,7 +162,7 @@ const visibleTasks = computed(() => filterTasks(tasks, taskFilter.value))
 const pendingItems = computed(() => [
   ...findings.filter(finding => canApproveFinding(finding)).map(finding => ({ kind: 'audit' as const, id: finding.id, title: finding.title, status: findingStatusLabel(finding), priority: finding.priority, source: finding.check, summary: finding.detail, finding })),
   ...strategyState.filter(strategy => canReviewStrategy(strategy)).map(strategy => ({ kind: 'strategy' as const, id: strategy.id, title: strategy.title, status: strategyStatusLabel(strategy), priority: strategy.priority, source: strategy.origin === 'buyer-coverage' ? '买家关注点与品牌表现' : `官网 GEO 体检 · ${strategy.source}`, summary: strategy.evidence, strategy })),
-  ...tasks.filter(task => ['brief', 'human', 'client_review', 'publish', 'site_submit', 'site_failed', 'site_publish'].includes(task.progress)).map(task => ({ kind: 'task' as const, id: task.id, title: task.name, status: task.progress === 'brief' ? 'Brief 待确认' : task.progress === 'human' ? '待结果审核' : task.progress === 'site_submit' ? '待提交 AI 建站' : task.progress === 'site_failed' ? '验证未通过' : task.progress === 'site_publish' || task.progress === 'publish' ? '待发布确认' : '待客户审核', priority: 'P1', source: task.origin === 'buyer-coverage' ? '买家关注点与品牌表现' : task.origin === 'geo-audit' ? `官网 GEO 体检 · ${task.source}` : task.source, summary: '进入任务处理当前阶段。', task })),
+  ...tasks.filter(task => ['brief', 'human', 'client_review', 'site_submit', 'site_failed'].includes(task.progress)).map(task => ({ kind: 'task' as const, id: task.id, title: task.name, status: task.progress === 'brief' ? 'Brief 待确认' : task.progress === 'human' ? '待结果审核' : task.progress === 'site_submit' ? '待提交 AI 建站' : task.progress === 'site_failed' ? '发布失败' : '待客户审核', priority: 'P1', source: task.origin === 'buyer-coverage' ? '买家关注点与品牌表现' : task.origin === 'geo-audit' ? `官网 GEO 体检 · ${task.source}` : task.source, summary: '进入任务处理当前阶段。', task })),
 ])
 const managedFlowSteps: Record<FlowType, Array<{ title: string, description: string }>> = {
   diagnosis: [
@@ -255,9 +265,31 @@ function resetClientContentReview() {
       finding.status = '待处理'; finding.checked = false; delete finding.feedback; delete finding.decisionReason
     }
   }
-  for (const strategy of strategyState) { strategy.confirmed = false; strategy.ignored = false; delete strategy.reviewNote }
+  for (const strategy of strategyState) { strategy.confirmed = false; strategy.ignored = false; delete strategy.reviewNote; delete strategy.verification }
   tasks.splice(0, tasks.length, ...tasks.filter(task => (isDirectRepairTask(task) && !(task.id === 'T-2501' && task.strategy === 'GS14')) || task.id === 'T-2402' || publishedContentTaskIds.has(task.id)))
   Object.keys(reviewNotes).forEach(key => delete reviewNotes[key])
+}
+function migrateVerificationTasks() {
+  const verificationTasks = tasks.filter(task => task.executionKind === 'verification')
+  if (!verificationTasks.length) return
+  for (const task of verificationTasks) {
+    const strategy = strategyState.find(item => item.id === task.strategy || task.relatedStrategies.includes(item.id))
+    if (!strategy) continue
+    const note = task.workflow?.output.body?.trim()
+    if (task.verificationOutcome && note) {
+      strategy.verification = { outcome: task.verificationOutcome, note, recordedAt: new Date().toISOString() }
+      strategy.confirmed = true
+      reviewNotes[strategy.id] ??= []
+      reviewNotes[strategy.id].push({ role: 'client', name: '客户', time: '刚刚', text: `核查完成 · ${verificationOutcomeLabels[task.verificationOutcome]}：${note}` })
+    }
+    else {
+      // A legacy verification task without a conclusion returns to the
+      // in-drawer form instead of remaining in the optimisation centre.
+      strategy.confirmed = false
+    }
+  }
+  tasks.splice(0, tasks.length, ...tasks.filter(task => task.executionKind !== 'verification'))
+  persist()
 }
 function restore(mode: ServiceMode) {
   loadedMode = mode
@@ -376,6 +408,7 @@ function restore(mode: ServiceMode) {
     Object.assign(reviewNotes, data.reviews ?? {})
     if (mode === 'agent' && data.contentReviewReset !== 1) { resetClientContentReview(); persist(mode) }
     if (mode === 'agent') {
+      migrateVerificationTasks()
       const legacyExpertTask = tasks.findIndex(task => task.id === 'T-2501' && task.strategy === 'GS14' && task.type === 'repair')
       if (legacyExpertTask >= 0) tasks.splice(legacyExpertTask, 1)
       for (const task of tasks.filter(task => task.source === 'F9' && task.type === 'repair')) { task.type = 'web'; task.destination = '官网内容'; task.name = '官网地址内容核对'; task.progress = 'brief'; delete task.workflow }
@@ -507,6 +540,11 @@ function confirmStrategy(strategy: Strategy) {
     notify('候选策略由专家完成专业审核，客户在 Brief 阶段确认业务信息')
     return
   }
+  if (strategy.verification) {
+    openStrategy(strategy)
+    notify('该策略已完成原因核查，结论仅作记录和提醒')
+    return
+  }
   if (serviceMode.value === 'agent') {
     const plan = clientStrategyPlan(strategy)
     if (plan.kind === 'business-gap') {
@@ -526,9 +564,14 @@ function confirmStrategy(strategy: Strategy) {
       drawer.type = null
       return
     }
+    if (needsAgentVerification(strategy)) {
+      openStrategy(strategy)
+      notify('请先在抽屉中完成原因核查；核查结论只作提醒，不会生成后续任务。')
+      return
+    }
   }
   if (strategy.origin === 'buyer-coverage') strategy.coverageGapRefs = strategyCoverageGapRefs(strategy, personas)
-  const task = serviceMode.value === 'agent' && needsAgentVerification(strategy) ? createVerificationTask(tasks, strategy) : orchestrateStrategy(tasks, strategy)
+  const task = orchestrateStrategy(tasks, strategy)
   if (serviceMode.value === 'managed') strategy.reviewStage = undefined
   reviewNotes[strategy.id] ??= []
   reviewNotes[strategy.id].push({ role: role.value, name: role.value === 'ops' ? '专家' : '客户', time: '刚刚', text: `${role.value === 'ops' ? '专家' : '客户'}审核通过，Agent 已自动编排关联 Task 草稿。` })
@@ -539,8 +582,31 @@ function openStrategy(strategy: Strategy) {
   reviewText.value = ''
   reviewCategory.value = ''
   strategyIgnoreMode.value = false
+  strategyVerificationOutcome.value = undefined
+  strategyVerificationNote.value = ''
   drawer.type = 'strategy'
   drawer.item = strategy
+}
+function saveStrategyVerification(strategy: Strategy) {
+  if (!canReviewStrategy(strategy) || !needsAgentVerification(strategy)) return
+  const outcome = strategyVerificationOutcome.value
+  const note = strategyVerificationNote.value.trim()
+  if (!outcome) {
+    notify('请选择核查结果')
+    return
+  }
+  if (!note) {
+    notify('请填写核查记录')
+    return
+  }
+  strategy.verification = { outcome, note, recordedAt: new Date().toISOString() }
+  strategy.confirmed = true
+  reviewNotes[strategy.id] ??= []
+  reviewNotes[strategy.id].push({ role: role.value, name: '客户', time: '刚刚', text: `核查完成 · ${verificationOutcomeLabels[outcome]}：${note}` })
+  strategyVerificationOutcome.value = undefined
+  strategyVerificationNote.value = ''
+  drawer.type = null
+  notify(`核查已完成：${verificationOutcomeLabels[outcome]}。结论已记录，仅作提醒，不会生成后续任务或流程。`)
 }
 function startIgnoreStrategy() {
   reviewText.value = ''
@@ -830,7 +896,7 @@ function linkedTaskForStrategy(strategy: Strategy) {
   return tasks.find(task => task.strategy === strategy.id || task.relatedStrategies.includes(strategy.id))
 }
 function canReviewStrategy(strategy: Strategy) {
-  if (strategy.confirmed || strategy.ignored || strategy.businessGapRecorded || tasks.some(task => task.strategy === strategy.id || task.relatedStrategies.includes(strategy.id))) return false
+  if (strategy.verification || strategy.confirmed || strategy.ignored || strategy.businessGapRecorded || tasks.some(task => task.strategy === strategy.id || task.relatedStrategies.includes(strategy.id))) return false
   return serviceMode.value === 'agent' ? role.value === 'client' : role.value === 'ops'
 }
 function strategyTypeLabel(strategy: Strategy) {
@@ -841,6 +907,7 @@ function strategyTypeLabel(strategy: Strategy) {
   return labels[strategy.layer] ?? strategy.layer
 }
 function needsAgentVerification(strategy: Strategy) {
+  if (strategy.verification) return false
   if (clientStrategyPlan(strategy).kind === 'verify') return true
   if (strategyGapEvidence(strategy, personas)) return false
   // A completed verification is itself traceable evidence. Without this guard,
@@ -848,9 +915,22 @@ function needsAgentVerification(strategy: Strategy) {
   // verification task whenever the original gap had no positive coverage metric.
   return !(strategy.gapFacts?.verified && strategy.gapFacts.capability !== null)
 }
+function strategyVerificationActive(strategy: Strategy) {
+  return serviceMode.value === 'agent' && !strategyIgnoreMode.value && canReviewStrategy(strategy) && needsAgentVerification(strategy)
+}
+function strategyVerificationRecord(strategy: Strategy) {
+  return strategy.verification
+}
+function strategyVerificationRecordLabel(strategy: Strategy) {
+  return strategy.verification ? verificationOutcomeLabels[strategy.verification.outcome] : ''
+}
+function strategyVerificationRecordNote(strategy: Strategy) {
+  return strategy.verification?.note ?? ''
+}
 function strategyRecommendation(strategy: Strategy) {
+  if (strategy.verification) return `核查已完成：${strategyVerificationRecordLabel(strategy)}。该结论仅作记录和提醒。`
   if (serviceMode.value === 'agent' && ['business-gap', 'technical'].includes(clientStrategyPlan(strategy).kind)) return clientStrategyPlan(strategy).conclusion
-  if (serviceMode.value === 'agent' && needsAgentVerification(strategy)) return '先核查原始回答、真实业务能力和已有资料，形成可追溯的原因结论；本任务不直接生成宣传内容。'
+  if (serviceMode.value === 'agent' && needsAgentVerification(strategy)) return '先核对原始回答、真实业务能力和已有资料，记录可追溯的原因结论；结论仅作提醒。'
   const destination = strategy.layer === '内容'
     ? '官网内容优化'
     : strategy.layer === '外部信源'
@@ -1035,6 +1115,45 @@ provide(geoWorkbenchRouteContextKey, {
               {{ strategyRecommendation(drawer.item as Strategy) }}
             </p>
           </section>
+          <section v-if="strategyVerificationActive(drawer.item as Strategy)" class="geo-strategy-detail-card geo-strategy-verification" data-test="strategy-verification">
+            <header class="geo-strategy-detail-card__header">
+              <strong>原因核查</strong>
+              <span class="geo-strategy-drawer__status">仅记录结论</span>
+            </header>
+            <div class="geo-strategy-verification__body">
+              <label class="geo-form-label">
+                <span>核查结果 <span aria-hidden="true">*</span></span>
+                <select v-model="strategyVerificationOutcome" class="geo-strategy-verification__select" data-test="strategy-verification-outcome">
+                  <option :value="undefined" disabled>
+                    请选择已核实的原因
+                  </option>
+                  <option v-for="option in verificationOutcomeOptions" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </label>
+              <label class="geo-form-label">
+                <span>核查记录 <span aria-hidden="true">*</span></span>
+                <Textarea id="strategy-verification-note" v-model="strategyVerificationNote" class="geo-review-textarea" data-test="strategy-verification-note" placeholder="记录核查资料、发现的原因和判断依据" :rows="5" />
+              </label>
+              <p class="geo-strategy-verification__hint">
+                保存后仅作记录，不会生成任务或进入优化中心。
+              </p>
+            </div>
+          </section>
+          <section v-else-if="drawer.type === 'strategy' && strategyVerificationRecord(drawer.item as Strategy)" class="geo-strategy-detail-card geo-strategy-verification" data-test="strategy-verification-record">
+            <header class="geo-strategy-detail-card__header">
+              <strong>原因核查记录</strong>
+              <span class="geo-strategy-drawer__status is-done">已完成</span>
+            </header>
+            <dl class="geo-strategy-verification__record">
+              <dt>核查结果</dt><dd>{{ strategyVerificationRecordLabel(drawer.item as Strategy) }}</dd>
+              <dt>核查记录</dt><dd>{{ strategyVerificationRecordNote(drawer.item as Strategy) }}</dd>
+            </dl>
+            <p class="geo-strategy-verification__hint">
+              该结论仅作记录和提醒，不会自动生成后续任务或流程。
+            </p>
+          </section>
           <section v-if="linkedTaskForStrategy(drawer.item as Strategy)" class="geo-strategy-detail-card geo-strategy-task-link">
             <header class="geo-strategy-detail-card__header">
               <strong>关联任务</strong>
@@ -1200,12 +1319,12 @@ provide(geoWorkbenchRouteContextKey, {
               <tr>
                 <th scope="row">
                   客户
-                </th><td>确认关键业务事实、重要执行范围和发布上线</td>
+                </th><td>确认关键业务事实与重要执行范围</td>
               </tr>
               <tr>
                 <th scope="row">
                   AI 建站
-                </th><td>执行官网页面与技术配置修改，返回预览稿和 Diff</td>
+                </th><td>执行官网页面与技术配置修改，返回发布结果和变更 Diff</td>
               </tr>
             </tbody>
           </table>
@@ -1258,10 +1377,12 @@ provide(geoWorkbenchRouteContextKey, {
             {{ serviceMode === 'agent' ? '不处理' : '忽略' }}
           </Button><Button v-if="strategyIgnoreMode" variant="primary" color="var(--geo-brand)" color-text="var(--primitive-white)" @click="ignoreStrategy(drawer.item as Strategy)">
             {{ serviceMode === 'agent' ? '确认不处理' : '确认忽略' }}
+          </Button><Button v-else-if="strategyVerificationActive(drawer.item as Strategy)" variant="primary" color="var(--geo-brand)" color-text="var(--primitive-white)" :disabled="!strategyVerificationOutcome || !strategyVerificationNote.trim()" data-test="save-strategy-verification" @click="saveStrategyVerification(drawer.item as Strategy)">
+            保存核查结论并完成
           </Button><Button v-else variant="primary" color="var(--geo-brand)" color-text="var(--primitive-white)" @click="confirmStrategy(drawer.item as Strategy)">
             {{ serviceMode === 'agent' ? '确认策略并生成任务' : '审核通过并生成任务' }}
           </Button>
-        </template><Button v-if="drawer.type === 'strategy' && ((drawer.item as Strategy).confirmed || (serviceMode === 'agent' && tasks.some(task => task.strategy === (drawer.item as Strategy).id || task.relatedStrategies.includes((drawer.item as Strategy).id))))" variant="primary" color="var(--geo-brand)" color-text="var(--primitive-white)" @click="confirmStrategy(drawer.item as Strategy)">
+        </template><Button v-if="drawer.type === 'strategy' && !strategyVerificationRecord(drawer.item as Strategy) && ((drawer.item as Strategy).confirmed || (serviceMode === 'agent' && tasks.some(task => task.strategy === (drawer.item as Strategy).id || task.relatedStrategies.includes((drawer.item as Strategy).id))))" variant="primary" color="var(--geo-brand)" color-text="var(--primitive-white)" @click="confirmStrategy(drawer.item as Strategy)">
           {{ serviceMode === 'agent' && tasks.some(task => (task.strategy === (drawer.item as Strategy).id || task.relatedStrategies.includes((drawer.item as Strategy).id)) && task.progress === 'brief') ? '去确认 Brief' : '查看关联任务' }}
         </Button>
       </template>

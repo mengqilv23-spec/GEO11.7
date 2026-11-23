@@ -123,7 +123,7 @@ describe('optimization content task table', () => {
 
     expect(wrapper.findAll('tbody .geo-progress').map(status => status.text())).toEqual([
       '待确认 Brief',
-      '处理中',
+      '发布失败',
       '已完成',
       '已完成',
       '已完成',
@@ -140,7 +140,7 @@ describe('optimization content task table', () => {
       { ...initialTasks[0]!, id: 'STAT-1', name: '待确认任务', type: 'web', workflow: undefined, progress: 'brief' },
       { ...initialTasks[0]!, id: 'STAT-2', name: '待审核任务', type: 'web', workflow: undefined, progress: 'human' },
       { ...initialTasks[0]!, id: 'STAT-3', name: '生成中任务', type: 'web', workflow: undefined, progress: 'running' },
-      { ...initialTasks[0]!, id: 'STAT-4', name: '待发布任务', type: 'web', workflow: undefined, progress: 'site_publish' },
+      { ...initialTasks[0]!, id: 'STAT-4', name: '待客户确认任务', type: 'web', workflow: undefined, progress: 'client_review' },
       { ...initialTasks[0]!, id: 'STAT-5', name: '已完成任务', type: 'web', workflow: undefined, progress: 'done' },
       { ...initialTasks[0]!, id: 'STAT-6', name: '修复中任务', type: 'repair', workflow: undefined, progress: 'site_running' },
     ]

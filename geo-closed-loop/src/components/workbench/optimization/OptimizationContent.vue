@@ -59,6 +59,8 @@ function keyStatus(task: GeoTask): Exclude<BucketFilter, 'all'> {
   return 'processing'
 }
 function keyStatusLabel(task: GeoTask) {
+  if (task.progress === 'site_failed')
+    return '发布失败'
   return taskStatusOptions.find(item => item.value === keyStatus(task))?.label ?? '处理中'
 }
 const filteredTasks = computed(() => props.allTasks.filter(task => (props.filter === 'all' || task.type === props.filter) && (bucket.value === 'all' || keyStatus(task) === bucket.value)))
@@ -81,7 +83,7 @@ function needsMyAction(task: GeoTask) {
   if (['human', 'client_review', 'client_content_review'].includes(task.progress))
     return props.role === reviewOwner(task, mode)
   if (task.progress === 'site_failed') return props.role === owner
-  return ['site_publish', 'publish'].includes(task.progress) && props.role === 'client'
+  return false
 }
 const overviewStats = computed(() => taskTypes.map(type => ({
   name: type.label,
@@ -126,6 +128,7 @@ function taskActionLabel(task: GeoTask) {
   if (!needsMyAction(task)) return '查看详情'
   if (task.progress === 'brief') return '确认 Brief'
   if (['human', 'client_review', 'client_content_review'].includes(task.progress)) return '审核内容'
+  if (task.progress === 'site_failed') return '查看并处理'
   return '查看详情'
 }
 function setTaskFilter(value: string) {

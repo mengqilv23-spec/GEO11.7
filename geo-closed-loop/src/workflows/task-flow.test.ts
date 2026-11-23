@@ -19,12 +19,12 @@ function makeTask(type: GeoTask['type'], progress: GeoTask['progress']): GeoTask
 }
 
 describe('taskFlowFor', () => {
-  it('renders the seven-stage website workflow from Brief to publication result', () => {
+  it('renders the website workflow from Brief to publication result without a preview step', () => {
     const flow = taskFlowFor(makeTask('web', 'brief'))
 
-    expect(flow.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成', '内容优化', '内容确认', '官网执行与检测', '预览链接与发布确认', '发布结果'])
-    expect(flow.map(step => step.detail)).toEqual(['GEO专家', 'Agent执行', 'GEO专家+Agent执行', '客户审核', 'AI 建站', '客户', '系统'])
-    expect(flow.map(step => step.state)).toEqual(['current', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
+    expect(flow.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成', '内容优化', '内容确认', '官网执行与检测', '发布结果'])
+    expect(flow.map(step => step.detail)).toEqual(['GEO专家', 'Agent执行', 'GEO专家+Agent执行', '客户审核', 'AI 建站', '系统'])
+    expect(flow.map(step => step.state)).toEqual(['current', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
   })
 
   it('maps website task progress to the matching workflow stage', () => {
@@ -34,25 +34,24 @@ describe('taskFlowFor', () => {
       ['client_review', 3],
       ['site_running', 4],
       ['site_returned', 4],
-      ['site_publish', 5],
-      ['done', 6],
+      ['site_verifying', 4],
+      ['done', 5],
     ] as const
 
     for (const [progress, currentIndex] of progressStages) {
       const flow = taskFlowFor(makeTask('web', progress))
 
       expect(flow.findIndex(step => step.state === 'current'), `${progress} stage`).toBe(currentIndex)
-      expect(flow).toHaveLength(7)
+      expect(flow).toHaveLength(6)
     }
   })
 
-  it('omits preview and publication confirmation for code content', () => {
+  it('omits the preview and publication confirmation step in both service modes', () => {
     const task = makeTask('web', 'client_review')
     task.source = 'F9'
 
     const managed = taskFlowFor(task, 'managed')
     expect(managed.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成', '内容优化', '内容确认', '官网执行与检测', '发布结果'])
-    expect(managed.find(step => step.title === '预览链接与发布确认')).toBeUndefined()
 
     const agent = taskFlowFor(task, 'agent')
     expect(agent.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成与质检', '内容审核', '官网执行与检测', '发布结果'])

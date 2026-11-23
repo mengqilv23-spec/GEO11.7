@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, inject } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import type { GeoWorkbenchRouteContext } from '../composables/workbench-route-context'
 import { geoWorkbenchRouteContextKey } from '../composables/workbench-route-context'
 import { auditFindings, strategies } from '../data/geo-data'
 import { useWorkbenchTasksStore } from '../stores/workbench-tasks'
@@ -139,9 +140,11 @@ describe('geoWorkbenchLayout icon migration', () => {
 
 it('separates product versions from roles and keeps changes scoped to the two review modules', async () => {
   localStorage.clear()
+  let workbench!: GeoWorkbenchRouteContext
   const probe = defineComponent({
     setup() {
       const context = inject(geoWorkbenchRouteContextKey)!
+      workbench = context
       return () => h('div', [
         h('span', { 'data-test': 'mode-role' }, `${context.serviceMode.value}/${context.role.value}`),
         h('span', { 'data-test': 'selected' }, String(context.findings.find(item => item.id === 'F8-2')?.checked)),
@@ -167,6 +170,9 @@ it('separates product versions from roles and keeps changes scoped to the two re
   expect(wrapper.find('.geo-workbench-sidebar__role').exists()).toBe(false)
   await wrapper.get('[data-test="choose-finding"]').trigger('click')
   expect(wrapper.get('[data-test="selected"]').text()).toBe('false')
+  // Keep this fixture on the ordinary content-strategy path; verify strategies
+  // now record their conclusion in the diagnosis drawer instead of a task.
+  workbench.strategies.find(item => item.id === 'GS4')!.gapFacts = { verified: true, capability: true, contentExists: true, clear: false, readable: true, thirdParty: false }
   await wrapper.get('[data-test="adopt-strategy"]').trigger('click')
   await flushPromises()
   const customerState = JSON.parse(localStorage.getItem('geo-workbench:agent')!)
@@ -365,3 +371,60 @@ it.each(['managed', 'agent'] as const)('restores advice into %s without putting 
   finally { wrapper.unmount(); localStorage.clear() }
 })
 
+
+it('records cause verification in the strategy drawer without creating an optimisation task', async () => {
+  localStorage.clear()
+  let context!: GeoWorkbenchRouteContext
+  const Probe = defineComponent({ setup() { context = inject(geoWorkbenchRouteContextKey)!; return () => h('div') } })
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: Probe }] })
+  await router.push('/diagnosis?version=client')
+  await router.isReady()
+  const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
+    GeoWorkbenchToolbar: true,
+    RouterLink: true,
+    GeoDrawer: { props: ['open', 'title', 'subtitle', 'eyebrow', 'size', 'titleFirst'], template: '<div v-if="open" class="test-drawer"><header><h2>{{ title }}</h2></header><slot /><footer><slot name="footer" /></footer></div>' },
+  } } })
+  try {
+    await flushPromises()
+    const strategy = context.strategies.find(item => item.id === 'GS6')!
+    const taskCount = context.tasks.length
+    context.openStrategy(strategy)
+    await flushPromises()
+
+    let drawer = wrapper.get('.test-drawer')
+    expect(drawer.text()).toContain('原因核查')
+    expect(drawer.get('.geo-strategy-recommendation').text()).toContain('结论仅作提醒')
+    expect(drawer.find('[data-test="strategy-verification-record"]').exists()).toBe(false)
+    const saveButton = drawer.findAll('footer button').find(button => button.text() === '保存核查结论并完成')!
+    expect(saveButton.attributes('disabled')).toBeDefined()
+
+    await drawer.get('[data-test="strategy-verification-outcome"]').setValue('add-content')
+    await drawer.get('[data-test="strategy-verification-note"] textarea').setValue('已核对原始回答和官网页面，确认能力存在但官网未介绍。')
+    expect(saveButton.attributes('disabled')).toBeUndefined()
+    await saveButton.trigger('click')
+    await flushPromises()
+
+    expect(context.tasks).toHaveLength(taskCount)
+    expect(context.tasks.some(task => task.strategy === strategy.id || task.relatedStrategies.includes(strategy.id))).toBe(false)
+    expect(strategy.verification).toMatchObject({ outcome: 'add-content', note: '已核对原始回答和官网页面，确认能力存在但官网未介绍。' })
+    expect(strategy.confirmed).toBe(true)
+    expect(wrapper.find('.test-drawer').exists()).toBe(false)
+    expect(wrapper.get('.geo-toast').text()).toContain('仅作提醒，不会生成后续任务或流程')
+    expect(JSON.parse(localStorage.getItem('geo-workbench:agent')!).strategies.find((item: { id: string }) => item.id === 'GS6').verification.outcome).toBe('add-content')
+
+    context.openStrategy(strategy)
+    await flushPromises()
+    drawer = wrapper.get('.test-drawer')
+    expect(drawer.find('[data-test="strategy-verification"]').exists()).toBe(false)
+    const record = drawer.get('[data-test="strategy-verification-record"]')
+    expect(record.text()).toContain('官网具备该能力，但尚未介绍')
+    expect(record.text()).toContain('已核对原始回答和官网页面，确认能力存在但官网未介绍。')
+    expect(record.text()).toContain('仅作记录和提醒')
+    expect(drawer.findAll('footer button').map(button => button.text())).not.toContain('查看关联任务')
+    expect(drawer.get('.geo-strategy-drawer__status').text()).toBe('已完成')
+  }
+  finally {
+    wrapper.unmount()
+    localStorage.clear()
+  }
+})

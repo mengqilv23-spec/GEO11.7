@@ -1,5 +1,5 @@
 import type { GeoWorkbenchRouteContext } from '../../composables/workbench-route-context'
-import type { GeoTask } from '../../data/geo-data'
+import type { GeoTask, Strategy } from '../../data/geo-data'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
@@ -24,8 +24,8 @@ function makeTask(): GeoTask {
   }
 }
 
-function mountWorkspace(role: 'ops' | 'client', task = makeTask(), openFlow = vi.fn(), clientPreview = false, serviceMode: 'managed' | 'agent' = 'managed') {
-  const routeContext = { openFlow } as unknown as GeoWorkbenchRouteContext
+function mountWorkspace(role: 'ops' | 'client', task = makeTask(), openFlow = vi.fn(), clientPreview = false, serviceMode: 'managed' | 'agent' = 'managed', context: Partial<GeoWorkbenchRouteContext> = {}) {
+  const routeContext = { openFlow, ...context } as unknown as GeoWorkbenchRouteContext
   return mount(TaskWorkspace, {
     props: { task, role, serviceMode, clientPreview },
     global: {
@@ -169,7 +169,7 @@ describe('task workspace task confirmation', () => {
   })
 
   it('keeps a local operations/customer role switch available throughout the website workflow', async () => {
-    for (const progress of ['site_submit', 'site_publish', 'recheck', 'done'] as const) {
+    for (const progress of ['site_submit', 'site_verifying', 'recheck', 'done'] as const) {
       const task = makeTask()
       task.progress = progress
       ensureWorkflow(task)
@@ -216,7 +216,7 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.find('.tw-content-basis__actions').exists()).toBe(false)
 
     const reviewTask = makeTask()
-    reviewTask.progress = 'site_publish'
+    reviewTask.progress = 'site_failed'
     const reviewIgnore = mountWorkspace('ops', reviewTask).get('.tw-actionbar [data-test="ignore-task"]')
     expect(reviewIgnore.attributes('data-variant')).toBe('secondary')
     expect(reviewIgnore.classes()).toContain('tw-ignore-action')
@@ -375,19 +375,19 @@ describe('task workspace task confirmation', () => {
     expect(operationsBrief.find('.tw-brief-confirm [data-test="ignore-task"]').exists()).toBe(true)
 
     const task = makeTask()
-    task.progress = 'site_publish'
+    task.progress = 'site_failed'
     const operationsView = mountWorkspace('ops', task)
-    expect((operationsView.get('[data-test="ignore-task"]').element as HTMLButtonElement).disabled).toBe(true)
+    expect((operationsView.get('[data-test="ignore-task"]').element as HTMLButtonElement).disabled).toBe(false)
 
     const customerView = mountWorkspace('client', task)
-    expect((customerView.get('[data-test="ignore-task"]').element as HTMLButtonElement).disabled).toBe(false)
+    expect((customerView.get('[data-test="ignore-task"]').element as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('shows an enabled ignore control at every website workflow step for its owner', () => {
     const ownerByStage = [
       ['brief', 'ops'],
       ['human', 'ops'],
-      ['site_publish', 'client'],
+      ['client_review', 'client'],
       ['recheck', 'ops'],
     ] as const
 
@@ -745,20 +745,22 @@ describe('task workspace task confirmation', () => {
     expect(wrapper.find('.tw-confirmation').exists()).toBe(false)
   })
 
-  it('keeps the preview link in one status strip above the article', () => {
+  it('shows the publish result without a preview link or extra customer confirmation', async () => {
     const task = makeTask()
-    task.progress = 'site_publish'
+    task.progress = 'site_verifying'
     const flow = ensureWorkflow(task)
-    flow.site.preview = 'Preview V1'
+    flow.output.body = '<p>待发布正文</p>'
     const wrapper = mountWorkspace('client', task)
 
     const strip = wrapper.get('.tw-site-strip')
-    expect(strip.text()).toContain('GEO 验证通过 · 待发布')
-    expect(strip.text()).toContain('发布内容预览已就绪 · Preview V1')
-    expect(strip.get('.tw-preview-link').attributes('href')).toContain('/optimization/tasks/T-2402/preview')
-    expect((strip.element.nextElementSibling as HTMLElement).className).toContain('tw-output-review-layout')
-    expect(wrapper.find('.tw-site-feedback').exists()).toBe(false)
-    expect(wrapper.find('.tw-output-review-below').exists()).toBe(false)
+    expect(strip.text()).toContain('AI 建站正在发布')
+    expect(wrapper.find('.tw-preview-link').exists()).toBe(false)
+    expect(wrapper.find('[data-test="confirm-publish"]').exists()).toBe(false)
+
+    advanceAutomatic(task)
+    expect(task.progress).toBe('done')
+    const published = mountWorkspace('client', task)
+    expect(published.get('.tw-site-strip').text()).toContain('发布成功')
   })
 
   it('returns a failed website verification to content review instead of publishing', async () => {
@@ -780,21 +782,48 @@ describe('task workspace task confirmation', () => {
     expect(task.workflow?.site.simulateFailure).toBe(false)
   })
 
-  it('shows the waiting state for operations and publish actions for the customer in step four', async () => {
+  it('publishes automatically without asking either role for another confirmation', () => {
     const task = makeTask()
-    task.progress = 'site_publish'
-    ensureWorkflow(task)
+    task.progress = 'site_verifying'
+    const flow = ensureWorkflow(task)
+    flow.output.body = '<p>待发布正文</p>'
 
     const operationsView = mountWorkspace('ops', task)
-    expect(operationsView.get('.tw-actionbar').text()).toContain('现在需要客户')
-    expect(operationsView.get('.tw-actionbar').text()).toContain('等待客户发布确认')
-    expect((operationsView.get('[data-test="publish-waiting"]').element as HTMLButtonElement).disabled).toBe(true)
+    expect(operationsView.find('.tw-actionbar').exists()).toBe(false)
+    expect(operationsView.find('[data-test="confirm-publish"]').exists()).toBe(false)
+    expect(operationsView.get('.tw-site-strip').text()).toContain('AI 建站正在发布')
 
     const customerView = mountWorkspace('client', task)
-    expect(customerView.get('.tw-actionbar').text()).toContain('确认后发布上线')
-    expect(customerView.find('.tw-actionbar input[type="url"]').exists()).toBe(false)
-    await customerView.get('[data-test="confirm-publish"]').trigger('click')
-    expect(task.progress).toBe('done')
+    expect(customerView.find('[data-test="confirm-publish"]').exists()).toBe(false)
+    expect(customerView.find('[data-test="request-preview-changes"]').exists()).toBe(false)
+  })
+
+  it('lets the customer simulate a failed AI website publish and return the content for revision', async () => {
+    vi.useFakeTimers()
+    try {
+      const task = reactive(makeTask())
+      task.progress = 'site_submit'
+      const flow = ensureWorkflow(task)
+      flow.output.body = '<p>待发布正文</p>'
+      const wrapper = mountWorkspace('client', task, vi.fn(), false, 'agent')
+
+      await wrapper.get('[data-test="simulate-failure"]').setValue(true)
+      await wrapper.get('[data-test="submit-site"]').trigger('click')
+      expect(task.progress).toBe('site_submitted')
+
+      await vi.advanceTimersByTimeAsync(5000)
+      expect(task.progress).toBe('site_failed')
+      await wrapper.vm.$nextTick()
+      expect(wrapper.get('.tw-site-strip').text()).toContain('发布失败')
+      expect(wrapper.get('[data-test="return-content-review"]').text()).toBe('返回内容审核改写')
+
+      await wrapper.get('[data-test="return-content-review"]').trigger('click')
+      expect(task.progress).toBe('client_review')
+      wrapper.unmount()
+    }
+    finally {
+      vi.useRealTimers()
+    }
   })
 
   it('shows the reference waiting bar for operations while preserving customer final-review actions', () => {
@@ -872,7 +901,7 @@ describe('task workspace task confirmation', () => {
 
     const customerView = mountWorkspace('client', task)
     expect(customerView.find('.tw-actionbar').exists()).toBe(false)
-    expect(customerView.findAll('.tw-flow-steps li')).toHaveLength(7)
+    expect(customerView.findAll('.tw-flow-steps li')).toHaveLength(6)
 
     const operationsView = mountWorkspace('ops', task)
     expect(operationsView.get('[data-test="approve-output"]').text()).toBe('专家审核通过，交客户确认')
@@ -1064,11 +1093,8 @@ it.each(['web', 'external'] as const)('lets the customer confirm a %s Brief and 
   expect(wrapper.get('.tw-actionbar').text()).not.toContain('提交修改意见')
   expect(wrapper.find('[data-test="request-output-feedback"]').exists()).toBe(false)
   await wrapper.get('[data-test="approve-output"]').trigger('click')
-  if (type === 'web') {
+  if (type === 'web')
     await vi.advanceTimersByTimeAsync(5000)
-    expect(task.progress).toBe('site_publish')
-    await wrapper.get('[data-test="confirm-publish"]').trigger('click')
-  }
   expect(task.progress).toBe('done')
   wrapper.unmount()
 })
@@ -1084,5 +1110,38 @@ it('omits the revision-request action from every customer-only content review st
     expect(wrapper.find('[data-test="request-output-feedback"]').exists()).toBe(false)
     wrapper.unmount()
   }
+})
+
+describe('verification task', () => {
+  it('records the conclusion as a reminder without creating a follow-up flow', async () => {
+    const task = reactive(makeTask())
+    task.id = 'T-VERIFY-TEST'
+    task.name = '核查：交期与产能页'
+    task.executionKind = 'verification'
+    task.destination = '核查记录'
+    task.progress = 'human'
+    task.verificationOutcome = 'add-content'
+    const strategies: Strategy[] = []
+    const tasks = [task]
+    const flow = ensureWorkflow(task)
+    flow.output.body = '已核实具备该能力，官网未介绍。'
+    const wrapper = mountWorkspace('client', task, vi.fn(), false, 'agent', { strategies, tasks, findings: [] })
+
+    expect(wrapper.get('.tw-flow-head').text()).toBe('核查任务流程')
+    expect(wrapper.findAll('.tw-flow-steps li strong').map(step => step.text())).toEqual(['Task Brief 确认', '原因核查', '核查完成'])
+
+    await wrapper.get('[data-test="verification-outcome"]').setValue('add-content')
+    await wrapper.get('[data-test="verification-record"]').setValue('已核实具备该能力，官网未介绍。')
+    await wrapper.get('[data-test="complete-verification"]').trigger('click')
+
+    expect(task.progress).toBe('done')
+    expect(task.verificationFollowupId).toBeUndefined()
+    expect(strategies).toHaveLength(0)
+    expect(tasks).toHaveLength(1)
+    expect(wrapper.get('[data-test="verification-reminder"]').text()).toContain('官网具备该能力，但尚未介绍')
+    expect(wrapper.get('[data-test="verification-reminder"]').text()).toContain('仅作提醒，不会自动生成后续任务或流程')
+    expect(wrapper.find('[data-test="verification-reminder"]').exists()).toBe(true)
+    wrapper.unmount()
+  })
 })
 

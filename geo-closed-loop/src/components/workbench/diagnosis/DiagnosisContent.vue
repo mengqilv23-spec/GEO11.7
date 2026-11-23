@@ -20,7 +20,7 @@ import AppIcon from '../../ui/icons/AppIcon.vue'
 import GeoPageIntro from '../shared/GeoPageIntro.vue'
 import DeferredGeoRadarChart from './DeferredGeoRadarChart.vue'
 import ClientGapEvidence from './ClientGapEvidence.vue'
-import { clientCheckResult, personaEvidence, platformGapBreakdown, strategyCoverageGapRefs } from '../../../workflows/client-diagnosis'
+import { clientCheckResult, clientStrategyPlan, personaEvidence, platformGapBreakdown, strategyCoverageGapRefs } from '../../../workflows/client-diagnosis'
 import type { DiagnosisPlatform } from '../../../workflows/client-diagnosis'
 import { purchaseStageOptions } from '../../onboarding/buyer-persona/buyer-persona-options'
 
@@ -190,8 +190,12 @@ function strategyTaskLabel(strategy: Strategy) {
   const task = taskFor(strategy)
   return task ? strategyTaskActionLabel(task) : ''
 }
+function strategyReviewActionLabel(strategy: Strategy) {
+  if (props.serviceMode === 'agent' && clientStrategyPlan(strategy).kind === 'verify') return '核查原因'
+  return props.serviceMode === 'agent' ? '确认策略' : '审核'
+}
 function strategyNeedsReview(strategy: Strategy) {
-  return !strategy.businessGapRecorded && !strategy.ignored && !strategy.confirmed && !taskFor(strategy)
+  return !strategy.verification && !strategy.businessGapRecorded && !strategy.ignored && !strategy.confirmed && !taskFor(strategy)
 }
 function canReviewStrategy(strategy: Strategy) {
   return strategyNeedsReview(strategy) && (props.serviceMode === 'agent' ? props.role === 'client' : props.role === 'ops')
@@ -496,7 +500,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
                 </Tooltip>
               </template>
             </template>
-            <span v-else>策略依据：{{ displayObjectCodes(strategyFromRow(strategy).source) }} · {{ strategyFromRow(strategy).gapFacts?.verified ? '核查已完成' : '待核查正向覆盖证据' }}</span>
+            <span v-else>策略依据：{{ displayObjectCodes(strategyFromRow(strategy).source) }} · {{ strategyFromRow(strategy).verification || strategyFromRow(strategy).gapFacts?.verified ? '核查已完成' : '待核查正向覆盖证据' }}</span>
           </template>
           <template #cell-status="{ item: strategy }">
             <Tag :class="{ 'geo-review-status': canReviewStrategy(strategyFromRow(strategy)) }" :tone="strategyStatusTone(strategyFromRow(strategy))" variant="soft" size="sm">
@@ -505,7 +509,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
           </template>
           <template #cell-actions="{ item: strategy }">
             <Button v-if="canReviewStrategy(strategyFromRow(strategy))" class="geo-table-detail-button geo-review-button" variant="secondary" size="md" type="button" @click="emit('openStrategy', strategyFromRow(strategy))">
-              {{ serviceMode === 'agent' ? '确认策略' : '审核' }}
+              {{ strategyReviewActionLabel(strategyFromRow(strategy)) }}
             </Button><Button v-else-if="taskFor(strategyFromRow(strategy))" class="geo-table-detail-button" variant="secondary" size="md" type="button" @click="emit('confirmStrategy', strategyFromRow(strategy))">
               {{ strategyTaskLabel(strategyFromRow(strategy)) }}
             </Button><Button v-else class="geo-table-detail-button" variant="secondary" size="md" type="button" @click="emit('openStrategy', strategyFromRow(strategy))">

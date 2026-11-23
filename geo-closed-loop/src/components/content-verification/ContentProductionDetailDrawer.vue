@@ -459,17 +459,6 @@ function questionStateLabel(question: ProductionQuestion) {
           </template>
         </article>
 
-        <article class="cpd-publish-preview">
-          <h3>Blog 预览</h3>
-          <div class="cp-blog-preview">
-            <h1>{{ item.title }}</h1>
-            <p class="cp-blog-preview__summary">
-              {{ item.summary }}
-            </p>
-            <div v-html="item.body" />
-          </div>
-        </article>
-
         <div class="cpd-actions">
           <Button v-if="canSubmit" type="button" variant="primary" data-test="submit-client" @click="submitToClient">
             提交客户确认
@@ -685,8 +674,8 @@ function questionStateLabel(question: ProductionQuestion) {
 .cpd-channel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: 10px; color: var(--text-secondary); background: var(--background-subtle); font-size: 12px; line-height: 19px; }
 .cpd-channel strong { color: var(--text-primary); font-weight: 600; }
 .cpd-channel small { color: var(--text-muted); }
-.cpd-confirm, .cpd-publish-preview { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--background-primary); }
-.cpd-confirm h3, .cpd-publish-preview h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
+.cpd-confirm { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--background-primary); }
+.cpd-confirm h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
 .cpd-confirm p { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 19px; }
 .cpd-confirm__comment { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border-default); border-radius: 8px; color: var(--text-primary); background: var(--background-primary); font: inherit; font-size: 12px; line-height: 19px; resize: vertical; }
 .cpd-published { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 19px; overflow-wrap: anywhere; }

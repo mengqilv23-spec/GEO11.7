@@ -84,12 +84,6 @@ export function createAppRouter() {
         meta: { title: '新增市场配置', requiresOnboarding: true },
       },
       {
-        path: '/optimization/tasks/:taskId/preview',
-        name: 'task-preview',
-        component: pageLoaders['task-preview'],
-        meta: { title: '发布内容预览', requiresOnboarding: true },
-      },
-      {
         path: '/reports/:reportId',
         name: 'report-detail',
         component: pageLoaders['report-detail'],

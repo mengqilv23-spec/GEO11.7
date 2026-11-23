@@ -61,10 +61,8 @@ const actionableTaskProgress = new Set<GeoTask['progress']>([
   'client_content_review',
   'human',
   'client_review',
-  'publish',
   'site_submit',
   'site_failed',
-  'site_publish',
 ])
 const priorityRank = { P0: 0, P1: 1, P2: 2, P3: 3 } as const
 
@@ -80,9 +78,9 @@ const taskStatus: Record<GeoTask['progress'], { status: string, nextAction: stri
   site_submitted: { status: '已提交 AI 建站', nextAction: '查看执行进度' },
   site_running: { status: 'AI 建站执行中', nextAction: '查看执行进度' },
   site_returned: { status: '官网已返回处理结果', nextAction: '查看修复结果' },
-  site_verifying: { status: '验证中', nextAction: '查看验证结果' },
-  site_publish: { status: '待确认发布', nextAction: '确认发布' },
-  site_failed: { status: '执行失败', nextAction: '查看并处理' },
+  site_verifying: { status: '发布中', nextAction: '查看发布结果' },
+  site_publish: { status: '发布结果', nextAction: '查看发布结果' },
+  site_failed: { status: '发布失败', nextAction: '查看并处理' },
   recheck: { status: '等待 Re-check', nextAction: '查看监测结果' },
   done: { status: '已完成', nextAction: '查看任务' },
 }

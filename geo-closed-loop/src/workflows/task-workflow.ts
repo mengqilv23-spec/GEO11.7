@@ -53,8 +53,6 @@ export interface TaskWorkflow {
   briefStatus: 'ready' | 'changes_requested' | 'agent_reworking' | 'confirmed'
   feedback: string
   customerRevisionRequests?: number
-  /** A published preview can be sent back for changes once in managed mode. */
-  previewRevisionRequests?: number
   versions: TaskVersion[]
   knowledge: TaskKnowledge[]
   output: { title: string, body: string, revision: number, externalClaims?: Array<{ id: string, text: string, source: string, confirmed: boolean }> }
@@ -62,11 +60,11 @@ export interface TaskWorkflow {
   ignoredBrief?: IgnoredBrief
   ignoredTask?: IgnoredTask
   deferredTask?: DeferredTask
-  site: { requirements: string, attempts: number, simulateFailure: boolean, preview: string, result: string, targetSite?: string, targetPage?: string, changeType?: string, factBoundary?: string, acceptance?: string }
+  site: { requirements: string, attempts: number, simulateFailure: boolean, result: string, targetSite?: string, targetPage?: string, changeType?: string, factBoundary?: string, acceptance?: string }
   url: string
 }
 export type TaskBucket = 'brief' | 'brief_changes' | 'executing' | 'review' | 'website' | 'done' | 'ignored' | 'deferred'
-export type WorkflowAction = 'save_brief' | 'update_web_supplement' | 'confirm_brief' | 'ignore_brief' | 'ignore_task' | 'defer_task' | 'resume_task' | 'request_brief_changes' | 'rework_brief' | 'save_output' | 'request_output_changes' | 'request_preview_changes' | 'approve_ops' | 'approve_client' | 'submit_site' | 'retry_site' | 'publish' | 'complete_recheck'
+export type WorkflowAction = 'save_brief' | 'update_web_supplement' | 'confirm_brief' | 'ignore_brief' | 'ignore_task' | 'defer_task' | 'resume_task' | 'request_brief_changes' | 'rework_brief' | 'save_output' | 'request_output_changes' | 'approve_ops' | 'approve_client' | 'submit_site' | 'retry_site' | 'complete_recheck'
 export interface WorkflowPayload {
   note?: string
   ignoreReason?: string
@@ -183,7 +181,7 @@ export function ensureWorkflow(task: GeoTask): TaskWorkflow {
     }
     const fallbackSource = `${task.source}${task.strategy && task.strategy !== '不经过候选策略' ? ` / ${task.strategy}` : ''}`
     task.workflow.briefStatus ??= task.progress === 'brief' ? 'ready' : 'confirmed'
-    task.workflow.site ||= { requirements: '', attempts: 0, simulateFailure: false, preview: '', result: '' }
+    task.workflow.site ||= { requirements: '', attempts: 0, simulateFailure: false, result: '' }
     task.workflow.versions ||= []
     task.workflow.knowledge ||= []
     task.workflow.knowledge = task.workflow.knowledge.map((item) => {
@@ -195,7 +193,6 @@ export function ensureWorkflow(task: GeoTask): TaskWorkflow {
         : item
     })
     task.workflow.customerRevisionRequests ??= 0
-    task.workflow.previewRevisionRequests ??= 0
     if (task.workflow.output.body.includes('演示资料：'))
       task.workflow.output.body = task.workflow.output.body.replaceAll('演示资料：', '')
     task.workflow.versions.forEach((version) => {
@@ -229,7 +226,7 @@ export function ensureWorkflow(task: GeoTask): TaskWorkflow {
     if (isCodeContentTask(task)) {
       task.contentFormat = 'code'
       const body = task.workflow.output.body
-      const reviewStarted = ['human', 'client_review', 'client_content_review', 'site_submit', 'site_submitted', 'site_running', 'site_verifying', 'site_publish'].includes(task.progress)
+      const reviewStarted = ['human', 'client_review', 'client_content_review', 'site_submit', 'site_submitted', 'site_running', 'site_verifying'].includes(task.progress)
       if (reviewStarted && (!body.trim() || body.startsWith('<h2>')))
         task.workflow.output.body = buildCodeBody(task, task.workflow)
     }
@@ -267,12 +264,11 @@ export function ensureWorkflow(task: GeoTask): TaskWorkflow {
     brief,
     briefStatus: task.progress === 'brief' ? 'ready' : 'confirmed',
     feedback: '',
-    previewRevisionRequests: 0,
     versions: [],
     knowledge: [],
     output: { title: task.name, body: '', revision: 1 },
     reviews: [],
-    site: { requirements: '', attempts: 0, simulateFailure: false, preview: '', result: '', targetSite: 'APW 水刀切割网站', targetPage: task.type === 'repair' ? '相关官网页面 / 全站实体配置' : '目标内容页', changeType: task.type === 'repair' ? '技术修复' : '官网内容新增 / 更新', factBoundary: task.type === 'repair' ? '不得改写已确认的企业、认证与产品事实' : '使用客户终审版本；不得扩写未确认的价格、交期、认证和服务承诺', acceptance: brief.acceptance },
+    site: { requirements: '', attempts: 0, simulateFailure: false, result: '', targetSite: 'APW 水刀切割网站', targetPage: task.type === 'repair' ? '相关官网页面 / 全站实体配置' : '目标内容页', changeType: task.type === 'repair' ? '技术修复' : '官网内容新增 / 更新', factBoundary: task.type === 'repair' ? '不得改写已确认的企业、认证与产品事实' : '使用客户终审版本；不得扩写未确认的价格、交期、认证和服务承诺', acceptance: brief.acceptance },
     url: '',
   }
   if (['human', 'client_review', 'site_submit', 'site_publish', 'done'].includes(task.progress))
@@ -332,7 +328,7 @@ export function ignoreOwner(task: GeoTask, mode: ServiceMode): UserRole | null {
     return null
   if (task.progress === 'brief')
     return ['ready', 'changes_requested'].includes(task.workflow?.briefStatus || '') ? (mode === 'managed' ? 'ops' : 'client') : null
-  if (['todo', 'running', 'client_content_review', 'client_review', 'site_publish', 'publish'].includes(task.progress))
+  if (['todo', 'running', 'client_content_review', 'client_review'].includes(task.progress))
     return 'client'
   if (task.progress === 'human')
     return reviewOwner(task, mode)
@@ -439,15 +435,6 @@ export function validateAction(task: GeoTask, role: UserRole, mode: ServiceMode,
       return '退回专家修改已达 3 次上限，请确认当前版本或通过任务反馈联系支持人员'
     return null
   }
-  if (action === 'request_preview_changes') {
-    if (mode === 'agent')
-      return 'AI + 客户模式没有专家承接发布预览修改，请直接确认发布或忽略本次任务'
-    if (role !== 'client' || stage !== 'site_publish')
-      return '请由客户在发布预览阶段提出修改要求'
-    if ((flow.previewRevisionRequests ?? 0) >= 1)
-      return '发布预览修改仅支持 1 次，已使用完毕；请直接确认发布或忽略本次任务'
-    return payload.note?.trim() ? null : '请填写发布预览修改要求'
-  }
   if (action === 'approve_ops')
     return reviewing && role === 'ops' && stage === 'human' && mode === 'managed' ? null : '仅专家可完成当前阶段的专业审核'
   if (action === 'approve_client') {
@@ -459,11 +446,6 @@ export function validateAction(task: GeoTask, role: UserRole, mode: ServiceMode,
     return siteOwner && (stage === 'site_submit' || (mode === 'agent' && task.type === 'repair' && stage === 'human')) && task.type !== 'external' ? null : '仅负责人可提交待提交的官网执行包'
   if (action === 'retry_site')
     return !siteOwner || stage !== 'site_failed' ? '仅负责人可重试失败的官网执行包' : payload.note?.trim() ? null : '请补充调整要求'
-  if (action === 'publish') {
-    if (role !== 'client' || !['site_publish', 'publish'].includes(stage) || task.type === 'external')
-      return '仅客户可确认通过验证的官网发布'
-    return null
-  }
   if (action === 'complete_recheck')
     return stage === 'recheck' && task.type === 'web' ? null : '当前任务不在官网核验阶段'
   return '不支持此操作'
@@ -520,8 +502,7 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       flow.output = { ...flow.output, title: payload.title!.trim(), body: payload.body!.trim(), revision: flow.output.revision + 1 }
       saveVersion(task, '人工修改产物')
       if (task.progress === 'site_failed') {
-        flow.site.result = '已根据官网反馈修改内容，等待重新完成内容质检与最终稿确认。'
-        flow.site.preview = ''
+        flow.site.result = '已根据发布失败结果修改内容，等待重新完成内容质检与最终稿确认。'
         flow.site.simulateFailure = false
         task.progress = mode === 'managed' ? 'human' : 'client_review'
       }
@@ -531,12 +512,6 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       if (mode === 'managed' && role === 'client' && task.type === 'web' && task.progress === 'client_review')
         flow.customerRevisionRequests = (flow.customerRevisionRequests ?? 0) + 1
       task.progress = mode === 'managed' && role === 'client' && task.type === 'web' ? 'human' : 'running'
-      break
-    case 'request_preview_changes':
-      flow.feedback = note
-      flow.previewRevisionRequests = (flow.previewRevisionRequests ?? 0) + 1
-      flow.site.result = `客户查看发布预览后要求修改：${note}`
-      task.progress = 'human'
       break
     case 'approve_ops':
       task.progress = 'client_review'
@@ -558,16 +533,11 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       flow.site.attempts += 1
       task.progress = 'site_submitted'
       break
-    case 'publish':
-      flow.url = ''
-      flow.site.result = `${flow.site.result || '官网检测通过'}；客户已确认发布，后台发布后效果验证已启动。`
-      task.progress = 'done'
-      break
     case 'complete_recheck':
       task.progress = 'done'
       break
   }
-  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', defer_task: '暂不处理本次审核事项', resume_task: '恢复处理本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: isCodeContentTask(task) ? (mode === 'agent' ? '拒绝当前内容，Agent 重新生成' : '拒绝当前内容，退回重新处理') : mode === 'agent' && task.type === 'web' ? `客户第${flow.customerRevisionRequests ?? 0}次要求 Agent 修改` : '要求 Agent 修改产物', request_preview_changes: '客户对发布预览提出修改，退回专家处理', approve_ops: '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', publish: '客户确认发布，任务完结；后台启动发布后效果验证', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
+  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', defer_task: '暂不处理本次审核事项', resume_task: '恢复处理本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: isCodeContentTask(task) ? (mode === 'agent' ? '拒绝当前内容，Agent 重新生成' : '拒绝当前内容，退回重新处理') : mode === 'agent' && task.type === 'web' ? `客户第${flow.customerRevisionRequests ?? 0}次要求 Agent 修改` : '要求 Agent 修改产物', approve_ops: '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
   const detail = action === 'ignore_brief' || action === 'ignore_task' || action === 'defer_task'
     ? [payload.ignoreReason?.trim(), note].filter(Boolean).join('；')
     : note
@@ -607,7 +577,7 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
     record(task, 'Agent', '新 Brief 已生成，等待客户重新确认')
     return true
   }
-  const transitions: Partial<Record<TaskProgress, TaskProgress>> = { todo: 'running', running: mode === 'agent' ? 'client_review' : task.type === 'external' ? 'client_content_review' : 'human', site_submitted: 'site_running', site_running: 'site_verifying', site_verifying: flow.site.simulateFailure ? 'site_failed' : isCodeContentTask(task) ? 'done' : 'site_publish' }
+  const transitions: Partial<Record<TaskProgress, TaskProgress>> = { todo: 'running', running: mode === 'agent' ? 'client_review' : task.type === 'external' ? 'client_content_review' : 'human', site_submitted: 'site_running', site_running: 'site_verifying', site_verifying: flow.site.simulateFailure ? 'site_failed' : 'done' }
   const next = transitions[task.progress]
   if (!next)
     return false
@@ -618,21 +588,19 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
     flow.output.revision += 1
     saveVersion(task, flow.customerRevisionRequests ? `依据客户第${flow.customerRevisionRequests}次意见完成修改与自动检查` : '生成内容草稿与自动检查')
   }
-  if (task.progress === 'site_running' && !isCodeContentTask(task))
-    flow.site.preview = `Preview V${flow.site.attempts || 1}`
   if (task.progress === 'site_verifying')
-    flow.site.result = flow.site.simulateFailure ? '验证未通过：执行结果与验收条件存在差异，请补充要求后重新提交。' : '验证通过：变更范围、内容一致性与机器可读结果符合本次执行包。'
+    flow.site.result = flow.site.simulateFailure ? '发布失败：执行结果与验收条件存在差异，请修改后重新提交。' : '发布成功：内容已发布到官网。'
   task.progress = next
-  const automaticNote = previous === 'running'
-    ? flow.customerRevisionRequests
-      ? `Agent 已依据客户第${flow.customerRevisionRequests}次意见继续优化，并完成内容质检；${taskStageLabel(task, mode)}`
-      : `完成内容生成、段落问题检查与 AI 质检；${taskStageLabel(task, mode)}`
-    : next === 'done'
-      ? isCodeContentTask(task)
-        ? '代码内容已发布，GEO 验证通过；任务完成。'
-        : 'Re-check 完成；站点访问与生产验证记录待接入。'
-      : previous === 'site_verifying'
-        ? `${flow.site.result}；${taskStageLabel(task)}`
+  const automaticNote = previous === 'site_verifying'
+    ? flow.site.result
+    : previous === 'running'
+      ? flow.customerRevisionRequests
+        ? `Agent 已依据客户第${flow.customerRevisionRequests}次意见继续优化，并完成内容质检；${taskStageLabel(task, mode)}`
+        : `完成内容生成、段落问题检查与 AI 质检；${taskStageLabel(task, mode)}`
+      : next === 'done'
+        ? isCodeContentTask(task)
+          ? '代码内容已发布，GEO 验证通过；任务完成。'
+          : '发布完成；任务已闭环。'
         : `自动进入：${taskStageLabel(task)}`
   record(task, '系统', automaticNote)
   return true
@@ -681,7 +649,7 @@ export function taskStageLabel(task: GeoTask, mode: ServiceMode = 'managed'): st
     return task.workflow?.briefStatus === 'agent_reworking' ? 'Agent 重整 Brief' : task.workflow?.briefStatus === 'changes_requested' ? 'Brief 待调整' : 'Brief 待确认'
   if (mode === 'agent' && task.type === 'web' && task.progress === 'running' && (task.workflow?.customerRevisionRequests ?? 0) > 0)
     return 'Agent 按意见修改中'
-  const labels: Record<Exclude<TaskProgress, 'brief'>, string> = { todo: '等待 Agent 执行', running: 'Agent 生成与自动质检', client_content_review: '客户确认文案', human: task.type === 'repair' ? '修复结果确认' : '专家专业审核', client_review: '客户终审', publish: '发布确认', site_submit: '待提交 AI 建站', site_submitted: 'AI 建站审核中', site_running: task.type === 'repair' ? '等待官网处理结果' : 'AI 建站执行中', site_returned: '官网已返回处理结果', site_verifying: 'GEO 验证中', site_publish: '发布门禁确认', site_failed: 'GEO 验证未通过', recheck: 'Re-check 中', done: '任务已完成' }
+  const labels: Record<Exclude<TaskProgress, 'brief'>, string> = { todo: '等待 Agent 执行', running: 'Agent 生成与自动质检', client_content_review: '客户确认文案', human: task.type === 'repair' ? '修复结果确认' : '专家专业审核', client_review: '客户终审', publish: '发布确认', site_submit: '待提交 AI 建站', site_submitted: 'AI 建站审核中', site_running: task.type === 'repair' ? '等待官网处理结果' : 'AI 建站执行中', site_returned: '官网已返回处理结果', site_verifying: '等待发布结果', site_publish: '发布结果', site_failed: '发布失败', recheck: 'Re-check 中', done: '任务已完成' }
   return mode === 'agent' && ['human', 'client_content_review', 'client_review'].includes(task.progress) ? (task.type === 'repair' ? '待客户确认修复' : '待客户审核') : labels[task.progress]
 }
 export function collaborationLabel(task: GeoTask, mode: ServiceMode = 'managed'): string {
@@ -696,7 +664,7 @@ export function collaborationLabel(task: GeoTask, mode: ServiceMode = 'managed')
   if (hasAutomaticStep(task))
     return 'Agent 处理中'
   if (task.progress === 'site_failed')
-    return '验证未通过'
+    return '发布失败'
   if (mode === 'managed' && ((task.progress === 'brief' && task.workflow?.briefStatus === 'changes_requested') || (task.progress === 'human' && task.type === 'repair') || task.progress === 'site_submit'))
     return '专家审核'
   return '待用户审核'

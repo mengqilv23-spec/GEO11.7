@@ -8,7 +8,15 @@ import { createVerificationTask } from '../../workflows/client-diagnosis'
 import { ensureWorkflow } from '../../workflows/task-workflow'
 import TaskWorkspace from './TaskWorkspace.vue'
 
-it.each(['add-content', 'edit-content', 'external', 'technical', 'business-gap'] as const)('records a verified %s cause without publishing the investigation as content', async (outcome) => {
+const verificationLabels = {
+  'add-content': '官网具备该能力，但尚未介绍',
+  'edit-content': '官网已有介绍，但表达不明确',
+  'technical': '内容完整，但存在读取障碍',
+  'external': '需要补充第三方来源',
+  'business-gap': '实际不具备该能力',
+} as const
+
+it.each(['add-content', 'edit-content', 'external', 'technical', 'business-gap'] as const)('records a verified %s cause without publishing or creating a follow-up flow', async (outcome) => {
   const parent = reactive({ ...strategies[0]!, confirmed: true })
   const tasks = reactive<Parameters<typeof createVerificationTask>[0]>([])
   const task = createVerificationTask(tasks, parent)
@@ -23,9 +31,15 @@ it.each(['add-content', 'edit-content', 'external', 'technical', 'business-gap']
   await wrapper.findAll('button').find(button => button.text() === '保存核查结论并完成')!.trigger('click')
   expect(task.progress).toBe('done')
   expect(task.workflow?.site.attempts).toBe(0)
-  if (outcome === 'business-gap') { expect(parent.businessGapRecorded).toBe(true); expect(context.strategies).toHaveLength(1) }
-  else if (outcome === 'technical') { expect(context.findings).toHaveLength(1); expect(tasks[1]?.type).toBe('repair') }
-  else { expect(context.strategies).toHaveLength(2); expect(context.strategies[1]?.confirmed).toBe(false); expect(context.strategies[1]?.gapFacts?.verified).toBe(true) }
+  expect(task.verificationFollowupId).toBeUndefined()
+  expect(tasks).toHaveLength(1)
+  expect(context.strategies).toHaveLength(1)
+  expect(context.findings).toHaveLength(0)
+  expect(parent.businessGapRecorded).toBeUndefined()
+  expect(parent.gapFacts).toBeUndefined()
+  const reminder = wrapper.get('[data-test="verification-reminder"]').text()
+  expect(reminder).toContain(verificationLabels[outcome])
+  expect(reminder).toContain('仅作提醒，不会自动生成后续任务或流程')
   wrapper.unmount()
 })
 

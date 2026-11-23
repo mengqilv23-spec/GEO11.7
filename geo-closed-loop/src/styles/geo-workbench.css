@@ -372,6 +372,17 @@ html.ce-iframe-root .geo-gap-row.ce-action-card:focus-visible { z-index: 1; outl
 .geo-strategy-detail-grid dt { color: var(--geo-text-3); }
 .geo-strategy-detail-grid dd { min-width: 0; margin: 0; color: var(--geo-text-2); font-weight: 400; overflow-wrap: anywhere; }
 .geo-strategy-recommendation { margin: 0; padding: 14px 16px 16px; color: var(--geo-text-2); font-size: 13px; line-height: 20px; }
+.geo-strategy-verification__body { display: grid; gap: 16px; padding: 16px; }
+.geo-strategy-verification__body > p { margin: 0; color: var(--geo-text-2); font-size: 13px; line-height: 20px; }
+.geo-strategy-verification__body .geo-form-label { margin-bottom: 0; }
+.geo-strategy-verification__select { box-sizing: border-box; width: 100%; min-height: var(--input-height); padding: var(--input-padding-block) 32px var(--input-padding-block) var(--input-padding-inline); border: 1px solid var(--input-border-color); border-radius: var(--input-radius); background: var(--input-background); color: var(--input-foreground); font: inherit; font-size: var(--input-font-size); line-height: var(--input-line-height); }
+.geo-strategy-verification__select:hover:not(:disabled) { border-color: var(--input-hover-border); }
+.geo-strategy-verification__select:focus-visible { outline: 2px solid var(--geo-brand); outline-offset: 2px; }
+.geo-strategy-verification__hint { margin: 0; padding: 0 16px 16px; color: var(--geo-text-3); font-size: 12px; line-height: 18px; }
+.geo-strategy-verification__body .geo-strategy-verification__hint { padding: 0; }
+.geo-strategy-verification__record { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 10px 12px; margin: 0; padding: 16px; font-size: 13px; line-height: 20px; }
+.geo-strategy-verification__record dt { color: var(--geo-text-3); }
+.geo-strategy-verification__record dd { margin: 0; color: var(--geo-text-2); white-space: pre-wrap; overflow-wrap: anywhere; }
 .geo-strategy-evidence { display: grid; gap: 12px; padding: 16px; }
 .geo-strategy-evidence__gap { display: grid; gap: 6px; padding: 14px; border-radius: 8px; background: var(--geo-fill); }
 .geo-strategy-evidence__gap span { color: var(--geo-text-2); font-size: 13px; }

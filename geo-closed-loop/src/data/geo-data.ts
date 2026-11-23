@@ -80,8 +80,17 @@ export interface Persona {
   factors: RadarFactor[]
 }
 
+export type VerificationOutcome = 'add-content' | 'edit-content' | 'technical' | 'external' | 'business-gap'
+
+export interface StrategyVerification {
+  outcome: VerificationOutcome
+  note: string
+  recordedAt: string
+}
+
 export interface Strategy {
   businessGapRecorded?: boolean
+  verification?: StrategyVerification
   gapFacts?: { verified: boolean, capability: boolean | null, contentExists: boolean, clear: boolean, readable: boolean, thirdParty: boolean }
   id: string
   origin?: DataOrigin
@@ -108,7 +117,7 @@ export interface GeoTask {
   sourceKind?: 'geo-audit-content'
   executionKind?: 'verification'
   completionOutcome?: 'expired-unexecuted'
-  verificationOutcome?: 'add-content' | 'edit-content' | 'technical' | 'external' | 'business-gap'
+  verificationOutcome?: VerificationOutcome
   verificationFollowupId?: string
   contentFormat?: 'rich-text' | 'code'
   id: string
@@ -255,14 +264,14 @@ export const initialTasks: GeoTask[] = [
         factor: '无热影响区 / 品牌显影',
         source: 'F1 / GS1',
         executionTarget: '官网 · 碳纤维方案页',
-        acceptance: '页面内容与已确认的业务事实和执行范围一致；预览验收通过后进入 GEO Re-check。',
+        acceptance: '页面内容与已确认的业务事实和执行范围一致；发布成功后进入 GEO Re-check。',
       },
       briefStatus: 'ready',
       feedback: '',
       versions: [
         { version: 1, time: '2026-09-28T09:00:00.000Z', note: '初始 Brief', brief: { goal: '碳纤维方案页品牌显影优化', persona: '复材技术负责人、复材初创', factor: '无热影响区 / 品牌显影', source: 'F1 / GS1', executionTarget: '官网 · 碳纤维方案页', acceptance: '页面内容与已确认的业务事实和执行范围一致。' }, methods: ['对比表 / 定义框 / Q&A', '统计数据注入', 'JSON-LD sameAs / Product / FAQ'], knowledge: [], output: '' },
-        { version: 2, time: '2026-09-29T08:30:00.000Z', note: '确认业务事实与验收范围', brief: { goal: '碳纤维方案页品牌显影优化', persona: '复材技术负责人、复材初创', factor: '无热影响区 / 品牌显影', source: 'F1 / GS1', executionTarget: '官网 · 碳纤维方案页', acceptance: '页面内容与已确认的业务事实和执行范围一致；预览验收通过后进入 GEO Re-check。' }, methods: ['对比表 / 定义框 / Q&A', '统计数据注入', 'JSON-LD sameAs / Product / FAQ'], knowledge: [], output: '' },
-        { version: 3, time: '2026-09-29T09:00:00.000Z', note: '移除本任务知识库内容', brief: { goal: '碳纤维方案页品牌显影优化', persona: '复材技术负责人、复材初创', factor: '无热影响区 / 品牌显影', source: 'F1 / GS1', executionTarget: '官网 · 碳纤维方案页', acceptance: '页面内容与已确认的业务事实和执行范围一致；预览验收通过后进入 GEO Re-check。' }, methods: ['对比表 / 定义框 / Q&A', '统计数据注入', 'JSON-LD sameAs / Product / FAQ'], knowledge: [], output: '' },
+        { version: 2, time: '2026-09-29T08:30:00.000Z', note: '确认业务事实与验收范围', brief: { goal: '碳纤维方案页品牌显影优化', persona: '复材技术负责人、复材初创', factor: '无热影响区 / 品牌显影', source: 'F1 / GS1', executionTarget: '官网 · 碳纤维方案页', acceptance: '页面内容与已确认的业务事实和执行范围一致；发布成功后进入 GEO Re-check。' }, methods: ['对比表 / 定义框 / Q&A', '统计数据注入', 'JSON-LD sameAs / Product / FAQ'], knowledge: [], output: '' },
+        { version: 3, time: '2026-09-29T09:00:00.000Z', note: '移除本任务知识库内容', brief: { goal: '碳纤维方案页品牌显影优化', persona: '复材技术负责人、复材初创', factor: '无热影响区 / 品牌显影', source: 'F1 / GS1', executionTarget: '官网 · 碳纤维方案页', acceptance: '页面内容与已确认的业务事实和执行范围一致；发布成功后进入 GEO Re-check。' }, methods: ['对比表 / 定义框 / Q&A', '统计数据注入', 'JSON-LD sameAs / Product / FAQ'], knowledge: [], output: '' },
       ],
       knowledge: [],
       output: { title: '碳纤维方案页品牌显影优化', body: '', revision: 1 },
@@ -271,13 +280,12 @@ export const initialTasks: GeoTask[] = [
         requirements: '对比表 / 定义框 / Q&A、统计数据注入、JSON-LD sameAs / Product / FAQ',
         attempts: 0,
         simulateFailure: false,
-        preview: '',
         result: '',
         targetSite: 'APW 水刀切割网站',
         targetPage: '碳纤维方案页',
         changeType: '官网内容新增 / 更新',
         factBoundary: '使用客户终审版本；不得扩写未经确认的价格、交期、认证和服务承诺。',
-        acceptance: '页面内容与已确认的业务事实和执行范围一致；预览验收通过后进入 GEO Re-check。',
+        acceptance: '页面内容与已确认的业务事实和执行范围一致；发布成功后进入 GEO Re-check。',
       },
       url: '',
     },
@@ -317,14 +325,13 @@ export const initialTasks: GeoTask[] = [
         revision: 2,
       },
       reviews: [
-        { time: '2026-09-30T10:20:00.000Z', actor: 'AI 建站', note: 'GEO 验证未通过：正文仍保留 ±0.1mm 旧参数，与已确认事实不一致。' },
+        { time: '2026-09-30T10:20:00.000Z', actor: 'AI 建站', note: '发布失败：正文仍保留 ±0.1mm 旧参数，与已确认事实不一致。' },
       ],
       site: {
         requirements: '统一 ±0.05mm 精度表述，并将关键参数整理为可读取的结构化数据。',
         attempts: 1,
         simulateFailure: true,
-        preview: '',
-        result: '验证未通过：正文仍保留 ±0.1mm 旧参数，与已确认的 ±0.05mm 事实不一致；参数未形成可被机器读取的结构化数据。',
+        result: '发布失败：正文仍保留 ±0.1mm 旧参数，与已确认的 ±0.05mm 事实不一致；参数未形成可被机器读取的结构化数据。',
         targetSite: 'APW 水刀切割网站',
         targetPage: '切割精度参数页',
         changeType: '官网内容新增 / 更新',
@@ -368,6 +375,6 @@ export function nextProgress(progress: TaskProgress): TaskProgress {
 }
 
 export function progressLabel(progress: TaskProgress) {
-  return { brief: '待确认 Brief', todo: '待执行', running: '执行中', client_content_review: '待确认文案', human: '待人工处理', client_review: '待客户审核', publish: '待发布确认', site_submit: '待提交 AI 建站', site_submitted: '待官网审核', site_running: 'AI 建站执行中', site_returned: '官网已返回处理结果', site_verifying: 'GEO 验证中', site_publish: '发布门禁确认', site_failed: '验证未通过', recheck: '待复测', done: '已完成' }[progress]
+  return { brief: '待确认 Brief', todo: '待执行', running: '执行中', client_content_review: '待确认文案', human: '待人工处理', client_review: '待客户审核', publish: '待发布确认', site_submit: '待提交 AI 建站', site_submitted: '已提交 AI 建站', site_running: 'AI 建站执行中', site_returned: '官网已返回处理结果', site_verifying: '等待发布结果', site_publish: '发布结果', site_failed: '发布失败', recheck: '待复测', done: '已完成' }[progress]
 }
 

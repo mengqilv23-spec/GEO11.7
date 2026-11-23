@@ -4,14 +4,22 @@ import { computed, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TaskWorkspace from '../components/tasks/TaskWorkspace.vue'
 import { useGeoWorkbenchRouteContext } from '../composables/workbench-route-context'
-import { auditFindings, cloneGeoTask, officialContentSnapshot } from '../data/geo-data'
+import { auditFindings, cloneGeoTask, officialContentSnapshot, prototypeTasks } from '../data/geo-data'
 import { ensureWorkflow } from '../workflows/task-workflow'
 
 const route = useRoute()
 const router = useRouter()
 const context = useGeoWorkbenchRouteContext()
+const sourceTask = computed(() => {
+  const current = context.tasks.find(item => item.id === route.params.taskId)
+  if (current || !route.query?.preview)
+    return current
+  // Preview fixtures stay reachable in both service modes, even when the
+  // prototype task they are based on is hidden from the customer task list.
+  return prototypeTasks.find(item => item.id === route.params.taskId)
+})
 const task = computed(() => {
-  const source = context.tasks.find(item => item.id === route.params.taskId)
+  const source = sourceTask.value
   if (!source)
     return undefined
   if (source.id === 'T-2501' && route.query?.preview === 'code-review') {
@@ -62,9 +70,9 @@ const clientPreview = computed(() => testRole.value === 'client')
 const role = computed(() => context.serviceMode.value === 'agent' ? 'client' : testRole.value ?? context.role.value)
 const serviceMode = computed(() => context.serviceMode.value)
 
-watch(() => [route.params.taskId, context.tasks.some(item => item.id === route.params.taskId)] as const, ([taskId]) => {
+watch(() => [route.params.taskId, Boolean(task.value)] as const, ([, exists]) => {
   testRole.value = null
-  if (!context.tasks.some(item => item.id === taskId))
+  if (!exists)
     void router.replace({ name: 'optimization' })
 }, { immediate: true })
 

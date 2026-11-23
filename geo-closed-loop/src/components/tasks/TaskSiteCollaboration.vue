@@ -3,7 +3,6 @@ import type { GeoTask } from '../../data/geo-data'
 import type { TaskBrief, TaskWorkflow } from '../../workflows/task-workflow'
 import Card from '../ui/ce/card/Card.vue'
 import Tag from '../ui/ce/tag/Tag.vue'
-import { computed } from 'vue'
 
 const props = defineProps<{
   task: GeoTask
@@ -13,7 +12,6 @@ const props = defineProps<{
   statusLabel: string
   statusTone: 'blue' | 'green' | 'red' | 'neutral'
 }>()
-const previewHref = computed(() => `${import.meta.env.BASE_URL}optimization/tasks/${encodeURIComponent(props.task.id)}/preview`)
 </script>
 
 <template>
@@ -64,21 +62,18 @@ const previewHref = computed(() => `${import.meta.env.BASE_URL}optimization/task
             {{ site.result || '官网已返回处理结果，详细回传内容待加载。' }}
           </p>
         </template>
-        <template v-else-if="site.preview || site.result">
+        <template v-else-if="site.result">
           <dl class="tw-site-fields tw-site-result-fields">
             <div class="tw-site-field">
               <dt>修改摘要</dt><dd>{{ site.requirements || '按已确认执行包完成页面修改。' }}</dd>
             </div>
             <div class="tw-site-field">
-              <dt>预览版本</dt><dd><a v-if="site.preview" :href="previewHref" target="_blank" rel="noopener noreferrer">{{ site.preview }} · 打开预览</a><span v-else>尚未生成</span></dd>
-            </div>
-            <div class="tw-site-field">
-              <dt>自动检查</dt><dd>{{ site.result || '检查结果待回传' }}</dd>
+              <dt>发布结果</dt><dd>{{ site.result || '等待 AI 建站返回结果' }}</dd>
             </div>
           </dl>
         </template>
         <p v-else class="tw-site-waiting">
-          {{ task.type === 'repair' ? '技术修复已提交官网，等待官网回传处理结果。' : 'AI 建站接收任务后，将在这里返回修改摘要、预览版本、变更 Diff 和自动检查结果。' }}
+          {{ task.type === 'repair' ? '技术修复已提交官网，等待官网回传处理结果。' : 'AI 建站接收任务后，将在这里返回发布结果：成功或失败。' }}
         </p>
       </section>
     </div>
