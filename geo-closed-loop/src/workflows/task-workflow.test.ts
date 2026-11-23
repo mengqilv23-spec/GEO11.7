@@ -307,6 +307,30 @@ describe('prototype task ownership and backend-driven repair status', () => {
     expect(hasAutomaticStep(task)).toBe(false)
   })
 
+  it('rolls a failed website publish straight back to content optimisation', () => {
+    const managed = makeTask('web', 'site_verifying')
+    const managedFlow = ensureWorkflow(managed)
+    managedFlow.site.simulateFailure = true
+
+    expect(advanceAutomatic(managed, 'managed')).toBe(true)
+    expect(managed.progress).toBe('human')
+    expect(managedFlow.site.result).toContain('发布失败')
+    expect(managedFlow.site.result).toContain('已退回内容优化')
+    expect(managedFlow.site.simulateFailure).toBe(false)
+    expect(hasAutomaticStep(managed, 'managed')).toBe(false)
+
+    const agent = makeTask('web', 'site_verifying')
+    const agentFlow = ensureWorkflow(agent)
+    agentFlow.site.simulateFailure = true
+
+    expect(advanceAutomatic(agent, 'agent')).toBe(true)
+    expect(agent.progress).toBe('client_review')
+    expect(agentFlow.site.result).toContain('发布失败')
+    expect(agentFlow.site.result).toContain('已退回内容优化')
+    expect(agentFlow.site.simulateFailure).toBe(false)
+    expect(hasAutomaticStep(agent, 'agent')).toBe(false)
+  })
+
   it('normalizes legacy repair execution fields to the technical-repair package', () => {
     const task = makeTask('repair', 'site_running')
     const workflow = ensureWorkflow(task)

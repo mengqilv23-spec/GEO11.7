@@ -221,9 +221,14 @@ const verificationReminder = computed(() => {
   return `核查完成：${conclusion ? `${conclusion}。` : ''}结论已记录，仅作提醒，不会自动生成后续任务或流程。`
 })
 const isContentPreparation = computed(() => ['todo', 'running', 'client_content_review', 'human', 'client_review'].includes(props.task.progress))
+const publishFailureReturn = computed(() => props.task.type === 'web'
+  && ['client_content_review', 'human', 'client_review'].includes(props.task.progress)
+  && flow.value.site.result.startsWith('发布失败'))
 const siteStatus = computed(() => {
   if (props.task.completionOutcome === 'expired-unexecuted')
     return { label: '已完成', tone: 'neutral' as const }
+  if (publishFailureReturn.value)
+    return { label: '发布失败 · 已退回内容优化', tone: 'red' as const }
   if (isDirectRepairTask(props.task))
     return { label: directRepairStatus(props.task.progress === 'done'), tone: props.task.progress === 'done' ? 'green' as const : 'blue' as const }
   if (props.task.type === 'repair') {
@@ -248,10 +253,12 @@ const siteStatus = computed(() => {
     return { label: 'AI 建站执行中', tone: 'blue' as const }
   return { label: taskStageLabel(props.task, props.serviceMode), tone: 'blue' as const }
 })
-const siteStripVisible = computed(() => props.task.type === 'web' && ['site_submit', 'site_submitted', 'site_running', 'site_verifying', 'site_failed', 'publish', 'recheck', 'done'].includes(props.task.progress))
+const siteStripVisible = computed(() => props.task.type === 'web' && (publishFailureReturn.value || ['site_submit', 'site_submitted', 'site_running', 'site_verifying', 'site_failed', 'publish', 'recheck', 'done'].includes(props.task.progress)))
 const siteStripText = computed(() => {
   if (props.task.completionOutcome === 'expired-unexecuted')
     return '未执行优化：新一轮监测生成时本任务仍未提交官网，已按时限关闭。'
+  if (publishFailureReturn.value)
+    return flow.value.site.result
   if (props.task.progress === 'site_failed')
     return flow.value.site.result || '发布失败，请返回内容审核修改后重新提交。'
   if (['site_submit', 'site_submitted'].includes(props.task.progress))
@@ -372,6 +379,8 @@ const actionbarDescription = computed(() => {
   }
   if (props.task.completionOutcome === 'expired-unexecuted')
     return '未执行优化。本任务已超出处理时限并关闭，不能继续处理。'
+  if (publishFailureReturn.value)
+    return '发布失败，已退回内容优化。请修改内容并重新确认后提交。'
   if (customerFinalReview.value) {
     if (codeContentTask.value)
       return props.serviceMode === 'managed' ? `请查看生成内容；内容只读，只能选择通过或拒绝。拒绝后按修改次数规则退回处理（最多 3 次，已使用 ${customerRevisionRequests.value} 次）。` : '请查看生成内容；内容只读，只能选择通过或拒绝。'
@@ -835,7 +844,7 @@ function versionDiff(index: number) {
 
             <section v-else-if="tab === 'output'" class="tw-card">
               <template v-if="flow.output.body">
-                <div v-if="siteStripVisible" class="tw-site-strip" :class="{ 'is-failed': task.progress === 'site_failed' }" :title="flow.site.result || undefined">
+                <div v-if="siteStripVisible" class="tw-site-strip" :class="{ 'is-failed': task.progress === 'site_failed' || publishFailureReturn }" :title="flow.site.result || undefined">
                   <Tag :tone="siteStatus.tone" size="sm">
                     {{ siteStatus.label }}
                   </Tag>

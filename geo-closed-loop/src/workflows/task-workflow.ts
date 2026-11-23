@@ -577,7 +577,17 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
     record(task, 'Agent', '新 Brief 已生成，等待客户重新确认')
     return true
   }
-  const transitions: Partial<Record<TaskProgress, TaskProgress>> = { todo: 'running', running: mode === 'agent' ? 'client_review' : task.type === 'external' ? 'client_content_review' : 'human', site_submitted: 'site_running', site_running: 'site_verifying', site_verifying: flow.site.simulateFailure ? 'site_failed' : 'done' }
+  const publishFailed = task.progress === 'site_verifying' && flow.site.simulateFailure
+  // A failed website publish returns straight to content optimisation instead
+  // of leaving the task parked on a separate failure step.
+  const rollbackToContent = publishFailed && task.type === 'web'
+  const transitions: Partial<Record<TaskProgress, TaskProgress>> = {
+    todo: 'running',
+    running: mode === 'agent' ? 'client_review' : task.type === 'external' ? 'client_content_review' : 'human',
+    site_submitted: 'site_running',
+    site_running: 'site_verifying',
+    site_verifying: publishFailed ? (rollbackToContent ? (mode === 'managed' ? 'human' : 'client_review') : 'site_failed') : 'done',
+  }
   const next = transitions[task.progress]
   if (!next)
     return false
@@ -588,8 +598,13 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
     flow.output.revision += 1
     saveVersion(task, flow.customerRevisionRequests ? `依据客户第${flow.customerRevisionRequests}次意见完成修改与自动检查` : '生成内容草稿与自动检查')
   }
-  if (task.progress === 'site_verifying')
-    flow.site.result = flow.site.simulateFailure ? '发布失败：执行结果与验收条件存在差异，请修改后重新提交。' : '发布成功：内容已发布到官网。'
+  if (task.progress === 'site_verifying') {
+    flow.site.result = publishFailed
+      ? (rollbackToContent ? '发布失败：执行结果与验收条件存在差异，已退回内容优化。' : '发布失败：执行结果与验收条件存在差异，请修改后重新提交。')
+      : '发布成功：内容已发布到官网。'
+    if (rollbackToContent)
+      flow.site.simulateFailure = false
+  }
   task.progress = next
   const automaticNote = previous === 'site_verifying'
     ? flow.site.result

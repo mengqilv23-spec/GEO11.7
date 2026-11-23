@@ -798,7 +798,7 @@ describe('task workspace task confirmation', () => {
     expect(customerView.find('[data-test="request-preview-changes"]').exists()).toBe(false)
   })
 
-  it('lets the customer simulate a failed AI website publish and return the content for revision', async () => {
+  it('returns the customer directly to content optimisation when AI website publish fails', async () => {
     vi.useFakeTimers()
     try {
       const task = reactive(makeTask())
@@ -812,13 +812,14 @@ describe('task workspace task confirmation', () => {
       expect(task.progress).toBe('site_submitted')
 
       await vi.advanceTimersByTimeAsync(5000)
-      expect(task.progress).toBe('site_failed')
+      expect(task.progress).toBe('client_review')
+      expect(flow.site.simulateFailure).toBe(false)
       await wrapper.vm.$nextTick()
       expect(wrapper.get('.tw-site-strip').text()).toContain('发布失败')
-      expect(wrapper.get('[data-test="return-content-review"]').text()).toBe('返回内容审核改写')
-
-      await wrapper.get('[data-test="return-content-review"]').trigger('click')
-      expect(task.progress).toBe('client_review')
+      expect(wrapper.get('.tw-site-strip').text()).toContain('已退回内容优化')
+      expect(wrapper.get('.tw-site-strip').classes()).toContain('is-failed')
+      expect(wrapper.find('[data-test="return-content-review"]').exists()).toBe(false)
+      expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('true')
       wrapper.unmount()
     }
     finally {
