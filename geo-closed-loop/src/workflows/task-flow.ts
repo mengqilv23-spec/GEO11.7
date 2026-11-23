@@ -13,7 +13,7 @@ const websiteSteps = [
   ['内容生成', 'Agent执行'],
   ['内容优化', 'GEO专家+Agent执行'],
   ['内容确认', '客户审核'],
-  ['官网执行与检测', 'AI 建站'],
+  ['检测并执行任务', 'AI 建站'],
   ['发布结果', '系统'],
 ] as const
 
@@ -104,7 +104,7 @@ export function taskFlowFor(task: GeoTask, serviceMode: ServiceMode = 'managed')
       ? [['确认修复方案', '客户'], ['官网执行与验证', 'Agent'], ['执行结果', '系统']]
       : task.type === 'external'
         ? [['Task Brief 确认', '客户'], ['内容生成与质检', 'Agent'], ['内容审核改写', '客户 + Agent'], ['内容交付', '系统']]
-        : [['Task Brief 确认', '客户'], ['内容生成与质检', 'Agent'], ['内容审核', '客户 + Agent'], ['官网执行与检测', 'Agent'], ['发布结果', '系统']]
+        : [['Task Brief 确认', '客户'], ['内容生成与质检', 'Agent'], ['内容审核', '客户 + Agent'], ['检测并执行任务', 'Agent'], ['发布结果', '系统']]
     const p = task.progress
     current = task.type === 'repair'
       ? ['human', 'brief'].includes(p) ? 0 : ['done', 'site_returned'].includes(p) ? 2 : 1

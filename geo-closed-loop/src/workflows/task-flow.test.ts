@@ -22,7 +22,7 @@ describe('taskFlowFor', () => {
   it('renders the website workflow from Brief to publication result without a preview step', () => {
     const flow = taskFlowFor(makeTask('web', 'brief'))
 
-    expect(flow.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成', '内容优化', '内容确认', '官网执行与检测', '发布结果'])
+    expect(flow.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成', '内容优化', '内容确认', '检测并执行任务', '发布结果'])
     expect(flow.map(step => step.detail)).toEqual(['GEO专家', 'Agent执行', 'GEO专家+Agent执行', '客户审核', 'AI 建站', '系统'])
     expect(flow.map(step => step.state)).toEqual(['current', 'upcoming', 'upcoming', 'upcoming', 'upcoming', 'upcoming'])
   })
@@ -51,10 +51,10 @@ describe('taskFlowFor', () => {
     task.source = 'F9'
 
     const managed = taskFlowFor(task, 'managed')
-    expect(managed.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成', '内容优化', '内容确认', '官网执行与检测', '发布结果'])
+    expect(managed.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成', '内容优化', '内容确认', '检测并执行任务', '发布结果'])
 
     const agent = taskFlowFor(task, 'agent')
-    expect(agent.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成与质检', '内容审核', '官网执行与检测', '发布结果'])
+    expect(agent.map(step => step.title)).toEqual(['Task Brief 确认', '内容生成与质检', '内容审核', '检测并执行任务', '发布结果'])
     expect(agent.find(step => step.title === '预览链接与发布确认')).toBeUndefined()
     expect(agent.findIndex(step => step.state === 'current')).toBe(2)
     expect(taskFlowFor({ ...task, progress: 'done' }, 'agent').at(-1)?.state).toBe('current')
