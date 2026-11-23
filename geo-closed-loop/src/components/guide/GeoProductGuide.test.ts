@@ -12,7 +12,7 @@ beforeEach(() => {
   localStorage.removeItem(storageKey)
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
     if (this.matches('.geo-guide-card')) return { left: 0, top: 0, width: 360, height: 320, right: 360, bottom: 320, x: 0, y: 0, toJSON() {} }
-    if (this.matches('.vm-process, .vm-table-card, .vm-round-summary, .geo-audit-panel')) return { left: 100, top: 80, width: 400, height: 200, right: 500, bottom: 280, x: 100, y: 80, toJSON() {} }
+    if (this.matches('.vm-process, .vm-table-card, .vm-round-summary, .geo-audit-panel, #visibility-tab-questions')) return { left: 100, top: 80, width: 400, height: 200, right: 500, bottom: 280, x: 100, y: 80, toJSON() {} }
     return { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0, x: 0, y: 0, toJSON() {} }
   })
 })
@@ -22,7 +22,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 async function setup(path = '/visibility-monitoring') {
-  document.body.insertAdjacentHTML('beforeend', '<section class="vm-process"></section><section class="vm-round-summary"></section><section class="geo-audit-panel"></section><button id="visibility-step-5">监测结果</button><button id="visibility-tab-questions">问答命中明细</button><section class="vm-table-card"></section>')
+  document.body.insertAdjacentHTML('beforeend', '<section id="visibility-step-1" class="vm-process"></section><section class="vm-round-summary"></section><section class="geo-audit-panel"></section><button id="visibility-step-5">监测结果</button><button id="visibility-tab-questions">问答命中明细</button><section class="vm-table-card"></section>')
   const router = createRouter({ history: createMemoryHistory(), routes: [...new Set(geoGuideModules.map(module => module.route))].map(name => ({ path: `/${name}`, name, component: { template: '<div />' } })) })
   await router.push(path)
   const wrapper = mount(GeoProductGuide, { attachTo: document.body, props: { storageKey }, global: { plugins: [router] } })
@@ -35,12 +35,43 @@ async function setup(path = '/visibility-monitoring') {
 describe('anchored GEO guide', () => {
   it('highlights the current functional region on first entry and permits immediate skipping', async () => {
     await setup()
-    expect(page().get('#geo-guide-title').text()).toBe('定义监测范围')
+    expect(page().get('#geo-guide-title').text()).toBe('品牌知识：让 AI 了解你')
     expect(page().get('.geo-guide-highlight').attributes('style')).toContain('left: 94px')
     await page().get('.geo-guide-skip').trigger('click')
     expect(page().find('.geo-guide-card').exists()).toBe(false)
     expect(localStorage.getItem(storageKey)).toBe('1')
     expect(document.querySelector('[data-geo-guide-target]')).toBeNull()
+  })
+
+  it('does not scroll the page back after the highlighted section has been located', async () => {
+    const scrollIntoView = vi.fn()
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, writable: true, value: scrollIntoView })
+    try {
+      await setup()
+      await flushPromises()
+      expect(scrollIntoView).toHaveBeenCalled()
+      const locatedCalls = scrollIntoView.mock.calls.length
+      document.querySelector('#visibility-step-1')!.classList.add('is-scrolled-away')
+      await flushPromises()
+      await new Promise(resolve => requestAnimationFrame(resolve))
+      expect(scrollIntoView).toHaveBeenCalledTimes(locatedCalls)
+    }
+    finally {
+      Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView')
+    }
+  })
+
+  it('floats out of the way when the user scrolls, without storing a dismissal', async () => {
+    await setup()
+    expect(page().find('.geo-guide-card').exists()).toBe(true)
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 5000)
+    document.dispatchEvent(new Event('scroll'))
+    await flushPromises()
+    expect(page().find('.geo-guide-card').exists()).toBe(false)
+    expect(localStorage.getItem(storageKey)).toBeNull()
+    await page().get('.geo-guide-launcher').trigger('click')
+    await flushPromises()
+    expect(page().find('.geo-guide-card').exists()).toBe(true)
   })
 
   it('remembers dismissal and reopens beside the current page through the entry or F1', async () => {
@@ -53,7 +84,7 @@ describe('anchored GEO guide', () => {
     await router.push('/diagnosis')
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F1', cancelable: true }))
     await flushPromises()
-    expect(page().get('#geo-guide-title').text()).toBe('查看诊断证据')
+    expect(page().get('#geo-guide-title').text()).toBe('官网 GEO 体检：检查 AI 能否读懂官网')
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }))
     await flushPromises()
     expect(page().find('.geo-guide-card').exists()).toBe(false)
@@ -65,14 +96,14 @@ describe('anchored GEO guide', () => {
     const tabClick = vi.fn()
     document.getElementById('visibility-step-5')!.addEventListener('click', stepClick)
     document.getElementById('visibility-tab-questions')!.addEventListener('click', tabClick)
-    await page().get('footer [data-variant="primary"]').trigger('click')
-    await flushPromises()
-    await page().get('footer [data-variant="primary"]').trigger('click')
-    await flushPromises()
+    for (let step = 0; step < 5; step++) {
+      await page().get('footer [data-variant="primary"]').trigger('click')
+      await flushPromises()
+    }
     expect(stepClick).toHaveBeenCalledTimes(2)
     expect(tabClick).toHaveBeenCalledOnce()
-    expect(page().get('#geo-guide-title').text()).toBe('问答命中明细')
-    expect(document.querySelector('.vm-table-card')!.hasAttribute('data-geo-guide-target')).toBe(true)
+    expect(page().get('#geo-guide-title').text()).toBe('问答命中明细：核对具体回答')
+    expect(document.querySelector('#visibility-tab-questions')!.hasAttribute('data-geo-guide-target')).toBe(true)
   })
 
   it('navigates to the chosen module and preserves the product version', async () => {
@@ -81,7 +112,7 @@ describe('anchored GEO guide', () => {
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('overview')
     expect(router.currentRoute.value.query.version).toBe('client')
-    expect(page().get('#geo-guide-title').text()).toBe('先确定观察范围')
+    expect(page().get('#geo-guide-title').text()).toBe('核心指标概览：判断整体表现')
   })
 
   it('does not claim a hidden target is highlighted and cancels pending lookup when skipped', async () => {

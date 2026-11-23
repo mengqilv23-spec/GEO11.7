@@ -30,6 +30,7 @@ let observer: MutationObserver | undefined
 let resizeObserver: ResizeObserver | undefined
 let deadline: ReturnType<typeof setTimeout> | undefined
 let frame = 0
+let guideScrollUntil = 0
 
 function visibleTarget() {
   return Array.from(document.querySelectorAll<HTMLElement>(targetSpec.value?.selector ?? ':not(*)')).find(element => {
@@ -54,6 +55,22 @@ function measure() {
 function queueMeasure() {
   cancelAnimationFrame(frame)
   frame = requestAnimationFrame(measure)
+}
+function handleScroll(event: Event) {
+  queueMeasure()
+  if (!open.value || Date.now() < guideScrollUntil)
+    return
+  if (event.target instanceof Node && card.value?.contains(event.target))
+    return
+  // The card is anchored to a highlighted section. When the user scrolls the
+  // page to work elsewhere, get the floating card out of the way so it cannot
+  // cover the buttons they are trying to use. This is not a dismissal: the
+  // guide can be reopened from the launcher or F1.
+  open.value = false
+  generation++
+  stopWaiting()
+  cancelAnimationFrame(frame)
+  layer.value?.hidePopover?.()
 }
 function stopWaiting() {
   clearTimeout(deadline)
@@ -86,7 +103,14 @@ async function locate() {
     locating.value = false
     message.value = ''
     element.setAttribute('data-geo-guide-target', '')
+    guideScrollUntil = Date.now() + 800
     element.scrollIntoView?.({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+    // Stop watching for a target once it is found. The observer watches every
+    // class change in the body; leaving it connected makes page scrolling
+    // re-trigger this scrollIntoView and yanks the user back to the highlighted
+    // section, so buttons further down (for example 外部信源) cannot be reached.
+    observer?.disconnect()
+    observer = undefined
     resizeObserver?.observe(element)
     queueMeasure()
   }
@@ -149,7 +173,7 @@ watch(() => route.name, () => {
 onMounted(() => {
   window.addEventListener('keydown', handleKey, true)
   window.addEventListener('resize', queueMeasure)
-  document.addEventListener('scroll', queueMeasure, true)
+  document.addEventListener('scroll', handleScroll, true)
   if (isOnboarding.value) return
   let dismissed = false
   try { dismissed = localStorage.getItem(props.storageKey) === '1' } catch { /* Show the first-entry guide when storage is unavailable. */ }
@@ -161,7 +185,7 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(frame)
   window.removeEventListener('keydown', handleKey, true)
   window.removeEventListener('resize', queueMeasure)
-  document.removeEventListener('scroll', queueMeasure, true)
+  document.removeEventListener('scroll', handleScroll, true)
 })
 </script>
 
