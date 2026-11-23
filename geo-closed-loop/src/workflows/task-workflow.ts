@@ -437,7 +437,7 @@ export function validateAction(task: GeoTask, role: UserRole, mode: ServiceMode,
   if (action === 'request_output_changes') {
     if (!reviewing) return '当前角色不能要求修改产物'
     if (!payload.note?.trim()) return '请填写产物修改意见'
-    if (mode === 'managed' && role === 'client' && task.type === 'web' && stage === 'client_review' && (flow.customerRevisionRequests ?? 0) >= 3)
+    if (mode === 'managed' && role === 'client' && ['web', 'external'].includes(task.type) && stage === 'client_review' && (flow.customerRevisionRequests ?? 0) >= 3)
       return '退回专家修改已达 3 次上限，请确认当前版本或通过任务反馈联系支持人员'
     return null
   }
@@ -517,9 +517,9 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       flow.feedback = note
       if (role === 'client')
         flow.customerReturn = { note, time: now() }
-      if (mode === 'managed' && role === 'client' && task.type === 'web' && task.progress === 'client_review')
+      if (mode === 'managed' && role === 'client' && ['web', 'external'].includes(task.type) && task.progress === 'client_review')
         flow.customerRevisionRequests = (flow.customerRevisionRequests ?? 0) + 1
-      task.progress = mode === 'managed' && role === 'client' && task.type === 'web' ? 'human' : 'running'
+      task.progress = mode === 'managed' && role === 'client' && ['web', 'external'].includes(task.type) ? 'human' : 'running'
       break
     case 'approve_ops':
       // The returned content has been reworked and resubmitted for customer review.
@@ -549,7 +549,7 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       task.progress = 'done'
       break
   }
-  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', defer_task: '暂不处理本次审核事项', resume_task: '恢复处理本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: isCodeContentTask(task) ? (mode === 'agent' ? '拒绝当前内容，Agent 重新生成' : '拒绝当前内容，退回重新处理') : mode === 'agent' && task.type === 'web' ? `客户第${flow.customerRevisionRequests ?? 0}次要求 Agent 修改` : '要求 Agent 修改产物', approve_ops: '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
+  const labels: Record<WorkflowAction, string> = { save_brief: '保存 Brief 新版本', update_web_supplement: `联网补充已${payload.webSupplement ? '开启' : '关闭'}`, confirm_brief: '确认 Brief，进入自动执行', ignore_brief: '忽略本次审核事项', ignore_task: '忽略本次审核事项', defer_task: '暂不处理本次审核事项', resume_task: '恢复处理本次审核事项', request_brief_changes: '提出 Brief 调整意见', rework_brief: '专家审核意见，交 Agent 重整 Brief', save_output: '保存产物修改', request_output_changes: isCodeContentTask(task) ? (mode === 'agent' ? '拒绝当前内容，Agent 重新生成' : '拒绝当前内容，退回重新处理') : mode === 'agent' && task.type === 'web' ? `客户第${flow.customerRevisionRequests ?? 0}次要求 Agent 修改` : task.type === 'external' ? '客户退回专家修改' : '要求 Agent 修改产物', approve_ops: task.type === 'external' ? '内容审核通过，等待客户确认' : '修复专业审核通过，等待客户确认', approve_client: mode === 'agent' && task.type !== 'external' ? '客户确认内容，AI 自动提交官网执行包' : task.type === 'external' ? '外部内容确认，完成交付；不跟踪外部发布 URL' : task.type === 'web' && task.progress === 'done' ? '客户终审通过，建站接口返回成功，任务已完成' : '客户终审通过，生成官网执行包', submit_site: '提交 AI 建站执行包', retry_site: '补充要求并重新提交', complete_recheck: '监测 Agent 完成本次官网核验，任务闭环' }
   const detail = action === 'ignore_brief' || action === 'ignore_task' || action === 'defer_task'
     ? [payload.ignoreReason?.trim(), note].filter(Boolean).join('；')
     : note
@@ -595,7 +595,7 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
   const rollbackToContent = publishFailed && task.type === 'web'
   const transitions: Partial<Record<TaskProgress, TaskProgress>> = {
     todo: 'running',
-    running: mode === 'agent' ? 'client_review' : task.type === 'external' ? 'client_content_review' : 'human',
+    running: mode === 'agent' ? 'client_review' : 'human',
     site_submitted: 'site_running',
     site_running: 'site_verifying',
     site_verifying: publishFailed ? (rollbackToContent ? (mode === 'managed' ? 'human' : 'client_review') : 'site_failed') : 'done',

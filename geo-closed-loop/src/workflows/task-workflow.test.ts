@@ -116,16 +116,42 @@ describe('prototype task ownership and backend-driven repair status', () => {
     expect(flow.site.result).toContain('发布成功')
   })
 
-  it('routes generated external content through customer review before operations review', () => {
+  it('routes generated external content through operations review before customer review', () => {
     const task = makeTask('external', 'running')
     ensureWorkflow(task)
 
     expect(advanceAutomatic(task)).toBe(true)
-    expect(task.progress).toBe('client_content_review')
-    expect(reviewOwner(task, 'managed')).toBe('client')
-    expect(applyAction(task, 'client', 'managed', 'approve_client')).toBeNull()
     expect(task.progress).toBe('human')
     expect(reviewOwner(task, 'managed')).toBe('ops')
+    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
+    expect(task.progress).toBe('client_review')
+    expect(reviewOwner(task, 'managed')).toBe('client')
+    expect(applyAction(task, 'client', 'managed', 'approve_client')).toBeNull()
+    expect(task.progress).toBe('done')
+  })
+
+  it('returns external content from customer review to the expert with the customer note', () => {
+    const task = makeTask('external', 'client_review')
+    const flow = ensureWorkflow(task)
+
+    expect(applyAction(task, 'client', 'managed', 'request_output_changes', { note: '请补充第三方来源。' })).toBeNull()
+    expect(task.progress).toBe('human')
+    expect(reviewOwner(task, 'managed')).toBe('ops')
+    expect(flow.customerReturn?.note).toBe('请补充第三方来源。')
+    expect(flow.customerRevisionRequests).toBe(1)
+
+    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
+    expect(task.progress).toBe('client_review')
+    expect(flow.customerReturn).toBeUndefined()
+  })
+
+  it('limits external customer returns to three before final confirmation', () => {
+    const task = makeTask('external', 'client_review')
+    const flow = ensureWorkflow(task)
+    flow.customerRevisionRequests = 3
+
+    expect(applyAction(task, 'client', 'managed', 'request_output_changes', { note: '还需要再改一次。' })).toContain('3 次上限')
+    expect(task.progress).toBe('client_review')
   })
 
   it('lets only the current reviewer update the web supplement setting and records the change', () => {

@@ -231,7 +231,7 @@ const publishFailureReturn = computed(() => {
 })
 const customerReturnNotice = computed(() => {
   const returned = flow.value.customerReturn
-  if (props.task.type !== 'web' || !returned?.note.trim())
+  if ((props.task.type !== 'web' && props.task.type !== 'external') || !returned?.note.trim())
     return false
   // Show the customer's return note while the content is being reworked, and
   // hide it once the reworked content is submitted for the next review.
@@ -302,12 +302,10 @@ const taskSubtitle = computed(() => props.task.origin === 'buyer-coverage'
   : props.task.origin === 'geo-audit' ? `官网 GEO 体检 · ${props.task.source}` : props.task.source)
 const editableBrief = computed(() => canPrepareBrief(props.task, props.role, props.serviceMode))
 const reviewing = computed(() => ['client_content_review', 'human', 'client_review'].includes(props.task.progress) && reviewOwner(props.task, props.serviceMode) === props.role && !(props.serviceMode === 'agent' && props.role === 'ops') && !deferredTask.value)
-const contentReviewVisible = computed(() => ['todo', 'running', 'client_content_review', 'human', 'client_review'].includes(props.task.progress))
 const operationsContentReview = computed(() => props.task.progress === 'human' && props.role === 'ops')
 const aiWritingBlocked = computed(() => props.serviceMode === 'managed' && props.role === 'client' && props.task.progress === 'human')
 const codeContentTask = computed(() => isCodeContentTask(props.task))
 const contentReviewLocked = computed(() => codeContentTask.value && reviewing.value)
-const aiWritingAvailable = computed(() => contentReviewVisible.value && !aiWritingBlocked.value && !codeContentTask.value)
 const canEditWebSupplement = computed(() => editableBrief.value || reviewing.value || (props.role === 'client' && ['todo', 'running'].includes(props.task.progress)))
 const outputDirty = computed(() => draft.title !== flow.value.output.title || draft.body !== flow.value.output.body)
 const briefDirty = computed(() => directInstruction.value !== (flow.value.brief.contentInstruction || '')
@@ -318,9 +316,10 @@ const hasUnsavedContent = computed(() => (props.task.type === 'web' || props.tas
     || (props.task.executionKind === 'verification' && props.task.progress !== 'done' && draft.body !== flow.value.output.body)))
 const siteOwner = computed(() => props.role === (props.serviceMode === 'managed' ? 'ops' : 'client'))
 const outputEditable = computed(() => !contentReviewLocked.value && (reviewing.value || (props.task.progress === 'site_failed' && siteOwner.value)))
+const aiWritingAvailable = computed(() => outputEditable.value && !codeContentTask.value)
 const rejectLimitReached = computed(() => props.serviceMode === 'managed' && props.role === 'client' && codeContentTask.value && props.task.progress === 'client_review' && customerRevisionRequests.value >= 3)
 const canRejectOutput = computed(() => contentReviewLocked.value && reviewing.value)
-const canRequestAgentRevision = computed(() => props.serviceMode === 'managed' && props.role === 'client' && props.task.type === 'web' && props.task.progress === 'client_review' && !codeContentTask.value && customerRevisionRequests.value < 3)
+const canRequestAgentRevision = computed(() => props.serviceMode === 'managed' && props.role === 'client' && (props.task.type === 'web' || props.task.type === 'external') && props.task.progress === 'client_review' && !codeContentTask.value && customerRevisionRequests.value < 3)
 const finalQualityVisible = computed(() => props.task.type !== 'repair' && !codeContentTask.value && Boolean(flow.value.output.body))
 const outputEmptyMessage = computed(() => {
   if (props.task.progress === 'brief')
@@ -368,7 +367,9 @@ const waitingFor = computed(() => {
   if (['human', 'client_review'].includes(props.task.progress)) {
     if (codeContentTask.value && reviewOwner(props.task, props.serviceMode) === 'client')
       return '请查看生成内容；内容只读，只能选择通过或拒绝。'
-    return reviewOwner(props.task, props.serviceMode) === 'ops' ? '等待专家完成修复专业审核，再交客户确认。' : '等待客户确认产物、业务事实与交付范围。'
+    return reviewOwner(props.task, props.serviceMode) === 'ops'
+      ? (props.task.type === 'external' ? '等待专家审核并修改内容，完成后会提交给你确认。' : '等待专家完成修复专业审核，再交客户确认。')
+      : '等待客户确认产物、业务事实与交付范围。'
   }
   if (props.task.progress === 'recheck')
     return '发布/交付已完成，正在等待新的监测轮次进行官网核验。'
@@ -865,6 +866,12 @@ function versionDiff(index: number) {
 
             <section v-else-if="tab === 'output'" class="tw-card">
               <template v-if="flow.output.body">
+                <div v-if="task.type === 'external' && customerReturnNotice" class="tw-site-strip is-returned" :title="flow.customerReturn?.note">
+                  <Tag tone="orange" size="sm">
+                    客户已退回修改
+                  </Tag>
+                  <span class="tw-site-strip__text">修改意见：{{ flow.customerReturn?.note }}</span>
+                </div>
                 <div v-if="siteStripVisible" class="tw-site-strip" :class="{ 'is-failed': task.progress === 'site_failed' || publishFailureReturn, 'is-returned': customerReturnNotice }" :title="customerReturnNotice ? flow.customerReturn?.note : flow.site.result || undefined">
                   <Tag :tone="siteStatus.tone" size="sm">
                     {{ siteStatus.label }}
@@ -874,12 +881,12 @@ function versionDiff(index: number) {
                 <div class="tw-output-review-layout">
                   <div class="tw-output-review-main">
                     <p v-if="aiWritingBlocked && !codeContentTask" class="tw-ai-guard" role="status">
-                      专家正在审核内容，客户当前不能使用 AI 写作。审核完成后可继续查看或确认。
+                      专家正在审核并修改内容，客户当前只读，不能使用 AI 写作。专家提交后会交给你确认。
                     </p>
                     <p v-if="contentReviewLocked" class="tw-ai-guard" role="status">
                       生成内容为只读，当前只能选择通过或拒绝。
                     </p>
-                    <TaskRichTextEditor v-model="draft.body" :editable="outputEditable" :ai-optimize="!codeContentTask && (aiWritingAvailable || task.progress === 'site_failed')" :ai-calls-remaining="aiCallsRemaining" :external-claims="flow.output.externalClaims || []" :can-confirm-external-claims="role === 'client'" :full-width="true" :heading="flow.output.title" label="生成内容正文编辑器" @ai-call="consumeAiCall" @confirm-external-claim="confirmExternalClaim">
+                    <TaskRichTextEditor v-model="draft.body" :editable="outputEditable" :ai-optimize="aiWritingAvailable" :ai-calls-remaining="aiCallsRemaining" :external-claims="flow.output.externalClaims || []" :can-confirm-external-claims="role === 'client'" :full-width="true" :heading="flow.output.title" label="生成内容正文编辑器" @ai-call="consumeAiCall" @confirm-external-claim="confirmExternalClaim">
                       <template v-if="finalQualityVisible" #ai-dock-below>
                         <TaskReviewInsights v-bind="qualityInput" />
                       </template>
@@ -958,7 +965,7 @@ function versionDiff(index: number) {
             <span v-else-if="contentReviewLocked && rejectLimitReached" class="tw-revision-limit" role="status">
               已达到 3 次拒绝上限
             </span>
-            <span v-else-if="serviceMode === 'managed' && task.type === 'web' && !codeContentTask && customerFinalReview && customerRevisionRequests >= 3" class="tw-revision-limit" role="status">
+            <span v-else-if="serviceMode === 'managed' && (task.type === 'web' || task.type === 'external') && !codeContentTask && customerFinalReview && customerRevisionRequests >= 3" class="tw-revision-limit" role="status">
               已达到 3 次修改上限
             </span>
             <Button variant="primary" data-test="approve-output" @click="approveReview">

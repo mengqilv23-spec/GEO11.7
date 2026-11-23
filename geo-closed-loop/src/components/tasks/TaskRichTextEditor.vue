@@ -118,7 +118,7 @@ watch(() => props.externalClaims, async () => {
 }, { deep: true, immediate: true })
 
 function run(command: 'bold' | 'italic' | 'underline' | 'bulletList' | 'orderedList' | 'blockquote' | 'undo' | 'redo' | 'heading' | 'paragraph') {
-  if (!editor.value)
+  if (!editor.value || !props.editable)
     return
   const chain = editor.value.chain().focus()
   if (command === 'heading')
@@ -155,6 +155,8 @@ const controls = [
 ] as const
 
 function setTextColor(event: Event) {
+  if (!props.editable)
+    return
   const color = (event.target as HTMLInputElement).value
   editor.value?.chain().focus().setColor(color).run()
 }
@@ -165,7 +167,7 @@ function focusEditor() {
 
 function openAiOptimize(scope: 'paragraph' | 'article' = 'paragraph') {
   const current = editor.value
-  if (!current)
+  if (!current || !props.editable || !props.aiOptimize)
     return
   const selection = current.state.selection
   if (scope === 'article') {
@@ -192,6 +194,8 @@ function useSuggestion(value: string) {
 }
 
 function generatePreview() {
+  if (!props.editable || !props.aiOptimize)
+    return
   if (props.aiCallsRemaining <= 0) {
     aiError.value = '本篇内容在当前角色下的 AI 优化次数已用完。'
     aiPreviewOpen.value = false
@@ -207,7 +211,7 @@ function generatePreview() {
 function replaceSelectedText() {
   const current = editor.value
   const range = selectionRange.value
-  if (!current || !range || !previewText.value.trim())
+  if (!props.editable || !current || !range || !previewText.value.trim())
     return
   if (optimizationScope.value === 'article') {
     current.commands.setContent(editorContent(previewText.value))
@@ -268,7 +272,7 @@ defineExpose({ focusEditor })
         <button type="button" aria-label="确认这条联网信息准确" @click="emit('confirm-external-claim', activeClaim.id); activeClaimId = null">确认准确</button>
       </div>
     </div>
-    <aside v-if="aiOptimize || $slots.aiDockBelow || $slots['ai-dock-below']" class="task-rich-editor__ai-dock" :aria-label="aiOptimize ? 'AI 写作及质检' : 'AI 质检'">
+    <aside v-if="aiOptimize || visibleClaims.length || $slots.aiDockBelow || $slots['ai-dock-below']" class="task-rich-editor__ai-dock" :aria-label="aiOptimize ? 'AI 写作及质检' : 'AI 质检'">
       <template v-if="aiOptimize">
       <header class="task-rich-editor__ai-dock-head">
         <strong>AI 写作</strong>
@@ -294,20 +298,20 @@ defineExpose({ focusEditor })
         </div>
         <div class="task-rich-editor__ai-foot">
           <small>本次优化会计入内容生成额度</small>
-          <button type="button" class="task-rich-editor__ai-generate" data-test="generate-ai-preview" :disabled="aiCallsRemaining <= 0" @click="generatePreview">生成优化稿 · 剩余 {{ aiCallsRemaining }} 次</button>
+          <button type="button" class="task-rich-editor__ai-generate" data-test="generate-ai-preview" :disabled="!editable || aiCallsRemaining <= 0" @click="generatePreview">生成优化稿 · 剩余 {{ aiCallsRemaining }} 次</button>
         </div>
         <div v-if="aiPreviewOpen" class="task-rich-editor__ai-preview" data-test="ai-optimize-preview">
           <div class="task-rich-editor__ai-preview-head"><strong>优化稿预览</strong></div>
           <textarea v-model="previewText" rows="4" aria-label="优化稿预览内容" />
           <div class="task-rich-editor__ai-preview-actions">
             <button type="button" @click="aiPanelOpen = false">保留原文</button>
-            <button type="button" class="task-rich-editor__ai-generate" data-test="replace-selected-text" :disabled="!previewText.trim()" @click="replaceSelectedText">{{ optimizationScope === 'article' ? '替换全文' : '替换选中内容' }}</button>
+            <button type="button" class="task-rich-editor__ai-generate" data-test="replace-selected-text" :disabled="!editable || !previewText.trim()" @click="replaceSelectedText">{{ optimizationScope === 'article' ? '替换全文' : '替换选中内容' }}</button>
           </div>
         </div>
       </template>
       </section>
-      <p v-if="visibleClaims.length" class="task-rich-editor__claim-summary" data-test="external-claim-summary">正文中标出了待核实的联网品牌信息<span v-if="pendingClaimCount"> · {{ pendingClaimCount }} 处待确认</span><span v-else> · 已全部确认</span></p>
       </template>
+      <p v-if="visibleClaims.length" class="task-rich-editor__claim-summary" data-test="external-claim-summary">正文中标出了待核实的联网品牌信息<span v-if="pendingClaimCount"> · {{ pendingClaimCount }} 处待确认</span><span v-else> · 已全部确认</span></p>
       <slot name="ai-dock-below" />
     </aside>
   </section>

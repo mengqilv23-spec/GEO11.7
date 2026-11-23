@@ -70,12 +70,13 @@ describe('taskRichTextEditor', () => {
 
     const editor = wrapper.findComponent(EditorContent).props('editor')
     editor?.commands.setTextSelection({ from: 1, to: '日本提供本地服务支持。'.length + 1 })
+    await wrapper.vm.$nextTick()
     await wrapper.get('[data-test="open-ai-optimize"]').trigger('click')
     expect(wrapper.get('[data-test="ai-optimize-panel"]').text()).toContain('日本提供本地服务支持。')
 
     await wrapper.get('#task-ai-instruction').setValue('表达更专业，并突出本地服务')
     await wrapper.get('[data-test="generate-ai-preview"]').trigger('click')
-    expect(wrapper.get('[data-test="ai-optimize-preview"]').text()).toContain('交互原型')
+    expect((wrapper.get('[data-test="ai-optimize-preview"] textarea').element as HTMLTextAreaElement).value).toContain('日本提供本地服务支持。')
     await wrapper.get('[data-test="ai-optimize-preview"] textarea').setValue('日本团队提供本地化服务支持。')
     await wrapper.get('[data-test="replace-selected-text"]').trigger('click')
 
@@ -129,8 +130,8 @@ describe('taskRichTextEditor', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(wrapper.get('[data-test="external-claim-summary"]').text()).toContain('1 处待确认')
     await wrapper.get('[data-external-claim-id="claim-1"]').trigger('click')
-    expect(wrapper.get('[data-test="external-claim-card"]').text()).toContain('演示联网结果')
-    await wrapper.get('.task-rich-editor__claim-confirm').trigger('click')
+    expect(wrapper.get('[data-test="external-claim-action"]').text()).toContain('确认准确')
+    await wrapper.get('[data-test="external-claim-action"] button').trigger('click')
     expect(wrapper.emitted('confirm-external-claim')?.[0]).toEqual(['claim-1'])
   })
 })

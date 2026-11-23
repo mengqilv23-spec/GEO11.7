@@ -20,8 +20,8 @@ const websiteSteps = [
 const externalSteps = [
   ['Task Brief 确认', 'GEO专家'],
   ['内容生成', 'Agent 执行'],
-  ['内容优化', 'GEO专家 + Agent 执行'],
-  ['内容确认', '客户审核'],
+  ['内容优化', 'GEO专家修改'],
+  ['内容确认', '客户修改确认'],
 ] as const
 
 const repairSteps = [

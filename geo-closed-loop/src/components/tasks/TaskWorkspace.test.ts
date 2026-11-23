@@ -1001,27 +1001,74 @@ describe('task workspace task confirmation', () => {
     expect(operationsView.get('[data-test="submit-site"]').text()).toBe('提交 AI 建站')
   })
 
-  it('shows screenshot-matched review copy and customer actions without an edit button', async () => {
-    const task = makeTask()
+  it('lets the expert edit external content before the customer review', async () => {
+    const task = reactive(makeTask())
     task.type = 'external'
-    task.progress = 'client_content_review'
-    ensureWorkflow(task).output.body = '客户可审阅的示例文案'
-    const wrapper = mountWorkspace('client', task)
+    task.progress = 'human'
+    ensureWorkflow(task).output.body = '专家可修改的示例文案'
+    const wrapper = mountWorkspace('ops', task)
+    await new Promise(resolve => setTimeout(resolve, 0))
 
+    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('true')
+    expect(wrapper.find('[data-test="save-inline-output"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="request-agent-revision"]').exists()).toBe(false)
+    expect(wrapper.get('[data-test="approve-output"]').text()).toBe('专家审核通过，交客户确认')
     expect(wrapper.get('.task-rich-editor__ai-dock').attributes('aria-label')).toBe('AI 写作及质检')
-    expect(wrapper.find('[data-test="customer-edit-output"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="copy-output"]').exists()).toBe(false)
-    expect(wrapper.find('[data-test="save-output"]').exists()).toBe(false)
-    expect(wrapper.get('.tw-actionbar').text()).toContain('请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。')
-    expect(wrapper.get('.tw-actionbar').text()).toContain('忽略')
-    expect(wrapper.get('.tw-actionbar').text()).toContain('保存正文')
-    expect(wrapper.get('[data-test="approve-output"]').text()).toBe('客户确认最终稿')
-    expect(wrapper.find('[data-test="edit-output-inline"]').exists()).toBe(false)
-    expect(wrapper.findAll('.tw-flow-steps li')[1]?.classes()).toContain('current')
+    expect(wrapper.get('.tw-actionbar').text()).toContain('请检查并修改内容；审核通过后，客户才能确认最终稿。')
+    expect(wrapper.findAll('.tw-flow-steps li')[2]?.classes()).toContain('current')
 
     await wrapper.get('[data-test="approve-output"]').trigger('click')
+    expect(task.progress).toBe('client_review')
+    expect(wrapper.findAll('.tw-flow-steps li')[3]?.classes()).toContain('current')
+  })
+
+  it('keeps the customer read-only while the expert reviews external content', async () => {
+    const task = makeTask()
+    task.type = 'external'
+    task.progress = 'human'
+    ensureWorkflow(task).output.body = '专家正在修改的示例文案'
+    const wrapper = mountWorkspace('client', task)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('false')
+    expect(wrapper.find('[data-test="save-inline-output"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="approve-output"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="open-ai-optimize"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="regenerate-article"]').exists()).toBe(false)
+    expect(wrapper.get('.tw-ai-guard').text()).toContain('专家正在审核并修改内容')
+    expect(wrapper.find('.tw-actionbar').exists()).toBe(false)
+  })
+
+  it('lets the customer edit external content and return it to the expert', async () => {
+    const task = reactive(makeTask())
+    task.type = 'external'
+    task.progress = 'client_review'
+    ensureWorkflow(task).output.body = '客户可修改的示例文案'
+    const clientView = mountWorkspace('client', task)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    expect(clientView.get('.ProseMirror').attributes('contenteditable')).toBe('true')
+    expect(clientView.find('[data-test="save-inline-output"]').exists()).toBe(true)
+    expect(clientView.get('[data-test="request-agent-revision"]').text()).toBe('退回专家修改（还可提 3 次）')
+    expect(clientView.get('[data-test="approve-output"]').text()).toBe('客户确认最终稿')
+    expect(clientView.get('.tw-actionbar').text()).toContain('如需修改，可填写意见退回专家继续优化')
+
+    const operationsView = mountWorkspace('ops', task)
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(operationsView.get('.ProseMirror').attributes('contenteditable')).toBe('false')
+    expect(operationsView.find('[data-test="save-inline-output"]').exists()).toBe(false)
+    expect(operationsView.find('[data-test="open-ai-optimize"]').exists()).toBe(false)
+    expect(operationsView.find('[data-test="regenerate-article"]').exists()).toBe(false)
+    expect(operationsView.find('[data-test="waiting-client-final-review"]').exists()).toBe(true)
+
+    await clientView.get('[data-test="request-agent-revision"]').trigger('click')
+    await clientView.get('[data-test="drawer"] textarea').setValue('请补充第三方来源。')
+    await clientView.get('[data-test="drawer"] footer button:last-child').trigger('click')
+
     expect(task.progress).toBe('human')
-    expect(wrapper.findAll('.tw-flow-steps li')[2]?.classes()).toContain('current')
+    expect(task.workflow?.customerRevisionRequests).toBe(1)
+    expect(task.workflow?.customerReturn?.note).toBe('请补充第三方来源。')
+    expect(task.workflow?.reviews.at(-1)?.note).toContain('客户退回专家修改')
   })
 
   it('saves inline rich-text edits when the reviewer approves them', async () => {

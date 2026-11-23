@@ -77,14 +77,6 @@ describe('taskFlowFor', () => {
     expect(customerReview[2]?.title).toBe('内容审核改写')
   })
 
-  it('keeps generated external content in customer step 2, then routes to operations step 3', () => {
-    const customerReview = taskFlowFor(makeTask('external', 'client_content_review'), 'managed')
-    const operationsReview = taskFlowFor(makeTask('external', 'human'), 'managed')
-
-    expect(customerReview.map(step => step.state)).toEqual(['done', 'current', 'upcoming', 'upcoming'])
-    expect(operationsReview.map(step => step.state)).toEqual(['done', 'done', 'current', 'upcoming'])
-  })
-
   it('uses a two-step website return path and makes the returned result the current second step', () => {
     const waiting = taskFlowFor(makeTask('repair', 'site_running'))
     const returned = taskFlowFor(makeTask('repair', 'done'))

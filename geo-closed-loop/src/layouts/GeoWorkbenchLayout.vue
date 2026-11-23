@@ -357,6 +357,11 @@ function restore(mode: ServiceMode) {
       ...publishedContentTasks.filter(publishedTask => !data.tasks!.some(task => task.id === publishedTask.id)).map(cloneGeoTask),
     ]
     for (const task of restoredTasks) {
+      // Managed external content used to send generated copy straight to the
+      // customer. It now follows the same expert-then-customer review path as
+      // website content, so lift legacy tasks back to the expert stage.
+      if (task.type === 'external' && task.progress === 'client_content_review')
+        task.progress = 'human'
       const prototypeTask = prototypeTasks.find(item => item.id === task.id)
       if (prototypeTask?.evidence && !task.evidence)
         task.evidence = prototypeTask.evidence
