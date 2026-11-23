@@ -48,11 +48,17 @@ export interface IgnoredTask extends IgnoredBrief {
   stageLabel: string
 }
 export type DeferredTask = IgnoredTask
+export interface CustomerReturn {
+  note: string
+  time: string
+}
 export interface TaskWorkflow {
   brief: TaskBrief
   briefStatus: 'ready' | 'changes_requested' | 'agent_reworking' | 'confirmed'
   feedback: string
   customerRevisionRequests?: number
+  /** The latest content return raised by the customer, shown until it is resubmitted. */
+  customerReturn?: CustomerReturn
   versions: TaskVersion[]
   knowledge: TaskKnowledge[]
   output: { title: string, body: string, revision: number, externalClaims?: Array<{ id: string, text: string, source: string, confirmed: boolean }> }
@@ -509,14 +515,20 @@ export function applyAction(task: GeoTask, role: UserRole, mode: ServiceMode, ac
       break
     case 'request_output_changes':
       flow.feedback = note
+      if (role === 'client')
+        flow.customerReturn = { note, time: now() }
       if (mode === 'managed' && role === 'client' && task.type === 'web' && task.progress === 'client_review')
         flow.customerRevisionRequests = (flow.customerRevisionRequests ?? 0) + 1
       task.progress = mode === 'managed' && role === 'client' && task.type === 'web' ? 'human' : 'running'
       break
     case 'approve_ops':
+      // The returned content has been reworked and resubmitted for customer review.
+      flow.customerReturn = undefined
       task.progress = 'client_review'
       break
     case 'approve_client':
+      // The customer accepted the returned content, so its return notice is no longer needed.
+      flow.customerReturn = undefined
       task.progress = mode === 'agent' ? (task.type === 'external' ? 'done' : 'site_submitted') : task.progress === 'client_content_review' ? 'human' : task.type === 'external' ? 'done' : 'site_submit'
       if (mode === 'agent' && task.type !== 'external')
         flow.site.attempts += 1
@@ -602,8 +614,12 @@ export function advanceAutomatic(task: GeoTask, mode: ServiceMode = 'managed') {
     flow.site.result = publishFailed
       ? (rollbackToContent ? '发布失败：执行结果与验收条件存在差异，已退回内容优化。' : '发布失败：执行结果与验收条件存在差异，请修改后重新提交。')
       : '发布成功：内容已发布到官网。'
-    if (rollbackToContent)
+    if (rollbackToContent) {
       flow.site.simulateFailure = false
+      // The publish failure is now the latest return, so an older customer
+      // return note must not replace it on the rollback screen.
+      flow.customerReturn = undefined
+    }
   }
   task.progress = next
   const automaticNote = previous === 'site_verifying'

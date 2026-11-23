@@ -331,6 +331,28 @@ describe('prototype task ownership and backend-driven repair status', () => {
     expect(hasAutomaticStep(agent, 'agent')).toBe(false)
   })
 
+  it('records a customer return until the reworked content is resubmitted', () => {
+    const task = makeTask('web', 'client_review')
+    const flow = ensureWorkflow(task)
+
+    expect(applyAction(task, 'client', 'managed', 'request_output_changes', { note: '请补充德国本地服务说明。' })).toBeNull()
+    expect(task.progress).toBe('human')
+    expect(flow.customerReturn?.note).toBe('请补充德国本地服务说明。')
+
+    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
+    expect(flow.customerReturn).toBeUndefined()
+
+    // A later publish failure is the newest return; it must replace the old
+    // customer note instead of showing both reasons.
+    const publishTask = makeTask('web', 'site_verifying')
+    const publishFlow = ensureWorkflow(publishTask)
+    publishFlow.customerReturn = { note: '旧的修改意见', time: new Date().toISOString() }
+    publishFlow.site.simulateFailure = true
+    expect(advanceAutomatic(publishTask, 'managed')).toBe(true)
+    expect(publishTask.progress).toBe('human')
+    expect(publishFlow.customerReturn).toBeUndefined()
+  })
+
   it('normalizes legacy repair execution fields to the technical-repair package', () => {
     const task = makeTask('repair', 'site_running')
     const workflow = ensureWorkflow(task)

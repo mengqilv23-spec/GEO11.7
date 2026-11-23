@@ -827,6 +827,59 @@ describe('task workspace task confirmation', () => {
     }
   })
 
+  it('hides the publish rejection after content is submitted to customer review or republished', () => {
+    const task = reactive(makeTask())
+    task.progress = 'human'
+    const flow = ensureWorkflow(task)
+    flow.output.body = '<p>修改后的发布正文</p>'
+    flow.site.result = '发布失败：执行结果与验收条件存在差异，已退回内容优化。'
+
+    const managedEditing = mountWorkspace('ops', task, vi.fn(), false, 'managed')
+    expect(managedEditing.get('.tw-site-strip').text()).toContain('发布失败')
+    managedEditing.unmount()
+
+    task.progress = 'client_review'
+    const managedReview = mountWorkspace('client', task, vi.fn(), false, 'managed')
+    expect(managedReview.find('.tw-site-strip').exists()).toBe(false)
+    expect(managedReview.text()).not.toContain('发布失败')
+    managedReview.unmount()
+
+    const agentReview = mountWorkspace('client', task, vi.fn(), false, 'agent')
+    expect(agentReview.get('.tw-site-strip').text()).toContain('发布失败')
+    agentReview.unmount()
+
+    task.progress = 'site_submitted'
+    const agentSubmitted = mountWorkspace('client', task, vi.fn(), false, 'agent')
+    expect(agentSubmitted.get('.tw-site-strip').text()).toContain('执行包已提交')
+    expect(agentSubmitted.get('.tw-site-strip').text()).not.toContain('发布失败')
+    agentSubmitted.unmount()
+  })
+
+  it('shows the customer return note in the content workspace until it is resubmitted', async () => {
+    const task = reactive(makeTask())
+    task.progress = 'client_review'
+    const flow = ensureWorkflow(task)
+    flow.output.body = '<p>待审核正文</p>'
+
+    const clientView = mountWorkspace('client', task)
+    await clientView.get('[data-test="request-agent-revision"]').trigger('click')
+    await clientView.get('[data-test="drawer"] textarea').setValue('请补充德国本地服务说明。')
+    await clientView.get('[data-test="drawer"] footer button:last-child').trigger('click')
+    expect(task.progress).toBe('human')
+    clientView.unmount()
+
+    const operationsView = mountWorkspace('ops', task)
+    expect(operationsView.get('.tw-site-strip').text()).toContain('客户已退回修改')
+    expect(operationsView.get('.tw-site-strip').text()).toContain('请补充德国本地服务说明。')
+    expect(operationsView.get('.tw-site-strip').classes()).toContain('is-returned')
+    expect(operationsView.get('.tw-actionbar').text()).toContain('客户已退回修改')
+
+    await operationsView.get('[data-test="approve-output"]').trigger('click')
+    expect(task.progress).toBe('client_review')
+    expect(operationsView.find('.tw-site-strip').exists()).toBe(false)
+    operationsView.unmount()
+  })
+
   it('shows the reference waiting bar for operations while preserving customer final-review actions', () => {
     const task = makeTask()
     task.progress = 'client_review'

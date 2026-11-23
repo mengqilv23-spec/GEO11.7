@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GeoTask } from '../../data/geo-data'
+import type { TagTone } from '../ui/ce/tag/types'
 import type { TaskWorkflow } from '../../workflows/task-workflow'
 import { computed } from 'vue'
 import { isDirectRepairTask } from '../../workflows/direct-repair'
@@ -11,7 +12,7 @@ const props = defineProps<{
   task: GeoTask
   site: TaskWorkflow['site']
   statusLabel: string
-  statusTone: 'blue' | 'green' | 'red' | 'neutral'
+  statusTone: TagTone
 }>()
 
 const repairReason = '技术问题已定位到官网，由官网处理流程返回修复结果。'

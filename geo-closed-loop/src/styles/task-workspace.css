@@ -56,6 +56,7 @@
 .tw-output-review-main { min-width:0; container: task-output / inline-size; }
 .tw-site-strip { display:flex; align-items:center; gap:10px; min-width:0; margin:0 0 14px; padding:9px 12px; border:1px solid var(--border-default); border-left:3px solid var(--action-accent); border-radius:10px; background:var(--background-secondary); }
 .tw-site-strip.is-failed { border-color:var(--status-error-border,var(--border-default)); border-left-color:var(--status-error-foreground); background:color-mix(in srgb,var(--status-error-background) 42%,var(--background-primary)); }
+.tw-site-strip.is-returned { border-color:var(--status-warning-border,var(--border-default)); border-left-color:var(--status-warning-foreground); background:color-mix(in srgb,var(--status-warning-background) 42%,var(--background-primary)); }
 .tw-site-strip.is-ready { border-color:var(--status-success-border,var(--border-default)); border-left-color:var(--status-success-foreground); background:color-mix(in srgb,var(--status-success-background) 42%,var(--background-primary)); }
 .tw-site-strip__text { flex:1; min-width:0; overflow:hidden; color:var(--text-secondary); font-size:13px; line-height:20px; text-overflow:ellipsis; white-space:nowrap; }
 .tw-simulate-failure { display:inline-flex; flex:none; align-items:center; gap:6px; color:var(--text-secondary); font-size:13px; line-height:20px; white-space:nowrap; cursor:pointer; }
