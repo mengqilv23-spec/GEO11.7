@@ -9,12 +9,16 @@ import { isTaskDeferred, isTaskIgnored } from './task-workflow'
  * Detailed stages stay in the optimisation centre; a completed task reports
  * back as `已完成`.
  */
-export type DiagnosisStatus = '待审核' | '处理中' | '已完成'
+export type DiagnosisStatus = '待审核' | '处理中' | '已完成' | '已忽略'
 
 function statusFromTask(task: GeoTask | undefined): DiagnosisStatus | undefined {
   if (!task)
     return undefined
-  if (task.progress === 'done' || task.completionOutcome === 'expired-unexecuted' || isTaskIgnored(task) || isTaskDeferred(task))
+  // Ignoring is a final decision for this review item. It changes only the
+  // processing state; the task and its review history stay untouched.
+  if (isTaskIgnored(task))
+    return '已忽略'
+  if (task.progress === 'done' || task.completionOutcome === 'expired-unexecuted' || isTaskDeferred(task))
     return '已完成'
   return '处理中'
 }

@@ -165,6 +165,7 @@ function findingStatusClass(finding: AuditFinding) {
     'is-review': status === '待审核',
     'is-processing': status === '处理中',
     'is-done': status === '已完成',
+    'is-ignored': status === '已忽略',
     'is-deferred': finding.status === '暂不修复',
   }
 }
@@ -199,7 +200,7 @@ function canReviewStrategy(strategy: Strategy) {
 function resultForCheck(check: AuditCheck) { return clientCheckResult(check, props.findings, props.tasks ?? []) }
 const abnormalFindings = computed(() => props.findings.filter(finding => !isReadOnlyFinding(finding)))
 function countDiagnosisStatuses(statuses: DiagnosisStatus[]) {
-  const counts: Record<DiagnosisStatus, number> = { '待审核': 0, '处理中': 0, '已完成': 0 }
+  const counts: Record<DiagnosisStatus, number> = { '待审核': 0, '处理中': 0, '已完成': 0, '已忽略': 0 }
   for (const status of statuses) counts[status] += 1
   return counts
 }
@@ -316,6 +317,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
           <Tag tone="orange" variant="soft" size="sm">待审核 {{ auditStatusCounts['待审核'] }}</Tag>
           <Tag tone="blue" variant="soft" size="sm">处理中 {{ auditStatusCounts['处理中'] }}</Tag>
           <Tag tone="green" variant="soft" size="sm">已完成 {{ auditStatusCounts['已完成'] }}</Tag>
+          <Tag v-if="auditStatusCounts['已忽略']" tone="neutral" variant="soft" size="sm">已忽略 {{ auditStatusCounts['已忽略'] }}</Tag>
         </div>
       </header>
       <div class="geo-check-grid" role="tablist" aria-label="官网 GEO 检查项">
@@ -338,6 +340,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
           <option value="待审核">待审核</option>
           <option value="处理中">处理中</option>
           <option value="已完成">已完成</option>
+          <option value="已忽略">已忽略</option>
         </select>
         <Button v-if="auditFilter !== 'all'" variant="text" size="sm" @click="clearAuditFilter">
           取消筛选

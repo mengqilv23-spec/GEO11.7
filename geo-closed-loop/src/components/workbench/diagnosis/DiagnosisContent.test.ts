@@ -1,7 +1,9 @@
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
+import { codeReviewDemoTasksFor, codeReviewTestFindings } from '../../../data/code-review-demo-tasks'
 import { auditFindings, personas, prototypeTasks, strategies } from '../../../data/geo-data'
+import { applyAction } from '../../../workflows/task-workflow'
 import DiagnosisContent from './DiagnosisContent.vue'
 
 describe('diagnosisContent icons', () => {
@@ -108,6 +110,37 @@ describe('diagnosisContent icons', () => {
     for (const row of rows) expect(row.get('button').text()).toBe('确认处理')
     await rows[0]!.get('button').trigger('click')
     expect(wrapper.emitted('openAudit')).toHaveLength(1)
+    wrapper.unmount()
+  })
+
+  it('shows an ignored review task as 已忽略 and keeps the rest of the row unchanged', async () => {
+    const finding = { ...codeReviewTestFindings[0]! }
+    const task = codeReviewDemoTasksFor()[0]!
+    applyAction(task, 'ignore_task', { ignoreReason: '本次不处理' })
+
+    const wrapper = mount(DiagnosisContent, {
+      props: {
+        findings: [finding],
+        personas,
+        activePersona: personas[0]!.id,
+        strategies,
+        tasks: [task],
+        strategyLayer: '全部',
+      },
+      global: {
+        plugins: [createPinia()],
+        stubs: { DeferredGeoRadarChart: true, Pagination: true, Tooltip: { template: '<span><slot /></span>' } },
+      },
+    })
+
+    const row = wrapper.get('.geo-finding-table tbody tr')
+    expect(row.get('.geo-finding-status').text()).toBe('已忽略')
+    expect(row.get('button').text()).toBe('查看详情')
+    expect(row.text()).toContain(finding.title)
+    expect(wrapper.get('.geo-inline-tags').text()).toContain('已忽略 1')
+
+    await wrapper.get('[aria-label="处理状态筛选"]').setValue('已忽略')
+    expect(wrapper.findAll('.geo-finding-table tbody tr')).toHaveLength(1)
     wrapper.unmount()
   })
 

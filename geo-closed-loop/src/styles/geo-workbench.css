@@ -229,6 +229,7 @@ html.ce-iframe-root .geo-pending-entry.ce-button:hover { border-color: var(--geo
 .geo-chip--danger { color: var(--geo-danger); background: var(--geo-danger-soft); }
 .geo-finding-status { color: var(--geo-warning); background: var(--geo-warning-soft); }
 .geo-finding-status.is-done { color: var(--geo-success); background: var(--geo-success-soft); }
+.geo-finding-status.is-ignored { color: var(--geo-text-3); background: var(--geo-fill); }
 .geo-finding-status.is-deferred { color: var(--geo-text-3); background: var(--geo-fill); }
 .geo-route-badge { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 8px; border-radius: var(--radius-tag); font-size: 12px; line-height: 20px; font-weight: 500; }
 .geo-route-badge.repair { color: var(--geo-info); background: var(--geo-info-soft); }

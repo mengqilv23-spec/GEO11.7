@@ -829,6 +829,7 @@ function findingStatusClass(finding: AuditFinding) {
     'is-review': status === '待审核',
     'is-processing': status === '处理中',
     'is-done': status === '已完成',
+    'is-ignored': status === '已忽略',
     'is-deferred': finding.status === '暂不修复',
   }
 }

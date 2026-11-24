@@ -1,7 +1,9 @@
 import type { GeoTask } from '../data/geo-data'
 import { describe, expect, it } from 'vitest'
+import { codeReviewDemoTasksFor, codeReviewTestFindings } from '../data/code-review-demo-tasks'
 import { auditFindings, initialTasks, prototypeTasks, strategies } from '../data/geo-data'
 import { diagnosisFindingStatus, diagnosisStrategyStatus } from './diagnosis-status'
+import { applyAction } from './task-workflow'
 
 function findingById(id: string) {
   return auditFindings.find(finding => finding.id === id)!
@@ -50,5 +52,17 @@ describe('diagnosis status', () => {
   it('closes a strategy that was ignored without creating a task', () => {
     const strategy = strategies.find(item => item.id === 'GS1')!
     expect(diagnosisStrategyStatus({ ...strategy, ignored: true }, [])).toBe('已完成')
+  })
+
+  it('reports an ignored review task as 已忽略 without changing the task itself', () => {
+    const finding = codeReviewTestFindings[0]!
+    const task = codeReviewDemoTasksFor()[0]!
+    const progress = task.progress
+    const name = task.name
+
+    expect(applyAction(task, 'ignore_task', { ignoreReason: '本次不处理' })).toBeNull()
+    expect(diagnosisFindingStatus(finding, [], [task])).toBe('已忽略')
+    expect(task.progress).toBe(progress)
+    expect(task.name).toBe(name)
   })
 })

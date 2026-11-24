@@ -154,7 +154,7 @@ html.ce-iframe-root .geo-diagnosis .geo-strategy-factor .geo-gap-link.ce-button[
 }
 
 /* Pair actionable review statuses with amber review actions. */
-.geo-diagnosis .geo-finding-status:not(.is-done):not(.is-deferred):not(.is-review):not(.is-advice) {
+.geo-diagnosis .geo-finding-status:not(.is-done):not(.is-deferred):not(.is-review):not(.is-advice):not(.is-ignored) {
   color: var(--geo-info);
   background: var(--geo-info-soft);
 }
@@ -191,6 +191,8 @@ html.ce-iframe-root .geo-diagnosis .geo-table-detail-button.geo-review-button:fo
 .geo-treatment-filter { padding: 6px 10px; border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); background: var(--background-primary); font: inherit; }
 .geo-route-badge.advice,
 .geo-diagnosis .geo-finding-status.is-advice,
-.geo-finding-status.is-advice { border: 0; color: var(--text-secondary); background: var(--background-subtle); }
+.geo-finding-status.is-advice,
+.geo-diagnosis .geo-finding-status.is-ignored,
+.geo-finding-status.is-ignored { border: 0; color: var(--text-secondary); background: var(--background-subtle); }
 .geo-check-pass-result { display: grid; min-height: 100px; place-items: center; color: var(--status-success-foreground); font-weight: 600; }
 
