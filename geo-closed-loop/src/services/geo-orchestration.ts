@@ -85,7 +85,7 @@ export function createRepairTask(tasks: GeoTask[], finding: AuditFinding): GeoTa
     strategyWindow: currentPeriod,
   }
   tasks.push(task)
-  finding.status = '待专家审核'
+  finding.status = '待客户审核'
   finding.checked = false
   return task
 }

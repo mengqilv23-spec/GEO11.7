@@ -9,7 +9,6 @@ const taskFilter = computed({
   set: value => context.taskFilter.value = value,
 })
 const tasks = computed(() => context.visibleTasks.value)
-const role = computed(() => context.role.value)
 </script>
 
 <template>
@@ -18,8 +17,6 @@ const role = computed(() => context.role.value)
     :all-tasks="context.tasks"
     :strategies="context.strategies"
     :filter="taskFilter"
-    :role="role"
-    :service-mode="context.serviceMode.value"
     @set-filter="taskFilter = $event"
     @open-task="context.openTask"
     @open-flow="context.openFlow('optimization')"

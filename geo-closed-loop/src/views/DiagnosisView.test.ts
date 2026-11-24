@@ -9,8 +9,6 @@ const workbench = vi.hoisted(() => ({
   strategies: [],
   tasks: [],
   strategyLayer: { value: '全部' },
-  serviceMode: { value: 'managed' },
-  role: { value: 'ops' },
   highlightedStrategy: { value: undefined },
   toggleFinding: vi.fn(),
   selectAllFindings: vi.fn(),
@@ -26,18 +24,17 @@ const workbench = vi.hoisted(() => ({
 vi.mock('../composables/workbench-route-context', () => ({ useGeoWorkbenchRouteContext: () => workbench }))
 vi.mock('../components/workbench/diagnosis/DiagnosisContent.vue', () => ({
   default: {
-    props: ['role', 'activePersona'],
+    props: ['activePersona'],
     emits: ['selectPersona'],
-    template: '<div data-testid="local-workflow" :data-role="role"><span>{{ activePersona }}</span><button type="button" @click="$emit(\'selectPersona\', \'procurement\')">switch persona</button></div>',
+    template: '<div data-testid="local-workflow"><span>{{ activePersona }}</span><button type="button" @click="$emit(\'selectPersona\', \'procurement\')">switch persona</button></div>',
   },
 }))
 describe('diagnosis view', () => {
-  it('renders the local workflow with the active role and connects persona changes', async () => {
+  it('renders the local workflow with the active persona and connects persona changes', async () => {
     workbench.activePersona.value = 'engineering'
-    workbench.role.value = 'client'
 
     const wrapper = mount(DiagnosisView)
-    expect(wrapper.get('[data-testid="local-workflow"]').attributes('data-role')).toBe('client')
+    expect(wrapper.get('[data-testid="local-workflow"] span').text()).toBe('engineering')
     await wrapper.get('[data-testid="local-workflow"] button').trigger('click')
     expect(workbench.activePersona.value).toBe('procurement')
     expect(wrapper.text()).not.toContain('原始诊断查询数据')

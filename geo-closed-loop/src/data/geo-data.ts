@@ -2,8 +2,6 @@ export type Priority = 'P0' | 'P1' | 'P2' | 'P3'
 import type { TaskWorkflow } from '../workflows/task-workflow'
 
 export type GeoPage = 'diagnosis' | 'optimization'
-export type ServiceMode = 'managed' | 'agent'
-export type UserRole = 'ops' | 'client'
 export type StrategyLayer = '全部' | '内容' | '外部信源'
 export type TaskFilter = 'all' | 'web' | 'external' | 'repair'
 export type FindingTreatment = 'website-tech-direct' | 'website-tech-advice' | 'website-content-review' | 'website-content-advice' | 'website-content-knowledge'
@@ -42,13 +40,14 @@ export interface AuditFinding {
   check: string
   method: string
   priority: Priority
-  status: '待处理' | '待客户审核' | '已生成策略' | '待官网运营审核' | '待专家审核' | '暂不修复' | '已修复' | '无需处理' | '待补充知识'
+  status: '待处理' | '待客户审核' | '已生成策略' | '暂不修复' | '已修复' | '无需处理' | '待补充知识'
   feedback?: string
   decisionReason?: string
   checked: boolean
   route: 'repair' | 'strategy' | 'advice' | 'knowledge'
   treatment?: FindingTreatment
   category?: '官网结构' | '官网内容'
+  contentFormat?: 'code'
   knowledgeTopic?: string
   advice?: string
   evidence?: string
@@ -104,7 +103,6 @@ export interface Strategy {
   factor: string
   methods: string[]
   confirmed: boolean
-  reviewStage?: 'customer'
   personaIds?: string[]
   gapNames?: string[]
   coverageGapRefs?: string[]

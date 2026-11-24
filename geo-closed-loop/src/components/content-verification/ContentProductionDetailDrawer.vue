@@ -7,7 +7,6 @@ import type { PlatformVerificationAnswer } from '../../data/content-verification
 import { computed, ref, watch } from 'vue'
 import {
   canVerifyContent,
-  clientStageDescription,
   sourceLabel,
   stageDescription,
   stageLabel,
@@ -32,14 +31,8 @@ interface WorkflowStep {
 const props = withDefaults(defineProps<{
   open: boolean
   item: ContentProductionItem | null
-  /** Agent-version customer view: published verification results only. */
-  clientView?: boolean
-  /** Managed-mode customer: confirms content, then views results read-only. */
-  customerView?: boolean
   historical?: boolean
 }>(), {
-  clientView: false,
-  customerView: false,
   historical: false,
 })
 const emit = defineEmits<{ close: [], notify: [message: string] }>()
@@ -48,27 +41,15 @@ const item = computed(() => props.item)
 const tab = ref<DetailTab>('content')
 const draftTitle = ref('')
 const draftBody = ref('')
-const clientComment = ref('')
 const customQuestion = ref('')
 const customActive = ref(false)
-
-const customerFacing = computed(() => props.clientView || props.customerView)
-const showSteps = computed(() => !customerFacing.value && item.value?.source !== 'imported')
-const tabs = computed<Array<{ id: DetailTab, label: string }>>(() => {
-  if (customerFacing.value && !item.value?.publishedAt)
-    return [{ id: 'content', label: '内容确认' }]
-  return [
-    { id: 'content', label: '已发布内容' },
-    { id: 'questions', label: '核验问题' },
-    { id: 'results', label: '核验结果' },
-  ]
-})
+const simulateFailure = ref(false)
 
 function stepDone(value: ContentProductionItem, id: DetailTab): boolean {
   if (id === 'content') {
     if (value.source === 'upload')
       return true
-    return ['pending_client', 'ready_to_publish', 'questions_pending', 'questions_confirmed', 'verifying', 'verified'].includes(value.stage)
+    return ['ready_to_publish', 'questions_pending', 'questions_confirmed', 'verifying', 'verified'].includes(value.stage)
       || (value.stage === 'ai_checked' && Boolean(value.aiCheck?.passed))
   }
   if (id === 'publish')
@@ -84,7 +65,7 @@ const workflowSteps = computed<WorkflowStep[]>(() => {
     return []
   const order: Array<{ id: DetailTab, label: string }> = [
     { id: 'content', label: '内容' },
-    { id: 'publish', label: '发布' },
+    { id: 'publish', label: '确认内容并发布' },
     { id: 'questions', label: '核验问题' },
     { id: 'results', label: '核验结果' },
   ]
@@ -95,15 +76,14 @@ const workflowSteps = computed<WorkflowStep[]>(() => {
   }))
 })
 
-const description = computed(() => item.value
-  ? (props.customerView ? clientStageDescription(item.value.stage) : stageDescription(item.value.stage))
-  : '')
+const description = computed(() => item.value ? stageDescription(item.value.stage) : '')
 
-const canEdit = computed(() => Boolean(item.value && !customerFacing.value && ['draft', 'ai_checked', 'client_rejected'].includes(item.value.stage)))
-const canSubmit = computed(() => Boolean(item.value && !customerFacing.value && ['draft', 'ai_checked', 'client_rejected'].includes(item.value.stage) && item.value.aiCheck?.passed))
-const canPublish = computed(() => Boolean(item.value && !customerFacing.value && item.value.stage === 'ready_to_publish' && item.value.clientConfirmation?.status === 'confirmed'))
-const canEditQuestions = computed(() => Boolean(item.value && !customerFacing.value && item.value.publishedAt && !['verifying', 'verified'].includes(item.value.stage)))
-const canConfirmAsClient = computed(() => Boolean(props.customerView && item.value?.clientConfirmation?.status === 'pending'))
+const canEdit = computed(() => Boolean(item.value && !props.historical && ['draft', 'ai_checked', 'ready_to_publish'].includes(item.value.stage)))
+const canPublish = computed(() => Boolean(item.value && !props.historical && (
+  (item.value.stage === 'ai_checked' && item.value.aiCheck?.passed)
+  || (item.value.stage === 'ready_to_publish' && item.value.clientConfirmation?.status === 'confirmed')
+)))
+const canEditQuestions = computed(() => Boolean(item.value && !props.historical && item.value.publishedAt && !['verifying', 'verified'].includes(item.value.stage)))
 const verifying = computed(() => item.value?.stage === 'verifying')
 const selectedQuestion = computed(() => item.value?.questions[0] ?? null)
 const candidateQuestions = computed(() => item.value?.questionCandidates ?? [])
@@ -132,36 +112,27 @@ const contentNote = computed(() => {
   const value = item.value
   if (!value)
     return ''
-  if (props.clientView)
-    return value.publishedAt ? '内容已发布到官网 Blog。' : ''
-  if (props.customerView)
-    return value.stage === 'pending_client' ? '确认后由专家发布到官网 Blog。' : ''
-  if (value.stage === 'pending_client')
-    return '等待客户确认期间内容只读；客户驳回后可继续修改。'
+  if (value.stage === 'ai_checked')
+    return 'AI 检查通过，可发布到官网 Blog。'
   if (value.stage === 'ready_to_publish')
-    return '客户已确认，发布前内容保持只读。'
+    return '内容已确认；发布前如需修改，可在「内容」中编辑，保存后需重新检查并确认。'
   if (value.publishedAt)
     return '内容已发布到官网 Blog，核验问题可在「核验问题」中维护。'
   return ''
 })
 
-watch(() => [props.open, props.item?.id, props.clientView, props.customerView] as const, ([open]) => {
+watch(() => [props.open, props.item?.id] as const, ([open]) => {
   if (!open || !props.item)
     return
   resetDraft()
   resetQuestionDraft()
-  clientComment.value = ''
+  simulateFailure.value = false
   tab.value = defaultTab(props.item)
 })
 
 function defaultTab(value: ContentProductionItem): DetailTab {
-  if (props.clientView)
-    return 'results'
-  if (props.customerView) {
-    if (!value.publishedAt)
-      return 'content'
-    return value.stage === 'verified' ? 'results' : 'questions'
-  }
+  if (value.publishError)
+    return 'content'
   if (value.source === 'imported')
     return value.stage === 'verified' ? 'results' : 'questions'
   return (['content', 'publish', 'questions', 'results'] as DetailTab[]).find(id => !stepDone(value, id)) ?? 'results'
@@ -195,48 +166,43 @@ function formatDateTime(value: Date) {
 function saveAndCheck() {
   if (!item.value)
     return
+  const wasConfirmed = item.value.clientConfirmation?.status === 'confirmed'
   store.updateDraft(item.value.id, {
     title: draftTitle.value,
     body: draftBody.value,
   })
   store.runAiCheck(item.value.id)
-  emit('notify', item.value.aiCheck?.passed
-    ? '内容已保存，AI 检查通过。'
-    : '内容已保存，AI 检查未通过，请修改后重新检查。')
+  const passed = Boolean(item.value.aiCheck?.passed)
+  if (!passed)
+    emit('notify', '内容已保存，AI 检查未通过，请修改后重新检查。')
+  else if (wasConfirmed)
+    emit('notify', '内容已保存，已重新检查；需重新确认后才能发布。')
+  else
+    emit('notify', '内容已保存，AI 检查通过。')
 }
 
 function goToPublish() {
   tab.value = 'publish'
 }
 
-function submitToClient() {
-  if (!item.value)
-    return
-  store.submitToClient(item.value.id)
-  tab.value = 'publish'
-  emit('notify', '已提交客户确认。')
-}
-
-function confirmClient() {
-  if (!item.value)
-    return
-  store.confirmClient(item.value.id, clientComment.value)
+function goToContent() {
   tab.value = 'content'
-  emit('notify', '已确认，等待专家发布到官网 Blog。')
-}
-
-function rejectClient() {
-  if (!item.value)
-    return
-  store.rejectClient(item.value.id, clientComment.value)
-  tab.value = 'content'
-  emit('notify', '已驳回，内容已退回专家修改。')
 }
 
 function publish() {
   if (!item.value)
     return
-  store.publish(item.value.id)
+  // Publishing directly accepts the reviewed content, so the confirmation
+  // record is written in the same action instead of asking for a separate click.
+  if (item.value.stage === 'ai_checked')
+    store.confirmContent(item.value.id)
+  const success = store.publish(item.value.id, { simulateFailure: simulateFailure.value })
+  simulateFailure.value = false
+  if (!success) {
+    tab.value = 'content'
+    emit('notify', '发布失败，请修改内容后重新发布。')
+    return
+  }
   tab.value = 'questions'
   emit('notify', '已发布到官网 Blog，并生成核验问题。')
 }
@@ -304,7 +270,7 @@ function questionStateLabel(question: ProductionQuestion) {
     <div v-if="item" class="cpd">
       <div class="cpd__meta">
         <span class="cpd-stage" :class="`is-${item.stage}`">{{ stageLabel(item.stage) }}</span>
-        <span v-if="!customerFacing">{{ sourceLabel(item.source) }}</span>
+        <span>{{ sourceLabel(item.source) }}</span>
         <span>{{ item.taskId ?? item.id }}</span>
         <span v-if="item.publishedAt">发布 {{ formatDate(item.publishedAt) }}</span>
         <span v-if="item.lastChecked">最近核验 {{ formatDate(item.lastChecked) }}</span>
@@ -313,7 +279,7 @@ function questionStateLabel(question: ProductionQuestion) {
         {{ description }}
       </p>
 
-      <ol v-if="showSteps" class="cpd-steps" aria-label="文章处理进度">
+      <ol class="cpd-steps" aria-label="文章处理进度">
         <li
           v-for="(step, index) in workflowSteps"
           :key="step.id"
@@ -335,22 +301,12 @@ function questionStateLabel(question: ProductionQuestion) {
           <span v-if="index < workflowSteps.length - 1" class="cpd-step__line" aria-hidden="true" />
         </li>
       </ol>
-      <div v-else class="cpd__tabs" role="tablist" aria-label="文章详情">
-        <button
-          v-for="entry in tabs"
-          :key="entry.id"
-          type="button"
-          role="tab"
-          :aria-selected="tab === entry.id"
-          :class="{ 'is-active': tab === entry.id }"
-          :data-test="`tab-${entry.id}`"
-          @click="tab = entry.id"
-        >
-          {{ entry.label }}
-        </button>
-      </div>
 
       <section v-if="tab === 'content'" class="cpd__panel">
+        <div v-if="item.publishError" class="cpd-publish-error" role="alert" data-test="publish-error">
+          <strong>发布失败</strong>
+          <p>{{ item.publishError }}</p>
+        </div>
         <form v-if="canEdit" class="cpd-form" @submit.prevent="saveAndCheck">
           <label class="cpd-field">
             <span>Blog 标题</span>
@@ -396,30 +352,9 @@ function questionStateLabel(question: ProductionQuestion) {
             </p>
             <div v-html="item.body" />
           </article>
-          <p v-if="item.url" class="cpd-published">
-            <span>已发布：</span>
-            <a :href="item.url" target="_blank" rel="noopener noreferrer">{{ item.url }}</a>
-            <AppIcon name="externalLink" :size="13" />
-          </p>
           <p v-if="contentNote" class="cpd-note">
             {{ contentNote }}
           </p>
-          <p v-if="customerView && item.clientConfirmation?.status === 'rejected' && item.clientConfirmation.comment" class="cpd-note">
-            驳回意见：{{ item.clientConfirmation.comment }}
-          </p>
-          <article v-if="canConfirmAsClient" class="cpd-confirm">
-            <h3>客户确认</h3>
-            <p>请确认内容与发布范围。</p>
-            <textarea v-model="clientComment" class="cpd-confirm__comment" data-test="client-comment" rows="2" placeholder="客户备注（选填）" />
-            <div class="cpd-actions">
-              <Button type="button" variant="primary" data-test="confirm-client" @click="confirmClient">
-                客户确认通过
-              </Button>
-              <Button type="button" variant="outline" tone="danger" data-test="reject-client" @click="rejectClient">
-                客户驳回
-              </Button>
-            </div>
-          </article>
         </div>
       </section>
 
@@ -432,46 +367,37 @@ function questionStateLabel(question: ProductionQuestion) {
         </div>
 
         <article class="cpd-confirm">
-          <h3>客户确认</h3>
+          <h3>确认的内容</h3>
+          <div class="cpd-confirm__content" data-test="confirmed-content">
+            <h4>{{ item.title }}</h4>
+            <div v-html="item.body" />
+          </div>
           <p v-if="item.source === 'ai' && !item.aiCheck?.passed" class="cpd-note">
             AI 检查未通过，请先在「内容」中修改并重新检查。
           </p>
-          <p v-else-if="!item.clientConfirmation" class="cpd-note">
-            内容提交客户确认后，才能发布到 Blog。
+          <template v-else-if="item.stage === 'ai_checked'">
+            <p>AI 检查已通过，可直接发布到官网 Blog。</p>
+          </template>
+          <template v-else-if="item.clientConfirmation?.status === 'confirmed'">
+            <p>内容已确认 · {{ formatDate(item.clientConfirmation.at) }}</p>
+          </template>
+          <p v-else class="cpd-note">
+            内容尚未通过 AI 检查。
           </p>
-          <template v-else-if="item.clientConfirmation.status === 'pending'">
-            <p>等待客户确认。</p>
-            <p class="cpd-note">
-              客户确认后才会出现发布按钮；演示时可切换到左侧「客户」角色完成确认。
-            </p>
-          </template>
-          <template v-else-if="item.clientConfirmation.status === 'confirmed'">
-            <p>客户已确认 · {{ formatDate(item.clientConfirmation.at) }}</p>
-            <p v-if="item.clientConfirmation.comment" class="cpd-note">
-              {{ item.clientConfirmation.comment }}
-            </p>
-          </template>
-          <template v-else>
-            <p>客户已驳回 · {{ formatDate(item.clientConfirmation.at) }}</p>
-            <p v-if="item.clientConfirmation.comment" class="cpd-note">
-              {{ item.clientConfirmation.comment }}
-            </p>
-          </template>
         </article>
 
-        <div class="cpd-actions">
-          <Button v-if="canSubmit" type="button" variant="primary" data-test="submit-client" @click="submitToClient">
-            提交客户确认
+        <div v-if="canPublish" class="cpd-actions">
+          <Button type="button" variant="secondary" data-test="edit-content" @click="goToContent">
+            返回内容修改
           </Button>
-          <Button v-if="canPublish" type="button" variant="primary" data-test="publish-blog" @click="publish">
+          <Button type="button" variant="primary" data-test="publish-blog" @click="publish">
             发布到官网 Blog
           </Button>
+          <label class="cpd-simulate-failure" title="仅用于演示发布失败后的流程">
+            <input v-model="simulateFailure" type="checkbox" data-test="simulate-failure">
+            <span>模拟发布失败</span>
+          </label>
         </div>
-        <p v-if="item.url" class="cpd-published">
-          <span>已发布：</span>
-          <a :href="item.url" target="_blank" rel="noopener noreferrer">{{ item.url }}</a>
-          <AppIcon name="externalLink" :size="13" />
-        </p>
       </section>
 
       <section v-else-if="tab === 'questions'" class="cpd__panel">
@@ -550,13 +476,13 @@ function questionStateLabel(question: ProductionQuestion) {
               {{ questionStateLabel(selectedQuestion) }}
             </p>
           </article>
-          <p v-if="customerView && selectedQuestion && !verificationReady" class="cpd-note">
-            内容生效中，预计 {{ verificationWindowStart ? formatDateTime(verificationWindowStart) : '48 小时后' }} 后可开始核验，由运营执行。
+          <p v-if="selectedQuestion && !verificationReady" class="cpd-note">
+            内容生效中，预计 {{ verificationWindowStart ? formatDateTime(verificationWindowStart) : '48 小时后' }} 后可开始核验，由 AI 执行。
           </p>
-          <div v-else class="cpd-empty">
-            <p>{{ customerFacing ? '运营尚未选择核验问题。' : '尚未选择核验问题。' }}</p>
+          <div v-if="!selectedQuestion" class="cpd-empty">
+            <p>尚未选择核验问题。</p>
           </div>
-          <div v-if="!customerFacing && !historical && item.stage === 'verified'" class="cpd-actions">
+          <div v-if="!historical && item.stage === 'verified'" class="cpd-actions">
             <Button type="button" variant="primary" :loading="verifying" @click="startVerification">
               {{ verifying ? '核验中...' : '重新核验' }}
             </Button>
@@ -566,12 +492,12 @@ function questionStateLabel(question: ProductionQuestion) {
 
       <section v-else class="cpd__panel">
         <div v-if="!hasResults" class="cpd-empty">
-          <p>{{ customerFacing ? '运营尚未开始核验，结果生成后可在这里查看。' : '选择核验问题并开始核验后，结果会显示在这里。' }}</p>
+          <p>选择核验问题并开始核验后，结果会显示在这里。</p>
           <p v-if="item.publishedAt && !verificationReady" class="cpd-note">
             内容发布后需等待 {{ VERIFICATION_COOLDOWN_HOURS }} 小时生效，{{ verificationWindowStart ? formatDateTime(verificationWindowStart) : '48 小时后' }} 后可开始核验。
           </p>
           <Button
-            v-if="hasSelectedQuestion && !customerFacing"
+            v-if="hasSelectedQuestion"
             type="button"
             variant="primary"
             :disabled="!verificationReady || verifying"
@@ -620,9 +546,6 @@ function questionStateLabel(question: ProductionQuestion) {
     </div>
 
     <template #footer>
-      <RouterLink v-if="item?.taskId && !customerFacing" class="cpd-footer-task" :to="{ name: 'task-detail', params: { taskId: item.taskId } }">
-        查看关联任务
-      </RouterLink>
       <Button type="button" @click="emit('close')">
         关闭
       </Button>
@@ -635,9 +558,9 @@ function questionStateLabel(question: ProductionQuestion) {
 .cpd__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 10px; color: var(--text-secondary); background: var(--background-subtle); font-size: 12px; line-height: 18px; }
 .cpd__description { margin: -4px 0 0; color: var(--text-muted); font-size: 12px; line-height: 19px; }
 .cpd-stage { display: inline-flex; padding: 3px 8px; border-radius: 999px; color: var(--text-secondary); background: var(--background-primary); font-size: 11px; line-height: 17px; }
-.cpd-stage.is-draft, .cpd-stage.is-client_rejected { color: #9a3412; background: #ffedd5; }
-.cpd-stage.is-ai_checked, .cpd-stage.is-ready_to_publish, .cpd-stage.is-questions_confirmed { color: #1d4ed8; background: #dbeafe; }
-.cpd-stage.is-pending_client, .cpd-stage.is-questions_pending { color: #92400e; background: #fef3c7; }
+.cpd-stage.is-draft { color: #9a3412; background: #ffedd5; }
+.cpd-stage.is-ai_checked, .cpd-stage.is-questions_pending { color: #92400e; background: #fef3c7; }
+.cpd-stage.is-ready_to_publish, .cpd-stage.is-questions_confirmed { color: #1d4ed8; background: #dbeafe; }
 .cpd-stage.is-verifying { color: #6d28d9; background: #ede9fe; }
 .cpd-stage.is-verified { color: #166534; background: #dcfce7; }
 .cpd-steps { display: flex; align-items: center; gap: 0; margin: 0; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--background-subtle); list-style: none; }
@@ -654,11 +577,6 @@ function questionStateLabel(question: ProductionQuestion) {
 .cpd-step.is-done .cpd-step__index { border-color: var(--action-accent); color: var(--action-accent); background: var(--action-subtle-background); }
 .cpd-step.is-done .cpd-step__line { background: color-mix(in srgb, var(--action-accent) 45%, var(--border-default)); }
 .cpd-step.is-active .cpd-step__label { text-decoration: underline; text-underline-offset: 3px; }
-.cpd__tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--border-default); }
-.cpd__tabs button { padding: 8px 10px; border: 0; border-bottom: 2px solid transparent; color: var(--text-secondary); background: none; font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
-.cpd__tabs button:hover { color: var(--text-primary); }
-.cpd__tabs button.is-active { border-bottom-color: var(--action-accent); color: var(--action-accent); font-weight: 600; }
-.cpd__tabs button:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
 .cpd__panel { display: grid; gap: 14px; min-width: 0; }
 .cpd-form { display: grid; gap: 12px; }
 .cpd-field { display: grid; gap: 6px; color: var(--text-secondary); font-size: 12px; line-height: 18px; }
@@ -677,10 +595,15 @@ function questionStateLabel(question: ProductionQuestion) {
 .cpd-confirm { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--background-primary); }
 .cpd-confirm h3 { margin: 0; font-size: 13px; line-height: 20px; font-weight: 600; }
 .cpd-confirm p { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 19px; }
-.cpd-confirm__comment { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border-default); border-radius: 8px; color: var(--text-primary); background: var(--background-primary); font: inherit; font-size: 12px; line-height: 19px; resize: vertical; }
-.cpd-published { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 19px; overflow-wrap: anywhere; }
-.cpd-published a { color: var(--action-accent); text-decoration: none; }
-.cpd-published a:hover { text-decoration: underline; }
+.cpd-confirm__content { display: grid; gap: 6px; max-height: 320px; overflow: auto; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: 8px; color: var(--text-secondary); background: var(--background-subtle); font-size: 13px; line-height: 21px; }
+.cpd-confirm__content h4 { margin: 0; color: var(--text-primary); font-size: 16px; line-height: 24px; font-weight: 600; }
+.cpd-confirm__content :deep(h2) { margin: 14px 0 6px; color: var(--text-primary); font-size: 14px; line-height: 22px; }
+.cpd-confirm__content :deep(p) { margin: 6px 0; }
+.cpd-publish-error { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--status-error-border, var(--border-default)); border-radius: 10px; color: var(--status-error-foreground); background: var(--status-error-background); font-size: 12px; line-height: 19px; }
+.cpd-publish-error strong { font-size: 13px; line-height: 20px; }
+.cpd-publish-error p { margin: 0; color: var(--status-error-foreground); }
+.cpd-simulate-failure { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; color: var(--text-muted); font-size: 12px; line-height: 18px; cursor: pointer; }
+.cpd-simulate-failure input { accent-color: var(--action-accent); }
 .cpd-check-panel { display: grid; gap: 8px; }
 .cpd-check-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: 10px; font-size: 12px; line-height: 19px; }
 .cpd-check-summary.is-pass { color: var(--status-success-foreground); background: var(--status-success-background); }
@@ -718,8 +641,6 @@ function questionStateLabel(question: ProductionQuestion) {
 .cp-blog-preview h2 { margin: 20px 0 8px; color: var(--text-primary); font-size: 16px; line-height: 24px; }
 .cp-blog-preview p { margin: 8px 0; }
 .cp-blog-preview__summary { color: var(--text-secondary); font-size: 13px; line-height: 20px; }
-.cpd-footer-task { margin-right: auto; color: var(--action-accent); font-size: 13px; line-height: 20px; text-decoration: none; }
-.cpd-footer-task:hover { text-decoration: underline; }
 .cv-result { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--border-default); border-radius: 12px; background: var(--background-primary); }
 .cv-result__head { display: flex; align-items: flex-start; gap: 10px; }
 .cv-result__index { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 8px; color: var(--action-accent); background: color-mix(in srgb, var(--action-accent) 10%, white); font-size: 12px; font-weight: 700; }
@@ -736,5 +657,5 @@ function questionStateLabel(question: ProductionQuestion) {
 .cv-snapshot-link { display: inline-flex; width: fit-content; color: var(--action-accent); font-size: 12px; font-weight: 600; line-height: 18px; text-decoration: none; }
 .cv-snapshot-link:hover { text-decoration: underline; }
 .cv-snapshot-link:focus-visible { outline: 2px solid var(--action-accent); outline-offset: 2px; }
-@media (max-width: 560px) { .cpd__tabs button { flex: 1 1 auto; } .cpd-steps { flex-direction: column; align-items: stretch; gap: 4px; } .cpd-step, .cpd-step:last-child { flex: none; } .cpd-step__line { display: none; } .cpd-check-list li { grid-template-columns: auto minmax(0, 1fr); } .cpd-check__status { grid-column: 2; } }
+@media (max-width: 560px) { .cpd-steps { flex-direction: column; align-items: stretch; gap: 4px; } .cpd-step, .cpd-step:last-child { flex: none; } .cpd-step__line { display: none; } .cpd-check-list li { grid-template-columns: auto minmax(0, 1fr); } .cpd-check__status { grid-column: 2; } }
 </style>

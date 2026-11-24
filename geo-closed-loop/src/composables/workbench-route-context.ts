@@ -1,5 +1,5 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
-import type { AuditCheck, AuditFinding, GeoPage, GeoTask, Persona, ServiceMode, Strategy, StrategyLayer, TaskFilter, UserRole } from '../data/geo-data'
+import type { AuditCheck, AuditFinding, GeoPage, GeoTask, Persona, Strategy, StrategyLayer, TaskFilter } from '../data/geo-data'
 import { inject } from 'vue'
 
 export interface GeoWorkbenchRouteContext {
@@ -9,9 +9,6 @@ export interface GeoWorkbenchRouteContext {
   strategies: Strategy[]
   tasks: GeoTask[]
   strategyLayer: Ref<StrategyLayer>
-  productMode: Ref<ServiceMode>
-  serviceMode: Ref<ServiceMode>
-  role: Ref<UserRole>
   highlightedStrategy: Ref<string | undefined>
   taskFilter: Ref<TaskFilter>
   visibleTasks: ComputedRef<GeoTask[]>

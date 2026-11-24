@@ -1,7 +1,6 @@
 import type { GeoTask } from '../data/geo-data'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
 import { geoWorkbenchRouteContextKey } from '../composables/workbench-route-context'
 import TaskDetailView from './TaskDetailView.vue'
 
@@ -29,26 +28,24 @@ const task: GeoTask = {
   relatedStrategies: ['GS14'],
 }
 
-function mountView(role = ref<'ops' | 'client'>('ops'), options: { tasks?: GeoTask[], serviceMode?: 'managed' | 'agent' } = {}) {
+function mountView(options: { tasks?: GeoTask[] } = {}) {
   const wrapper = mount(TaskDetailView, {
     global: {
       provide: {
         [geoWorkbenchRouteContextKey as symbol]: {
           tasks: options.tasks ?? [task],
-          role,
-          serviceMode: { value: options.serviceMode ?? 'managed' },
         },
       },
       stubs: {
         TaskWorkspace: {
-          props: ['task', 'role', 'serviceMode', 'clientPreview'],
-          emits: ['back', 'setTestRole'],
-          template: '<button data-test="back" @click="$emit(\'back\')">← 返回优化中心</button><span data-test="active-role">{{ role }} / {{ clientPreview }}</span><span data-test="task-view">{{ task.source }} / {{ task.contentFormat || "text" }} / {{ task.progress }}</span><button data-test="role-ops" @click="$emit(\'setTestRole\', \'ops\')">运营</button><button data-test="role-client" @click="$emit(\'setTestRole\', \'client\')">客户</button>',
+          props: ['task'],
+          emits: ['back'],
+          template: '<button data-test="back" @click="$emit(\'back\')">← 返回优化中心</button><span data-test="task-view">{{ task.source }} / {{ task.contentFormat || "text" }} / {{ task.progress }}</span>',
         },
       },
     },
   })
-  return { wrapper, role }
+  return { wrapper }
 }
 
 describe('task detail back navigation', () => {
@@ -78,29 +75,18 @@ describe('task detail back navigation', () => {
   })
 })
 
-describe('client role preview', () => {
+describe('task previews', () => {
   afterEach(() => {
     route.query = undefined
   })
 
   it('keeps the code review fixture reachable when the prototype task is absent from the customer list', () => {
     route.query = { preview: 'code-review' }
-    const { wrapper } = mountView(ref('client'), { tasks: [], serviceMode: 'agent' })
+    const { wrapper } = mountView({ tasks: [] })
 
     expect(wrapper.get('[data-test="task-view"]').text()).toBe('F9 / code / client_review')
     expect(router.replace).not.toHaveBeenCalled()
     wrapper.unmount()
-  })
-
-  it('switches between operations and customer roles on this task only', async () => {
-    const { wrapper, role: workbenchRole } = mountView()
-
-    expect(wrapper.get('[data-test="active-role"]').text()).toBe('ops / false')
-    await wrapper.get('[data-test="role-client"]').trigger('click')
-    expect(wrapper.get('[data-test="active-role"]').text()).toBe('client / true')
-    await wrapper.get('[data-test="role-ops"]').trigger('click')
-    expect(wrapper.get('[data-test="active-role"]').text()).toBe('ops / false')
-    expect(workbenchRole.value).toBe('ops')
   })
 })
 

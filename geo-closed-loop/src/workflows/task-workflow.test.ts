@@ -1,6 +1,6 @@
 import type { GeoTask } from '../data/geo-data'
 import { describe, expect, it } from 'vitest'
-import { advanceAutomatic, applyAction, canEditBrief, canPrepareBrief, deferredTaskFor, ensureWorkflow, getTaskBucket, hasAutomaticStep, isTaskDeferred, isTaskIgnored, knowledgeLibrary, reviewOwner, taskStageLabel } from './task-workflow'
+import { advanceAutomatic, applyAction, canPrepareBrief, deferredTaskFor, ensureWorkflow, getTaskBucket, hasAutomaticStep, isTaskDeferred, isTaskIgnored, knowledgeLibrary, taskStageLabel } from './task-workflow'
 
 function makeTask(type: GeoTask['type'], progress: GeoTask['progress']): GeoTask {
   return {
@@ -18,7 +18,7 @@ function makeTask(type: GeoTask['type'], progress: GeoTask['progress']): GeoTask
   }
 }
 
-describe('prototype task ownership and backend-driven repair status', () => {
+describe('Brief confirmation and customer ownership', () => {
   it('describes the actual content channel and keeps verification separate from publication', () => {
     const website = makeTask('web', 'brief')
     website.name = '航空采购 FAQ 与产能表'
@@ -46,48 +46,89 @@ describe('prototype task ownership and backend-driven repair status', () => {
     const workflow = ensureWorkflow(task)
     Reflect.deleteProperty(workflow, 'briefStatus')
 
-    const restored = ensureWorkflow(task)
-
-    expect(restored.briefStatus).toBe('ready')
-    expect(canEditBrief(task, 'ops', 'managed')).toBe(true)
-    expect(canEditBrief(task, 'client', 'managed')).toBe(false)
+    expect(ensureWorkflow(task).briefStatus).toBe('ready')
+    expect(canPrepareBrief(task)).toBe(true)
   })
 
-  it('rejects customer-side Brief edits and routes draft changes through operations', () => {
+  it('lets the customer add instructions without changing AI-defined goals or methods', () => {
     const task = makeTask('web', 'brief')
     const flow = ensureWorkflow(task)
-    const payload = { brief: flow.brief, methods: task.methods, knowledge: flow.knowledge }
+    const payload = { brief: { ...flow.brief, contentInstruction: '使用已确认服务范围' }, methods: [...task.methods], knowledge: [{ ...knowledgeLibrary[0]! }] }
 
-    expect(applyAction(task, 'client', 'managed', 'save_brief', payload)).toContain('不能编辑 Brief')
-    expect(applyAction(task, 'client', 'managed', 'request_brief_changes', { note: '请调整' })).toContain('仅专家')
-    expect(applyAction(task, 'client', 'managed', 'ignore_task', { ignoreReason: '其他', note: '说明' })).toContain('当前步骤负责人')
-    expect(applyAction(task, 'ops', 'managed', 'save_brief', payload)).toBeNull()
+    expect(applyAction(task, 'save_brief', payload)).toBeNull()
+    expect(flow.brief.contentInstruction).toBe('使用已确认服务范围')
+    expect(applyAction(task, 'save_brief', { ...payload, methods: ['未经确认的方法'] })).toContain('任务目标和专业方法由 AI 生成')
+    expect(applyAction(task, 'save_brief', { ...payload, brief: { ...payload.brief, goal: '替换目标' } })).toContain('任务目标和专业方法由 AI 生成')
   })
 
-  it('routes managed content review to operations before the customer review', () => {
-    expect(reviewOwner(makeTask('web', 'human'), 'managed')).toBe('ops')
-    expect(reviewOwner(makeTask('external', 'human'), 'managed')).toBe('ops')
-    expect(reviewOwner(makeTask('external', 'client_review'), 'managed')).toBe('client')
+  it('requires a content source before the customer confirms the Brief', () => {
+    const task = makeTask('web', 'brief')
+    ensureWorkflow(task).brief.webSupplement = false
+
+    expect(applyAction(task, 'confirm_brief')).toContain('选择知识资料、填写补充说明或勾选联网补充')
+    expect(task.progress).toBe('brief')
+
+    task.workflow!.brief.contentInstruction = '重点介绍本地服务，不补充未经确认的承诺。'
+    expect(applyAction(task, 'confirm_brief')).toBeNull()
+    expect(task.progress).toBe('todo')
   })
 
-  it('sends an external draft from operations review to customer final confirmation', () => {
-    const task = makeTask('external', 'human')
+  it('allows web supplementation to satisfy the content-source requirement', () => {
+    const task = makeTask('web', 'brief')
+    ensureWorkflow(task).brief.webSupplement = true
+
+    expect(applyAction(task, 'confirm_brief')).toBeNull()
+    expect(task.progress).toBe('todo')
+  })
+
+  it('sends verification Briefs straight to customer verification', () => {
+    const task = makeTask('web', 'brief')
+    task.executionKind = 'verification'
     ensureWorkflow(task)
 
-    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
-    expect(task.progress).toBe('client_review')
+    expect(applyAction(task, 'confirm_brief')).toBeNull()
+    expect(task.progress).toBe('human')
+    expect(taskStageLabel(task)).toBe('待客户核查')
   })
 
-  it('publishes a website task after customer approval and completes on the simulated success result', () => {
+  it('lets the customer ignore a Brief without a reason and records the decision', () => {
+    const task = makeTask('web', 'brief')
+    const flow = ensureWorkflow(task)
+
+    expect(applyAction(task, 'ignore_task')).toBeNull()
+
+    expect(flow.ignoredTask).toMatchObject({ reason: '', explanation: '', actor: '客户' })
+    expect(flow.ignoredBrief).toMatchObject({ reason: '', explanation: '' })
+    expect(flow.reviews.at(-1)?.note).toBe('忽略本次审核事项')
+    expect(getTaskBucket(task)).toBe('ignored')
+    expect(taskStageLabel(task)).toBe('已忽略')
+  })
+
+  it('migrates saved Brief ignore records to the shared ignored-step state', () => {
+    const task = makeTask('web', 'brief')
+    const flow = ensureWorkflow(task)
+    flow.ignoredBrief = { reason: '事实 / 证据不足', explanation: '旧记录', actor: '客户', time: '2026-10-13T00:00:00.000Z' }
+
+    expect(ensureWorkflow(task).ignoredTask).toMatchObject({ stage: 'brief', stageLabel: 'Task Brief 确认', reason: '事实 / 证据不足' })
+    expect(isTaskIgnored(task)).toBe(true)
+  })
+})
+
+describe('customer content review and publishing', () => {
+  it('waits for customer submission after approval and completes on the simulated success result', () => {
     const task = makeTask('web', 'client_review')
     const flow = ensureWorkflow(task)
 
-    expect(applyAction(task, 'client', 'managed', 'approve_client')).toBeNull()
+    expect(applyAction(task, 'approve_client')).toBeNull()
     expect(task.progress).toBe('site_submit')
+    expect(flow.site.attempts).toBe(0)
     expect(flow.site.requirements).toContain(flow.brief.executionTarget)
+    expect(advanceAutomatic(task)).toBe(false)
 
-    expect(applyAction(task, 'ops', 'managed', 'submit_site')).toBeNull()
+    expect(applyAction(task, 'submit_site')).toBeNull()
     expect(task.progress).toBe('site_submitted')
+    expect(flow.site.attempts).toBe(1)
+
     expect(advanceAutomatic(task)).toBe(true)
     expect(advanceAutomatic(task)).toBe(true)
     expect(advanceAutomatic(task)).toBe(true)
@@ -98,219 +139,125 @@ describe('prototype task ownership and backend-driven repair status', () => {
     expect(getTaskBucket(task)).toBe('done')
   })
 
-  it('waits for an explicit site submission before automatically completing publishing', () => {
-    const task = makeTask('web', 'site_submit')
-    const flow = ensureWorkflow(task)
+  it('lets the customer return to content review before submitting the website package', () => {
+    const task = makeTask('web', 'client_review')
+    ensureWorkflow(task)
 
-    expect(hasAutomaticStep(task)).toBe(false)
-    expect(advanceAutomatic(task)).toBe(false)
+    expect(applyAction(task, 'approve_client')).toBeNull()
     expect(task.progress).toBe('site_submit')
 
-    expect(applyAction(task, 'ops', 'managed', 'submit_site')).toBeNull()
-    expect(hasAutomaticStep(task)).toBe(true)
-    expect(advanceAutomatic(task)).toBe(true)
-    expect(advanceAutomatic(task)).toBe(true)
-    expect(advanceAutomatic(task)).toBe(true)
-
-    expect(task.progress).toBe('done')
-    expect(flow.site.result).toContain('发布成功')
+    expect(applyAction(task, 'return_content_review')).toBeNull()
+    expect(task.progress).toBe('client_review')
+    expect(applyAction(task, 'approve_client')).toBeNull()
+    expect(task.progress).toBe('site_submit')
   })
 
-  it('routes generated external content through operations review before customer review', () => {
-    const task = makeTask('external', 'running')
+  it('completes external content only after the delivery gate without tracking a publish URL', () => {
+    const task = makeTask('external', 'client_review')
+    const flow = ensureWorkflow(task)
+
+    expect(applyAction(task, 'approve_client')).toBeNull()
+    expect(task.progress).toBe('site_submit')
+    expect(flow.url).toBe('')
+    expect(flow.site.attempts).toBe(0)
+    expect(flow.reviews.at(-1)?.note).toContain('外部内容确认')
+
+    expect(applyAction(task, 'return_content_review')).toBeNull()
+    expect(task.progress).toBe('client_review')
+    expect(applyAction(task, 'approve_client')).toBeNull()
+    expect(task.progress).toBe('site_submit')
+
+    expect(applyAction(task, 'complete_delivery')).toBeNull()
+    expect(task.progress).toBe('done')
+    expect(flow.url).toBe('')
+    expect(flow.site.attempts).toBe(0)
+    expect(flow.reviews.at(-1)?.note).toContain('完成外部内容交付')
+  })
+
+  it('rejects completing delivery for a website execution package', () => {
+    const task = makeTask('web', 'site_submit')
     ensureWorkflow(task)
 
-    expect(advanceAutomatic(task)).toBe(true)
-    expect(task.progress).toBe('human')
-    expect(reviewOwner(task, 'managed')).toBe('ops')
-    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
-    expect(task.progress).toBe('client_review')
-    expect(reviewOwner(task, 'managed')).toBe('client')
-    expect(applyAction(task, 'client', 'managed', 'approve_client')).toBeNull()
-    expect(task.progress).toBe('done')
+    expect(applyAction(task, 'complete_delivery')).toContain('仅待完成的外部内容')
+    expect(task.progress).toBe('site_submit')
   })
 
-  it('returns external content from customer review to the expert with the customer note', () => {
-    const task = makeTask('external', 'client_review')
-    const flow = ensureWorkflow(task)
-
-    expect(applyAction(task, 'client', 'managed', 'request_output_changes', { note: '请补充第三方来源。' })).toBeNull()
-    expect(task.progress).toBe('human')
-    expect(reviewOwner(task, 'managed')).toBe('ops')
-    expect(flow.customerReturn?.note).toBe('请补充第三方来源。')
-    expect(flow.customerRevisionRequests).toBe(1)
-
-    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
-    expect(task.progress).toBe('client_review')
-    expect(flow.customerReturn).toBeUndefined()
-  })
-
-  it('limits external customer returns to three before final confirmation', () => {
-    const task = makeTask('external', 'client_review')
-    const flow = ensureWorkflow(task)
-    flow.customerRevisionRequests = 3
-
-    expect(applyAction(task, 'client', 'managed', 'request_output_changes', { note: '还需要再改一次。' })).toContain('3 次上限')
-    expect(task.progress).toBe('client_review')
-  })
-
-  it('lets only the current reviewer update the web supplement setting and records the change', () => {
+  it('rejects approval when the generated body is empty', () => {
     const task = makeTask('web', 'client_review')
     const flow = ensureWorkflow(task)
-    flow.brief.webSupplement = true
-    const versionsBefore = flow.versions.length
+    flow.output.body = ''
 
-    expect(applyAction(task, 'ops', 'managed', 'update_web_supplement', { webSupplement: false })).toContain('不能调整')
-    expect(applyAction(task, 'client', 'managed', 'update_web_supplement', { webSupplement: false })).toBeNull()
+    expect(applyAction(task, 'approve_client')).toContain('请由客户审核完整产物')
     expect(task.progress).toBe('client_review')
-    expect(flow.brief.webSupplement).toBe(false)
-    expect(flow.versions).toHaveLength(versionsBefore + 1)
-    expect(flow.reviews.at(-1)?.note).toContain('联网补充已关闭')
   })
 
-  it('lets the customer adjust web supplementation during content preparation', () => {
-    const task = makeTask('web', 'todo')
+  it('lets the customer adjust web supplementation during content preparation and review', () => {
+    const preparing = makeTask('web', 'todo')
+    const preparingFlow = ensureWorkflow(preparing)
+    expect(applyAction(preparing, 'update_web_supplement', { webSupplement: false })).toBeNull()
+    expect(preparingFlow.brief.webSupplement).toBe(false)
+    expect(preparing.progress).toBe('todo')
+
+    const reviewing = makeTask('web', 'client_review')
+    const reviewingFlow = ensureWorkflow(reviewing)
+    reviewingFlow.brief.webSupplement = true
+    const versionsBefore = reviewingFlow.versions.length
+    expect(applyAction(reviewing, 'update_web_supplement', { webSupplement: false })).toBeNull()
+    expect(reviewingFlow.brief.webSupplement).toBe(false)
+    expect(reviewingFlow.versions).toHaveLength(versionsBefore + 1)
+    expect(reviewingFlow.reviews.at(-1)?.note).toContain('联网补充已关闭')
+  })
+
+  it('rolls a failed website publish straight back to customer content review', () => {
+    const task = makeTask('web', 'site_verifying')
     const flow = ensureWorkflow(task)
+    flow.site.simulateFailure = true
 
-    expect(applyAction(task, 'client', 'managed', 'update_web_supplement', { webSupplement: false })).toBeNull()
-    expect(flow.brief.webSupplement).toBe(false)
-    expect(task.progress).toBe('todo')
-  })
-
-  it('lets operations ignore a Brief without advancing or changing source diagnosis', () => {
-    const task = makeTask('web', 'brief')
-    const flow = ensureWorkflow(task)
-    const reason = 'Agent 判断错误 / 策略不适用'
-
-    expect(applyAction(task, 'client', 'managed', 'ignore_brief', { ignoreReason: reason, note: '当前业务不适用' })).toContain('仅专家')
-    expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: reason, note: '当前业务不适用' })).toBeNull()
-
-    expect(task.progress).toBe('brief')
-    expect(task.source).toBe('F1')
-    expect(task.strategy).toBe('GS1')
-    expect(flow.ignoredBrief).toMatchObject({ reason, explanation: '当前业务不适用', actor: '专家' })
-    expect(getTaskBucket(task)).toBe('ignored')
-    expect(taskStageLabel(task)).toBe('已忽略')
-    expect(flow.reviews.at(-1)?.note).toContain(`忽略本次审核事项：${reason}；当前业务不适用`)
-  })
-
-  it('requires an operations-owned ready Brief and both ignore fields', () => {
-    const task = makeTask('web', 'brief')
-    ensureWorkflow(task)
-
-    expect(applyAction(task, 'client', 'managed', 'ignore_brief')).toContain('仅专家')
-    expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: '其他' })).toContain('忽略说明')
-    expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: '其他', note: '说明' })).toBeNull()
-    expect(applyAction(task, 'ops', 'managed', 'ignore_brief', { ignoreReason: '其他', note: '再次提交' })).toContain('已忽略')
-  })
-
-  it('allows operations to confirm a ready Brief while keeping the customer read-only', () => {
-    const task = makeTask('web', 'brief')
-    ensureWorkflow(task).knowledge.push({ ...knowledgeLibrary[0]! })
-
-    expect(applyAction(task, 'client', 'managed', 'confirm_brief')).toContain('仅专家')
-    expect(applyAction(task, 'ops', 'managed', 'confirm_brief')).toBeNull()
-    expect(task.progress).toBe('todo')
-  })
-
-  it('allows a direct AI instruction to satisfy the content-source requirement', () => {
-    const task = makeTask('web', 'brief')
-    const flow = ensureWorkflow(task)
-    flow.brief.webSupplement = false
-    flow.brief.contentInstruction = '重点介绍本地服务，不补充未经确认的承诺。'
-
-    expect(applyAction(task, 'ops', 'managed', 'confirm_brief')).toBeNull()
-    expect(task.progress).toBe('todo')
-  })
-
-  it('rejects Brief confirmation when both knowledge and direct instructions are empty', () => {
-    const task = makeTask('web', 'brief')
-    ensureWorkflow(task).brief.webSupplement = false
-
-    expect(applyAction(task, 'ops', 'managed', 'confirm_brief')).toContain('选择知识资料、填写补充说明或勾选联网补充')
-    expect(task.progress).toBe('brief')
-  })
-
-  it('requires one content source for structure-only tasks as well', () => {
-    const task = makeTask('web', 'brief')
-    task.name = '官网结构优化'
-    task.methods = ['页面结构优化']
-    ensureWorkflow(task).brief.webSupplement = false
-
-    expect(applyAction(task, 'ops', 'managed', 'confirm_brief')).toContain('选择知识资料、填写补充说明或勾选联网补充')
-  })
-
-  it('allows web supplementation to satisfy the content-source requirement', () => {
-    const task = makeTask('web', 'brief')
-    ensureWorkflow(task).brief.webSupplement = true
-
-    expect(applyAction(task, 'ops', 'managed', 'confirm_brief')).toBeNull()
-    expect(task.progress).toBe('todo')
-  })
-
-  it('migrates saved Brief ignore records to the shared ignored-step state', () => {
-    const task = makeTask('web', 'brief')
-    const flow = ensureWorkflow(task)
-    flow.ignoredBrief = { reason: '事实 / 证据不足', explanation: '旧记录', actor: '客户', time: '2026-10-13T00:00:00.000Z' }
-
-    const restored = ensureWorkflow(task)
-
-    expect(restored.ignoredTask).toMatchObject({ stage: 'brief', stageLabel: 'Task Brief 确认', reason: '事实 / 证据不足' })
-    expect(isTaskIgnored(task)).toBe(true)
-  })
-
-  it('lets the current step owner ignore a later step and records which step was ignored', () => {
-    const task = makeTask('web', 'human')
-    const flow = ensureWorkflow(task)
-
-    expect(applyAction(task, 'ops', 'managed', 'ignore_task', { ignoreReason: '事实 / 证据不足', note: '当前阶段资料不足。' })).toBeNull()
-
-    expect(flow.ignoredTask).toMatchObject({
-      stage: 'human',
-      stageLabel: '专家专业审核',
-      reason: '事实 / 证据不足',
-      explanation: '当前阶段资料不足。',
-      actor: '专家',
-    })
-    expect(getTaskBucket(task)).toBe('ignored')
-    expect(taskStageLabel(task)).toBe('已忽略')
-  })
-
-  it('restricts ignoring to the current step owner and rejects terminal tasks', () => {
-    const task = makeTask('web', 'human')
-    ensureWorkflow(task)
-
-    expect(applyAction(task, 'client', 'managed', 'ignore_task', { ignoreReason: '其他', note: '说明' })).toContain('当前步骤负责人')
-    expect(applyAction(task, 'ops', 'managed', 'ignore_task', { ignoreReason: '其他', note: '说明' })).toBeNull()
-    expect(applyAction(task, 'ops', 'managed', 'ignore_task', { ignoreReason: '其他', note: '再次忽略' })).toContain('已忽略')
-
-    const completed = makeTask('web', 'done')
-    ensureWorkflow(completed)
-    expect(applyAction(completed, 'ops', 'managed', 'ignore_task', { ignoreReason: '其他', note: '说明' })).toContain('已完成')
-  })
-
-  it('prevents an ignored automatic step from resuming or advancing', () => {
-    const task = makeTask('web', 'running')
-    ensureWorkflow(task)
-
-    expect(applyAction(task, 'client', 'managed', 'ignore_task', { ignoreReason: '其他', note: '本次不再执行。' })).toBeNull()
+    expect(advanceAutomatic(task)).toBe(true)
+    expect(task.progress).toBe('client_review')
+    expect(flow.site.result).toContain('发布失败')
+    expect(flow.site.result).toContain('已退回到修改板块，可以执行修改操作或重新提交')
+    expect(flow.site.simulateFailure).toBe(false)
     expect(hasAutomaticStep(task)).toBe(false)
-    expect(advanceAutomatic(task)).toBe(false)
-    expect(task.progress).toBe('running')
   })
 
-  it.each(['agent', 'managed'] as const)('automatically completes direct repair in %s without approval', (mode) => {
-    const task = makeTask('repair', 'human')
+  it('rewrites the legacy return copy when restoring a saved workflow', () => {
+    const task = makeTask('web', 'client_review')
+    const flow = ensureWorkflow(task)
+    flow.site.result = '发布失败：执行结果与验收条件存在差异，已退回内容优化。'
+
     ensureWorkflow(task)
-    expect(hasAutomaticStep(task, mode)).toBe(true)
-    expect(applyAction(task, 'client', mode, 'submit_site')).toContain('无需人工操作')
-    expect(taskStageLabel(task, mode)).toBe('AI建站处理中')
-    advanceAutomatic(task, mode)
-    expect(task.progress).toBe('site_running')
-    advanceAutomatic(task, mode)
-    expect(taskStageLabel(task, mode)).toBe('已完成处理')
-    expect(getTaskBucket(task)).toBe('done')
-    expect(hasAutomaticStep(task, mode)).toBe(false)
+
+    expect(flow.site.result).toBe('发布失败：执行结果与验收条件存在差异，已退回到修改板块，可以执行修改操作或重新提交。')
+  })
+
+  it('returns a failed repair from customer review to content editing, then allows republish', () => {
+    const task = makeTask('repair', 'client_review')
+    task.source = 'F9'
+    const flow = ensureWorkflow(task)
+    flow.site.simulateFailure = true
+    flow.output.body = '<h2>修复说明</h2><p>等待确认。</p>'
+    task.progress = 'site_verifying'
+
+    expect(advanceAutomatic(task)).toBe(true)
+    expect(task.progress).toBe('site_failed')
+    expect(flow.site.attempts).toBe(0)
+  })
+
+  it('supports retry after a repair publish failure', () => {
+    const task = makeTask('repair', 'human')
+    task.source = 'F9'
+    const flow = ensureWorkflow(task)
+    expect(hasAutomaticStep(task)).toBe(false)
+    expect(applyAction(task, 'submit_site', { simulateFailure: true })).toBeNull()
+    for (let i = 0; i < 3; i++) advanceAutomatic(task)
+    expect(task.progress).toBe('site_failed')
+
+    expect(applyAction(task, 'retry_site', { note: '仅更新已确认的结构字段', simulateFailure: false })).toBeNull()
+    for (let i = 0; i < 3; i++) advanceAutomatic(task)
+    expect(task.progress).toBe('done')
+    expect(flow.site.attempts).toBe(2)
+    expect(flow.site.requirements).toContain('仅更新已确认的结构字段')
   })
 
   it('keeps Re-check waiting for an explicit monitoring completion action', () => {
@@ -318,65 +265,123 @@ describe('prototype task ownership and backend-driven repair status', () => {
     const flow = ensureWorkflow(task)
 
     expect(hasAutomaticStep(task)).toBe(false)
-    expect(applyAction(task, 'ops', 'managed', 'complete_recheck')).toBeNull()
+    expect(applyAction(task, 'complete_recheck')).toBeNull()
     expect(task.progress).toBe('done')
     expect(flow.reviews.at(-1)?.note).toContain('完成本次官网核验')
   })
+})
 
-  it('completes publishing automatically when the website build returns success', () => {
-    const task = makeTask('web', 'site_verifying')
+describe('ignoring and deferring a task step', () => {
+  it('lets the current step owner ignore a later step and records which step was ignored', () => {
+    const task = makeTask('web', 'human')
     const flow = ensureWorkflow(task)
 
-    expect(advanceAutomatic(task)).toBe(true)
-    expect(task.progress).toBe('done')
-    expect(flow.site.result).toContain('发布成功')
+    expect(applyAction(task, 'ignore_task', { ignoreReason: '事实 / 证据不足', note: '当前阶段资料不足。' })).toBeNull()
+
+    expect(flow.ignoredTask).toMatchObject({
+      stage: 'human',
+      stageLabel: '待客户审核',
+      reason: '事实 / 证据不足',
+      explanation: '当前阶段资料不足。',
+      actor: '客户',
+    })
+    expect(getTaskBucket(task)).toBe('ignored')
+    expect(taskStageLabel(task)).toBe('已忽略')
+  })
+
+  it('rejects ignoring terminal tasks and repeating an ignored decision', () => {
+    const task = makeTask('web', 'human')
+    ensureWorkflow(task)
+
+    expect(applyAction(task, 'ignore_task', { note: '说明' })).toBeNull()
+    expect(applyAction(task, 'ignore_task', { note: '再次忽略' })).toContain('已忽略')
+
+    const completed = makeTask('web', 'done')
+    ensureWorkflow(completed)
+    expect(applyAction(completed, 'ignore_task', { note: '说明' })).toContain('已完成')
+  })
+
+  it('prevents an ignored automatic step from resuming or advancing', () => {
+    const task = makeTask('web', 'running')
+    ensureWorkflow(task)
+
+    expect(applyAction(task, 'ignore_task', { note: '本次不再执行。' })).toBeNull()
     expect(hasAutomaticStep(task)).toBe(false)
+    expect(advanceAutomatic(task)).toBe(false)
+    expect(task.progress).toBe('running')
   })
 
-  it('rolls a failed website publish straight back to content optimisation', () => {
-    const managed = makeTask('web', 'site_verifying')
-    const managedFlow = ensureWorkflow(managed)
-    managedFlow.site.simulateFailure = true
-
-    expect(advanceAutomatic(managed, 'managed')).toBe(true)
-    expect(managed.progress).toBe('human')
-    expect(managedFlow.site.result).toContain('发布失败')
-    expect(managedFlow.site.result).toContain('已退回内容优化')
-    expect(managedFlow.site.simulateFailure).toBe(false)
-    expect(hasAutomaticStep(managed, 'managed')).toBe(false)
-
-    const agent = makeTask('web', 'site_verifying')
-    const agentFlow = ensureWorkflow(agent)
-    agentFlow.site.simulateFailure = true
-
-    expect(advanceAutomatic(agent, 'agent')).toBe(true)
-    expect(agent.progress).toBe('client_review')
-    expect(agentFlow.site.result).toContain('发布失败')
-    expect(agentFlow.site.result).toContain('已退回内容优化')
-    expect(agentFlow.site.simulateFailure).toBe(false)
-    expect(hasAutomaticStep(agent, 'agent')).toBe(false)
-  })
-
-  it('records a customer return until the reworked content is resubmitted', () => {
-    const task = makeTask('web', 'client_review')
+  it('keeps the current progress when deferring and resumes later without a required reason', () => {
+    const task = makeTask('web', 'brief')
     const flow = ensureWorkflow(task)
 
-    expect(applyAction(task, 'client', 'managed', 'request_output_changes', { note: '请补充德国本地服务说明。' })).toBeNull()
-    expect(task.progress).toBe('human')
-    expect(flow.customerReturn?.note).toBe('请补充德国本地服务说明。')
+    expect(applyAction(task, 'defer_task')).toBeNull()
 
-    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
-    expect(flow.customerReturn).toBeUndefined()
+    expect(flow.deferredTask).toMatchObject({ stage: 'brief', stageLabel: 'Task Brief 确认', reason: '', explanation: '', actor: '客户' })
+    expect(isTaskDeferred(task)).toBe(true)
+    expect(canPrepareBrief(task)).toBe(false)
+    expect(getTaskBucket(task)).toBe('deferred')
+    expect(taskStageLabel(task)).toBe('已暂不处理')
+    expect(applyAction(task, 'confirm_brief')).toContain('请先恢复处理')
+    expect(advanceAutomatic(task)).toBe(false)
 
-    // A later publish failure is the newest return; it must replace the old
-    // customer note instead of showing both reasons.
-    const publishTask = makeTask('web', 'site_verifying')
-    const publishFlow = ensureWorkflow(publishTask)
-    publishFlow.customerReturn = { note: '旧的修改意见', time: new Date().toISOString() }
-    publishFlow.site.simulateFailure = true
-    expect(advanceAutomatic(publishTask, 'managed')).toBe(true)
-    expect(publishTask.progress).toBe('human')
-    expect(publishFlow.customerReturn).toBeUndefined()
+    expect(applyAction(task, 'resume_task')).toBeNull()
+    expect(isTaskDeferred(task)).toBe(false)
+    expect(canPrepareBrief(task)).toBe(true)
+    expect(task.progress).toBe('brief')
+  })
+
+  it('can still be terminally ignored after deferring', () => {
+    const task = makeTask('web', 'human')
+    const flow = ensureWorkflow(task)
+    expect(applyAction(task, 'defer_task')).toBeNull()
+
+    expect(applyAction(task, 'ignore_task', { ignoreReason: '不再执行', note: '确认不处理。' })).toBeNull()
+
+    expect(flow.deferredTask).toBeUndefined()
+    expect(flow.ignoredTask).toMatchObject({ stage: 'human', stageLabel: '待客户审核', reason: '不再执行' })
+    expect(isTaskDeferred(task)).toBe(false)
+    expect(isTaskIgnored(task)).toBe(true)
+    expect(getTaskBucket(task)).toBe('ignored')
+    expect(applyAction(task, 'defer_task')).toContain('已忽略')
+  })
+
+  it('rejects resuming a task that is not deferred and deferring a completed task', () => {
+    const active = makeTask('web', 'human')
+    ensureWorkflow(active)
+    expect(applyAction(active, 'resume_task')).toContain('不能恢复处理')
+
+    const completed = makeTask('web', 'done')
+    ensureWorkflow(completed)
+    expect(applyAction(completed, 'defer_task')).toContain('已完成')
+  })
+
+  it('removes the deferred record so the same step can be reviewed normally', () => {
+    const task = makeTask('web', 'human')
+    ensureWorkflow(task)
+    expect(applyAction(task, 'defer_task', { ignoreReason: '资料待补充', note: '等待客户补充认证材料。' })).toBeNull()
+
+    expect(deferredTaskFor(task)?.stageLabel).toBe('待客户审核')
+    expect(applyAction(task, 'approve_client')).toContain('请先恢复处理')
+    expect(applyAction(task, 'resume_task')).toBeNull()
+    expect(deferredTaskFor(task)).toBeUndefined()
+    expect(applyAction(task, 'approve_client')).toBeNull()
+  })
+})
+
+describe('automatic execution', () => {
+  it('automatically completes direct repair without approval', () => {
+    const task = makeTask('repair', 'human')
+    ensureWorkflow(task)
+    expect(hasAutomaticStep(task)).toBe(true)
+    expect(applyAction(task, 'submit_site')).toContain('无需人工操作')
+    expect(taskStageLabel(task)).toBe('AI建站处理中')
+    advanceAutomatic(task)
+    expect(task.progress).toBe('site_running')
+    advanceAutomatic(task)
+    expect(taskStageLabel(task)).toBe('已完成处理')
+    expect(getTaskBucket(task)).toBe('done')
+    expect(hasAutomaticStep(task)).toBe(false)
   })
 
   it('normalizes legacy repair execution fields to the technical-repair package', () => {
@@ -393,179 +398,3 @@ describe('prototype task ownership and backend-driven repair status', () => {
     expect(normalized.site.factBoundary).toBe('不得改写已确认的企业、认证与产品事实')
   })
 })
-
-// These paths exercise the new customer-only flow while the existing tests protect managed mode.
-describe('customer-only review journeys', () => {
-  it.each(['web', 'external'] as const)('completes %s after one customer review without an operations handoff', (type) => {
-    const task = makeTask(type, 'brief')
-    const flow = ensureWorkflow(task)
-    flow.brief.webSupplement = true
-    expect(applyAction(task, 'client', 'agent', 'confirm_brief')).toBeNull()
-    advanceAutomatic(task, 'agent')
-    advanceAutomatic(task, 'agent')
-    expect(task.progress).toBe('client_review')
-    expect(applyAction(task, 'client', 'agent', 'approve_client')).toBeNull()
-    if (type === 'web') {
-      expect(task.progress).toBe('site_submitted')
-      advanceAutomatic(task, 'agent')
-      advanceAutomatic(task, 'agent')
-      advanceAutomatic(task, 'agent')
-    }
-    expect(task.progress).toBe('done')
-    expect(flow.reviews.some(item => item.actor === '运营')).toBe(false)
-    expect(flow.output.body).toContain('执行范围')
-  })
-
-  it('allows knowledge and instruction supplements while protecting AI-defined methods and goals', () => {
-    const task = makeTask('web', 'brief')
-    const flow = ensureWorkflow(task)
-    const body = { brief: { ...flow.brief, contentInstruction: '使用已确认服务范围' }, methods: [...task.methods], knowledge: [{ ...knowledgeLibrary[0]! }] }
-    expect(applyAction(task, 'client', 'agent', 'save_brief', body)).toBeNull()
-    expect(flow.brief.contentInstruction).toBe('使用已确认服务范围')
-    expect(applyAction(task, 'client', 'agent', 'save_brief', { ...body, methods: ['未经确认的方法'] })).toContain('专业方法')
-    expect(applyAction(task, 'client', 'agent', 'save_brief', { ...body, brief: { ...body.brief, goal: '替换目标' } })).toContain('专业方法')
-    expect(applyAction(task, 'ops', 'agent', 'confirm_brief')).toContain('客户角色')
-  })
-
-  it('returns customer change requests to the same review step', () => {
-    const task = makeTask('external', 'client_review')
-    ensureWorkflow(task)
-    expect(applyAction(task, 'client', 'agent', 'request_output_changes', { note: '保留已确认的服务范围' })).toBeNull()
-    advanceAutomatic(task, 'agent')
-    expect(task.progress).toBe('client_review')
-    expect(task.workflow!.output.body).toContain('保留已确认的服务范围')
-    expect(applyAction(task, 'client', 'agent', 'approve_client')).toBeNull()
-    expect(task.progress).toBe('done')
-  })
-
-  it('keeps factual conflicts requiring confirmation and supports retry', () => {
-    const task = makeTask('repair', 'human')
-    task.source = 'F9'
-    const flow = ensureWorkflow(task)
-    expect(hasAutomaticStep(task, 'agent')).toBe(false)
-    expect(applyAction(task, 'client', 'agent', 'submit_site', { simulateFailure: true })).toBeNull()
-    for (let i = 0; i < 3; i++) advanceAutomatic(task, 'agent')
-    expect(task.progress).toBe('site_failed')
-    expect(applyAction(task, 'client', 'agent', 'retry_site', { note: '仅更新已确认的结构字段', simulateFailure: false })).toBeNull()
-    for (let i = 0; i < 3; i++) advanceAutomatic(task, 'agent')
-    expect(task.progress).toBe('done')
-    expect(flow.site.attempts).toBe(2)
-    expect(flow.site.requirements).toContain('仅更新已确认的结构字段')
-  })
-
-  it('keeps an ignored customer Brief from running and records the customer decision', () => {
-    const task = makeTask('web', 'brief')
-    ensureWorkflow(task)
-    expect(applyAction(task, 'client', 'agent', 'ignore_task', { ignoreReason: '时机不合适', note: '待下次排期确认' })).toBeNull()
-    expect(hasAutomaticStep(task, 'agent')).toBe(false)
-    expect(advanceAutomatic(task, 'agent')).toBe(false)
-    expect(task.workflow!.ignoredTask?.actor).toBe('客户')
-  })
-
-  it('lets the agent customer ignore without a reason or explanation', () => {
-    const task = makeTask('web', 'brief')
-    const flow = ensureWorkflow(task)
-
-    expect(applyAction(task, 'client', 'agent', 'ignore_task')).toBeNull()
-
-    expect(flow.ignoredTask).toMatchObject({ reason: '', explanation: '', actor: '客户' })
-    expect(flow.ignoredBrief).toMatchObject({ reason: '', explanation: '' })
-    expect(flow.reviews.at(-1)?.note).toBe('忽略本次审核事项')
-    expect(getTaskBucket(task)).toBe('ignored')
-  })
-})
-
-describe('deferring and resuming a task step', () => {
-  it('keeps the current progress, removes the task from execution, and records the decision', () => {
-    const task = makeTask('web', 'human')
-    const flow = ensureWorkflow(task)
-
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '资料待补充', note: '等待客户补充认证材料。' })).toBeNull()
-
-    expect(flow.deferredTask).toMatchObject({
-      stage: 'human',
-      stageLabel: '专家专业审核',
-      reason: '资料待补充',
-      explanation: '等待客户补充认证材料。',
-      actor: '专家',
-    })
-    expect(isTaskDeferred(task)).toBe(true)
-    expect(isTaskIgnored(task)).toBe(false)
-    expect(task.progress).toBe('human')
-    expect(deferredTaskFor(task)?.stageLabel).toBe('专家专业审核')
-    expect(getTaskBucket(task)).toBe('deferred')
-    expect(taskStageLabel(task)).toBe('已暂不处理')
-    expect(hasAutomaticStep(task)).toBe(false)
-    expect(advanceAutomatic(task)).toBe(false)
-  })
-
-  it('requires the current step owner and, in managed mode, a reason plus explanation', () => {
-    const task = makeTask('web', 'human')
-    ensureWorkflow(task)
-
-    expect(applyAction(task, 'client', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toContain('当前步骤负责人')
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他' })).toContain('暂不处理说明')
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { note: '说明' })).toContain('暂不处理原因')
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toBeNull()
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '再次提交' })).toContain('已暂不处理')
-  })
-
-  it('blocks other actions until the step is resumed, then keeps the same progress', () => {
-    const task = makeTask('web', 'human')
-    ensureWorkflow(task)
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '暂缓处理。' })).toBeNull()
-
-    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toContain('请先恢复处理')
-    expect(applyAction(task, 'ops', 'managed', 'resume_task')).toBeNull()
-
-    expect(task.workflow!.deferredTask).toBeUndefined()
-    expect(isTaskDeferred(task)).toBe(false)
-    expect(task.progress).toBe('human')
-    expect(getTaskBucket(task)).toBe('review')
-    expect(applyAction(task, 'ops', 'managed', 'approve_ops')).toBeNull()
-  })
-
-  it('can still be terminally ignored after deferring', () => {
-    const task = makeTask('web', 'human')
-    const flow = ensureWorkflow(task)
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '先暂缓。' })).toBeNull()
-
-    expect(applyAction(task, 'ops', 'managed', 'ignore_task', { ignoreReason: '不再执行', note: '确认不处理。' })).toBeNull()
-
-    expect(flow.deferredTask).toBeUndefined()
-    expect(flow.ignoredTask).toMatchObject({ stage: 'human', stageLabel: '专家专业审核', reason: '不再执行' })
-    expect(isTaskDeferred(task)).toBe(false)
-    expect(isTaskIgnored(task)).toBe(true)
-    expect(getTaskBucket(task)).toBe('ignored')
-    expect(applyAction(task, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toContain('已忽略')
-  })
-
-  it('lets the agent customer defer without a reason or explanation and resume later', () => {
-    const task = makeTask('web', 'brief')
-    const flow = ensureWorkflow(task)
-
-    expect(applyAction(task, 'client', 'agent', 'defer_task')).toBeNull()
-
-    expect(flow.deferredTask).toMatchObject({ stage: 'brief', stageLabel: 'Task Brief 确认', reason: '', explanation: '', actor: '客户' })
-    expect(isTaskDeferred(task)).toBe(true)
-    expect(canPrepareBrief(task, 'client', 'agent')).toBe(false)
-    expect(canEditBrief(task, 'client', 'agent')).toBe(false)
-    expect(getTaskBucket(task)).toBe('deferred')
-    expect(applyAction(task, 'client', 'agent', 'confirm_brief')).toContain('请先恢复处理')
-    expect(applyAction(task, 'client', 'agent', 'resume_task')).toBeNull()
-    expect(isTaskDeferred(task)).toBe(false)
-    expect(canPrepareBrief(task, 'client', 'agent')).toBe(true)
-    expect(task.progress).toBe('brief')
-  })
-
-  it('rejects deferring or resuming a completed task and resuming a task that is not deferred', () => {
-    const active = makeTask('web', 'human')
-    ensureWorkflow(active)
-    expect(applyAction(active, 'ops', 'managed', 'resume_task')).toContain('未暂不处理')
-
-    const completed = makeTask('web', 'done')
-    ensureWorkflow(completed)
-    expect(applyAction(completed, 'ops', 'managed', 'defer_task', { ignoreReason: '其他', note: '说明' })).toContain('已完成')
-  })
-})
-

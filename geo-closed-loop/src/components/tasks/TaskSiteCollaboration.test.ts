@@ -73,7 +73,7 @@ describe('task site collaboration layout', () => {
     expect(wrapper.get('[data-test="site-task-card"]').text()).toContain('目标站点APW 水刀切割网站')
     for (const label of ['目标页面', '变更类型', '执行内容', '事实边界', '验收条件'])
       expect(wrapper.get('[data-test="site-task-card"]').text()).toContain(label)
-    expect(wrapper.get('[data-test="site-task-card"]').text()).toContain('技术修复')
+    expect(wrapper.get('[data-test="site-task-card"]').text()).toContain('官网结构与技术')
     expect(wrapper.get('[data-test="site-task-card"]').text()).toContain('作者实体、专家档案、sameAs 消歧')
 
     task.progress = 'site_returned'

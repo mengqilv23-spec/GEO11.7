@@ -2,6 +2,7 @@ import type {
   ContentBrief,
   ContentKnowledge,
   ContentProductionItem,
+  ContentProductionStage,
   ProductionQuestion,
 } from '../data/content-production-data'
 import type { PlatformVerificationAnswer } from '../data/content-verification-data'
@@ -81,15 +82,33 @@ function normalizeAiCheck(check: ContentProductionItem['aiCheck']) {
 }
 
 function normalizeItem(item: ContentProductionItem): ContentProductionItem {
+  // Older data modelled confirmation as a handoff to a separate customer
+  // account. The single account now confirms in place, so pending and rejected
+  // handoffs return to the same production steps.
+  const persistedStage = item.stage as string
+  const baseStage: ContentProductionStage = persistedStage === 'pending_client'
+    ? (item.aiCheck?.passed ? 'ai_checked' : 'draft')
+    : persistedStage === 'client_rejected' ? 'draft' : item.stage
+  const keepsConfirmation = Boolean(item.publishedAt) || baseStage === 'ready_to_publish'
+  const clientConfirmation = keepsConfirmation && item.clientConfirmation?.status === 'confirmed'
+    ? item.clientConfirmation
+    : undefined
+  // A confirmation record only makes sense immediately before publishing. If
+  // it is missing, keep the article in the step that produces it.
+  const stage = baseStage === 'ready_to_publish' && !clientConfirmation
+    ? (item.aiCheck?.passed ? 'ai_checked' : 'draft')
+    : baseStage
   // Verified articles always mirror the monitoring source so every article
   // keeps the single detection round it was verified in.
   const canonical = item.taskId ? verificationByTaskId.get(item.taskId) : undefined
-  if (canonical && item.stage === 'verified') {
+  if (canonical && stage === 'verified') {
     return {
       ...item,
+      stage,
       roundId: canonical.roundId,
       keyFacts: item.keyFacts ?? [...canonical.keyFacts],
       aiCheck: normalizeAiCheck(item.aiCheck),
+      clientConfirmation,
       questions: canonical.questions.map(question => ({ ...question, confirmed: true })),
     }
   }
@@ -98,7 +117,7 @@ function normalizeItem(item: ContentProductionItem): ContentProductionItem {
   // Older persisted articles stored several rounds of answers on one question.
   // Keep the answers of the round the article belongs to and drop the rest.
   const legacyAnswers = legacyRoundAnswers(rawQuestions[0])
-  const legacyRoundId = item.stage === 'verified'
+  const legacyRoundId = stage === 'verified'
     ? Object.keys(legacyAnswers).at(-1) ?? latestRoundId
     : undefined
   const roundId = item.roundId ?? legacyRoundId
@@ -117,7 +136,7 @@ function normalizeItem(item: ContentProductionItem): ContentProductionItem {
       confirmed: question.confirmed ?? true,
     }
   })
-  const publishedPending = Boolean(item.publishedAt) && !['verifying', 'verified'].includes(item.stage)
+  const publishedPending = Boolean(item.publishedAt) && !['verifying', 'verified'].includes(stage)
   // Published articles offer AI candidates until the operator selects one.
   // Legacy auto-generated questions were never an explicit choice, so they
   // only survive when already confirmed.
@@ -125,15 +144,16 @@ function normalizeItem(item: ContentProductionItem): ContentProductionItem {
     ? (item.questionCandidates?.length ? item.questionCandidates : generateQuestionCandidates(item))
     : item.questionCandidates
   const selectedQuestions = publishedPending && !questions[0]?.confirmed ? [] : questions
-  const stage = publishedPending
+  const finalStage = publishedPending
     ? (selectedQuestions[0]?.confirmed ? 'questions_confirmed' : 'questions_pending')
-    : item.stage
+    : stage
   return {
     ...item,
-    stage,
+    stage: finalStage,
     roundId,
     keyFacts: item.keyFacts ?? [],
     aiCheck: normalizeAiCheck(item.aiCheck),
+    clientConfirmation,
     questions: selectedQuestions,
     questionCandidates,
   }
@@ -230,7 +250,7 @@ function importContent(input: ImportContentInput) {
     url,
     revision: 1,
     aiCheck: runAiCheckFor({ title, body: input.body, keyFacts, brief }),
-    clientConfirmation: { status: 'confirmed', at: now(), comment: url ? '客户已发布，系统登记线上地址。' : '客户上传成稿，视为已确认。' },
+    clientConfirmation: { status: 'confirmed', at: now(), comment: url ? '已发布内容导入，登记线上地址。' : '上传成稿，视为已确认。' },
     questions: [],
   }
   if (url)
@@ -242,7 +262,7 @@ function importContent(input: ImportContentInput) {
 
 function updateDraft(itemId: string, patch: { title?: string, summary?: string, body?: string, keyFacts?: string[] }) {
   const item = findItem(itemId)
-  if (!item || !['draft', 'ai_checked', 'client_rejected'].includes(item.stage))
+  if (!item || !['draft', 'ai_checked', 'ready_to_publish'].includes(item.stage))
     return
   if (patch.title !== undefined)
     item.title = patch.title
@@ -252,62 +272,65 @@ function updateDraft(itemId: string, patch: { title?: string, summary?: string, 
     item.body = patch.body
   if (patch.keyFacts !== undefined)
     item.keyFacts = normalizeFacts(patch.keyFacts)
-  // The check result describes the previous body; edits must be re-checked.
+  // The check and confirmation describe the previous body. Any edit must run
+  // through checking and confirmation again, including edits made after the
+  // content was confirmed and before it is published.
   item.aiCheck = undefined
+  item.clientConfirmation = undefined
+  item.publishError = undefined
   item.stage = 'draft'
   touch(item)
 }
 
 function runAiCheck(itemId: string) {
   const item = findItem(itemId)
-  if (!item || !['draft', 'ai_checked', 'client_rejected'].includes(item.stage))
+  if (!item || !['draft', 'ai_checked'].includes(item.stage))
     return
   item.aiCheck = runAiCheckFor(item)
-  item.stage = 'ai_checked'
+  // Only a passed check moves the article to confirmation. A failed check stays
+  // in progress so the operator edits and checks again.
+  item.stage = item.aiCheck.passed ? 'ai_checked' : 'draft'
   touch(item)
 }
 
-function submitToClient(itemId: string) {
+function confirmContent(itemId: string, comment = '') {
   const item = findItem(itemId)
-  if (!item || !['draft', 'ai_checked', 'client_rejected'].includes(item.stage))
+  if (!item || item.stage !== 'ai_checked' || !item.aiCheck?.passed)
     return
-  if (!item.aiCheck)
-    item.aiCheck = runAiCheckFor(item)
-  item.clientConfirmation = { status: 'pending' }
-  item.stage = 'pending_client'
-  touch(item)
-}
-
-function confirmClient(itemId: string, comment = '') {
-  const item = findItem(itemId)
-  if (!item || item.stage !== 'pending_client')
-    return
-  item.clientConfirmation = { status: 'confirmed', at: now(), comment: comment.trim() || '客户确认发布。' }
+  item.clientConfirmation = { status: 'confirmed', at: now(), comment: comment.trim() || '内容已确认。' }
+  item.publishError = undefined
   item.stage = 'ready_to_publish'
   touch(item)
 }
 
-function rejectClient(itemId: string, comment = '') {
-  const item = findItem(itemId)
-  if (!item || item.stage !== 'pending_client')
-    return
-  item.clientConfirmation = { status: 'rejected', at: now(), comment: comment.trim() || '客户要求修改。' }
-  item.stage = 'client_rejected'
-  touch(item)
+interface PublishOptions {
+  simulateFailure?: boolean
 }
 
-function publish(itemId: string) {
+const PUBLISH_FAILURE_REASON = '官网 Blog 未返回成功状态，请修改内容后重新发布。'
+
+function publish(itemId: string, options: PublishOptions = {}) {
   const item = findItem(itemId)
   if (!item || item.publishedAt || item.stage !== 'ready_to_publish')
-    return
+    return false
   if (item.clientConfirmation?.status !== 'confirmed')
-    return
-  item.url = item.url ?? `https://apw.com/blog/${item.slug}`
+    return false
+  if (options.simulateFailure) {
+    // Publishing only returns a status, so a failed attempt sends the content
+    // back to review with the reason instead of recording a publish.
+    item.publishError = PUBLISH_FAILURE_REASON
+    item.clientConfirmation = undefined
+    item.stage = item.aiCheck?.passed ? 'ai_checked' : 'draft'
+    touch(item)
+    return false
+  }
+  item.publishError = undefined
   item.publishedAt = now()
   item.stage = 'questions_pending'
   item.questions = []
   item.questionCandidates = generateQuestionCandidates(item)
   touch(item)
+  return true
 }
 
 function updateQuestion(itemId: string, questionId: string, patch: { question?: string, intent?: string, confirmed?: boolean }) {
@@ -441,9 +464,7 @@ export function useContentProductionStore() {
     importContent,
     updateDraft,
     runAiCheck,
-    submitToClient,
-    confirmClient,
-    rejectClient,
+    confirmContent,
     publish,
     updateQuestion,
     addQuestion,

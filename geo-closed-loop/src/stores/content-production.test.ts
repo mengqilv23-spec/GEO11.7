@@ -16,7 +16,7 @@ describe('content production store', () => {
     resetContentProductionStore()
   })
 
-  it('moves an AI draft through client confirmation, Blog publishing, question selection and verification', async () => {
+  it('moves an AI draft through content confirmation, Blog publishing, question selection and verification', async () => {
     const store = useContentProductionStore()
     const item = store.createFromBrief({ brief, keyFacts: facts })
 
@@ -27,20 +27,14 @@ describe('content production store', () => {
     expect(item.stage).toBe('ai_checked')
     expect(item.aiCheck?.passed).toBe(true)
 
-    store.submitToClient(item.id)
-    expect(item.stage).toBe('pending_client')
-    expect(item.clientConfirmation?.status).toBe('pending')
-
-    store.runAiCheck(item.id)
-    expect(item.stage).toBe('pending_client')
-
-    store.confirmClient(item.id, '同意发布')
+    store.confirmContent(item.id, '客户已确认')
     expect(item.stage).toBe('ready_to_publish')
     expect(item.clientConfirmation?.status).toBe('confirmed')
+    expect(item.clientConfirmation?.comment).toBe('客户已确认')
 
     store.publish(item.id)
     expect(item.stage).toBe('questions_pending')
-    expect(item.url).toContain('apw.com/blog/')
+    expect(item.url).toBeUndefined()
     expect(item.questions).toHaveLength(0)
     expect(item.questionCandidates).toHaveLength(5)
 
@@ -64,24 +58,74 @@ describe('content production store', () => {
     expect(item.questions.every(question => question.primaryCitationCount > 0)).toBe(true)
   })
 
-  it('returns a rejected article to the editable state without publishing', () => {
+  it('requires AI checking to pass before content can be confirmed', () => {
+    const store = useContentProductionStore()
+    const item = store.createFromBrief({ brief, keyFacts: facts })
+
+    store.confirmContent(item.id)
+    expect(item.stage).toBe('draft')
+    expect(item.clientConfirmation).toBeUndefined()
+
+    store.updateDraft(item.id, { body: '<h2>钛合金切割</h2><p>保证永久不出现分层。</p>' })
+    store.runAiCheck(item.id)
+    expect(item.stage).toBe('draft')
+    expect(item.aiCheck?.passed).toBe(false)
+
+    store.confirmContent(item.id)
+    expect(item.stage).toBe('draft')
+    expect(item.clientConfirmation).toBeUndefined()
+  })
+
+  it('allows editing after confirmation but requires checking and confirming again before publishing', () => {
     const store = useContentProductionStore()
     const item = store.createFromBrief({ brief, keyFacts: facts })
 
     store.runAiCheck(item.id)
-    store.submitToClient(item.id)
-    store.rejectClient(item.id, '请补充服务范围。')
+    store.confirmContent(item.id)
+    expect(item.stage).toBe('ready_to_publish')
 
-    expect(item.stage).toBe('client_rejected')
-    expect(item.clientConfirmation?.status).toBe('rejected')
-    expect(item.publishedAt).toBeUndefined()
-
-    store.updateDraft(item.id, { body: '<h2>补充后的正文</h2><p>补充服务范围。</p>' })
+    store.updateDraft(item.id, { body: '<h2>APW Waterjet 补充后的正文</h2><p>补充服务范围。</p>' })
     expect(item.stage).toBe('draft')
-    expect(item.body).toContain('补充后的正文')
+    expect(item.aiCheck).toBeUndefined()
+    expect(item.clientConfirmation).toBeUndefined()
+
+    store.publish(item.id)
+    expect(item.publishedAt).toBeUndefined()
+    expect(item.stage).toBe('draft')
+
+    store.runAiCheck(item.id)
+    expect(item.stage).toBe('ai_checked')
+    store.confirmContent(item.id)
+    expect(item.stage).toBe('ready_to_publish')
+
+    store.publish(item.id)
+    expect(item.stage).toBe('questions_pending')
+    expect(item.publishedAt).toBeTruthy()
   })
 
-  it('imports a customer upload as ready to publish and creates questions after publishing', () => {
+  it('returns a failed publish to content review with a reason and allows a retry', () => {
+    const store = useContentProductionStore()
+    const item = store.createFromBrief({ brief, keyFacts: facts })
+
+    store.runAiCheck(item.id)
+    store.confirmContent(item.id)
+    expect(store.publish(item.id, { simulateFailure: true })).toBe(false)
+    expect(item.stage).toBe('ai_checked')
+    expect(item.publishedAt).toBeUndefined()
+    expect(item.clientConfirmation).toBeUndefined()
+    expect(item.publishError).toBeTruthy()
+
+    store.updateDraft(item.id, { body: '<h2>APW Waterjet 修订正文</h2><p>补充服务边界。</p>' })
+    expect(item.publishError).toBeUndefined()
+
+    store.runAiCheck(item.id)
+    store.confirmContent(item.id)
+    expect(store.publish(item.id)).toBe(true)
+    expect(item.stage).toBe('questions_pending')
+    expect(item.publishError).toBeUndefined()
+  })
+
+  it('imports an upload as ready to publish and creates questions after publishing', () => {
     const store = useContentProductionStore()
     const item = store.importContent({
       title: 'APW 航空复材切割服务说明',

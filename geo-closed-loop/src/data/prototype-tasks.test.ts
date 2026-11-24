@@ -10,9 +10,9 @@ describe('prototype task detail entries', () => {
       '交期页增加汽车工艺停机风险与服务问答',
       '交期与产能页：补充航空采购 FAQ 与产能表',
     ])
-    expect(prototypeTasks.map(task => task.type)).toEqual(['repair', 'web', 'external', 'web', 'web'])
-    expect(prototypeTasks.map(task => task.progress)).toEqual(['site_running', 'brief', 'brief', 'brief', 'brief'])
-    expect(prototypeTasks[0]?.evidence).toContain('正在扫描是否可复用')
+    expect(prototypeTasks.map(task => task.type)).toEqual(['web', 'web', 'external', 'web', 'web'])
+    expect(prototypeTasks.map(task => task.progress)).toEqual(['brief', 'brief', 'brief', 'brief', 'brief'])
+    expect(prototypeTasks[0]?.evidence).toContain('当前作者页缺少经确认的工程师背景资料')
   })
 })
 

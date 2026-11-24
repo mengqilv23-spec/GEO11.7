@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { GeoTask, Strategy, TaskFilter, UserRole, ServiceMode } from '../../../data/geo-data'
+import type { GeoTask, Strategy, TaskFilter } from '../../../data/geo-data'
 import type { DataListColumn } from '../../ui/ce/data-list/types'
 import { computed, shallowRef, watch } from 'vue'
 import { displayObjectCodes } from '../../../data/geo-data'
-import { isTaskDeferred, isTaskIgnored, reviewOwner } from '../../../workflows/task-workflow'
+import { isTaskDeferred, isTaskIgnored } from '../../../workflows/task-workflow'
 import { isDirectRepairTask } from '../../../workflows/direct-repair'
 import Button from '../../ui/ce/button/Button.vue'
 import DataList from '../../ui/ce/data-list/DataList.vue'
@@ -13,7 +13,7 @@ import Tag from '../../ui/ce/tag/Tag.vue'
 import GeoPageIntro from '../shared/GeoPageIntro.vue'
 import '../../../styles/optimization-page.css'
 
-const props = defineProps<{ tasks: GeoTask[], allTasks: GeoTask[], strategies?: Strategy[], filter: TaskFilter, role: UserRole, serviceMode?: ServiceMode }>()
+const props = defineProps<{ tasks: GeoTask[], allTasks: GeoTask[], strategies?: Strategy[], filter: TaskFilter }>()
 const emit = defineEmits<{ setFilter: [filter: TaskFilter], openTask: [task: GeoTask], openFlow: [] }>()
 
 type BucketFilter = 'all' | 'brief' | 'processing' | 'done'
@@ -74,15 +74,12 @@ function taskPageSummary({ total, page, pages }: { total: number, page: number, 
 }
 function needsMyAction(task: GeoTask) {
   if (isTaskIgnored(task) || isTaskDeferred(task) || isDirectRepairTask(task) || task.progress === 'done') return false
-  const mode = props.serviceMode ?? 'managed'
-  const owner = mode === 'agent' ? 'client' : 'ops'
-  if (task.progress === 'brief') {
-    const status = task.workflow?.briefStatus ?? 'ready'
-    return props.role === owner && (status === 'ready' || (mode === 'managed' && status === 'changes_requested'))
-  }
+  if (task.progress === 'brief')
+    return (task.workflow?.briefStatus ?? 'ready') === 'ready'
   if (['human', 'client_review', 'client_content_review'].includes(task.progress))
-    return props.role === reviewOwner(task, mode)
-  if (task.progress === 'site_failed') return props.role === owner
+    return true
+  if (task.progress === 'site_failed') return true
+  if (task.progress === 'site_submit' && task.type === 'external') return true
   return false
 }
 const overviewStats = computed(() => taskTypes.map(type => ({
@@ -102,9 +99,6 @@ const taskStatusStats = computed(() => {
       processing += 1
   }
   return { total: props.allTasks.length, pending, processing, done }
-})
-watch([() => props.role, () => props.serviceMode], () => {
-  bucket.value = 'all'
 })
 watch([bucket, () => props.filter], () => page.value = 1)
 watch(pages, (value) => {
@@ -129,6 +123,7 @@ function taskActionLabel(task: GeoTask) {
   if (task.progress === 'brief') return '确认 Brief'
   if (['human', 'client_review', 'client_content_review'].includes(task.progress)) return '审核内容'
   if (task.progress === 'site_failed') return '查看并处理'
+  if (task.progress === 'site_submit' && task.type === 'external') return '完成交付'
   return '查看详情'
 }
 function setTaskFilter(value: string) {

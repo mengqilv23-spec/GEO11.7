@@ -9,8 +9,11 @@ const advice = auditFindings.filter(isAdviceFinding)
 describe('advice-only findings', () => {
   it('covers both website scopes without treating advice as a direct repair', () => {
     expect(advice.map(item => item.category)).toEqual(['官网结构', '官网内容'])
+    expect(advice.map(findingRouteLabel)).toEqual([
+      '官网技术与结构 · 仅提供建议',
+      '官网内容 · 仅提供建议',
+    ])
     for (const finding of advice) {
-      expect(findingRouteLabel(finding)).toBe(`${finding.category} · 仅提供建议`)
       expect(isDirectRepairFinding(finding)).toBe(false)
       expect(finding.status).toBe('无需处理')
     }
@@ -32,7 +35,7 @@ describe('advice-only findings', () => {
 
 it('keeps missing-knowledge reminders read-only and out of execution queues', () => {
   const finding = auditFindings.find(item => item.route === 'knowledge')!
-  expect(findingRouteLabel(finding)).toBe('官网内容 · 待补充知识')
+  expect(findingRouteLabel(finding)).toBe('官网内容 · 待补充知识库')
   expect(finding.status).toBe('待补充知识')
   expect(finding.advice).toContain('下一次监测')
   expect(buildOverviewQueue([finding], [], [])).toEqual([])

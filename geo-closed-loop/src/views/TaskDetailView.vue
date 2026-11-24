@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { UserRole } from '../data/geo-data'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TaskWorkspace from '../components/tasks/TaskWorkspace.vue'
 import { useGeoWorkbenchRouteContext } from '../composables/workbench-route-context'
@@ -14,8 +13,8 @@ const sourceTask = computed(() => {
   const current = context.tasks.find(item => item.id === route.params.taskId)
   if (current || !route.query?.preview)
     return current
-  // Preview fixtures stay reachable in both service modes, even when the
-  // prototype task they are based on is hidden from the customer task list.
+  // Preview fixtures stay reachable even when the prototype task they are
+  // based on is hidden from the customer task list.
   return prototypeTasks.find(item => item.id === route.params.taskId)
 })
 const task = computed(() => {
@@ -29,7 +28,7 @@ const task = computed(() => {
     previewTask.source = 'F9'
     previewTask.type = 'web'
     previewTask.destination = '官网内容'
-    previewTask.progress = context.serviceMode.value === 'agent' ? 'client_review' : 'human'
+    previewTask.progress = 'client_review'
     previewTask.contentFormat = 'code'
     previewTask.evidence = finding.evidence
     previewTask.auditContent = officialContentSnapshot(finding)
@@ -65,20 +64,11 @@ const task = computed(() => {
   }
   return previewTask
 })
-const testRole = shallowRef<UserRole | null>(null)
-const clientPreview = computed(() => testRole.value === 'client')
-const role = computed(() => context.serviceMode.value === 'agent' ? 'client' : testRole.value ?? context.role.value)
-const serviceMode = computed(() => context.serviceMode.value)
 
 watch(() => [route.params.taskId, Boolean(task.value)] as const, ([, exists]) => {
-  testRole.value = null
   if (!exists)
     void router.replace({ name: 'optimization' })
 }, { immediate: true })
-
-function setTestRole(nextRole: UserRole) {
-  testRole.value = nextRole
-}
 
 function goBack() {
   if (typeof window.history.state?.back === 'string') {
@@ -93,11 +83,6 @@ function goBack() {
   <TaskWorkspace
     v-if="task"
     :task="task"
-    :role="role"
-    :service-mode="serviceMode"
-    :client-preview="clientPreview"
     @back="goBack"
-    @set-test-role="setTestRole"
   />
 </template>
-

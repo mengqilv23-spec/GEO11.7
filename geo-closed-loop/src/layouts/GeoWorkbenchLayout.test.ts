@@ -5,6 +5,7 @@ import { defineComponent, h, inject } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import type { GeoWorkbenchRouteContext } from '../composables/workbench-route-context'
 import { geoWorkbenchRouteContextKey } from '../composables/workbench-route-context'
+import { codeReviewDemoTasksFor, codeReviewTestFindings } from '../data/code-review-demo-tasks'
 import { auditFindings, strategies } from '../data/geo-data'
 import { useWorkbenchTasksStore } from '../stores/workbench-tasks'
 import GeoWorkbenchLayout from './GeoWorkbenchLayout.vue'
@@ -64,8 +65,8 @@ describe('geoWorkbenchLayout icon migration', () => {
     expect(wrapper.get('.test-drawer').attributes('data-size')).toBe('600')
     const taskStore = useWorkbenchTasksStore()
     const initialTaskCount = taskStore.tasks.length
-    const repairApproval = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '审核通过并生成任务')
-    expect(repairApproval).toBeUndefined()
+    const repairApproval = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '确认处理并生成任务')
+    expect(repairApproval).toBeDefined()
     expect(taskStore.tasks.length).toBe(initialTaskCount)
 
     const countBeforeBulkApproval = taskStore.tasks.length
@@ -76,18 +77,19 @@ describe('geoWorkbenchLayout icon migration', () => {
 
     await wrapper.get('[data-test="open-strategy-finding"]').trigger('click')
     const findingDrawer = wrapper.get('.test-drawer')
-    expect(findingDrawer.get('small').text()).toBe('异常4')
+    expect(findingDrawer.get('small').text()).toBe('')
     expect(findingDrawer.get('header').element.firstElementChild?.tagName).toBe('H2')
-    expect(findingDrawer.get('h2').text()).toBe('异常处理 · 专家作者档案待补')
+    expect(findingDrawer.get('h2').text()).toBe('补充知识提醒 · 专家作者档案待补')
     expect(findingDrawer.text()).toContain('⑤ 品牌实体')
-    expect(findingDrawer.text()).toContain('处理中')
-    expect(findingDrawer.text()).toContain('2 位工程师已有内容贡献，但缺少可验证的专业背景、经验与作者介绍。')
-    expect(findingDrawer.text()).toContain('需要确认专家范围、身份事实和对外介绍方式。')
+    expect(findingDrawer.text()).toContain('官网内容 · 待补充知识库')
+    expect(findingDrawer.get('.geo-finding-status').text()).toBe('已完成')
+    expect(findingDrawer.text()).toContain('当前作者页仅显示两位工程师的姓名与内容贡献')
+    expect(findingDrawer.text()).toContain('请补充已核实的工程师身份、专业背景及作者介绍资料；补充后下一次监测重新核对。')
     expect(findingDrawer.text()).not.toContain('后续流程')
     expect(wrapper.findAll('.test-drawer footer button').some(button => button.text() === '忽略')).toBe(false)
-    const strategyApproval = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '审核通过并生成任务')
+    const strategyApproval = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '确认处理并生成任务')
     expect(strategyApproval).toBeUndefined()
-    expect(wrapper.findAll('.test-drawer footer button').some(button => button.text() === '进入任务')).toBe(true)
+    expect(wrapper.findAll('.test-drawer footer button').some(button => button.text() === '进入任务')).toBe(false)
     wrapper.unmount()
   })
 
@@ -119,15 +121,14 @@ describe('geoWorkbenchLayout icon migration', () => {
     expect(drawer.get('p').text()).toBe('')
     expect(drawer.get('h2').text()).toBe('交期页增加汽车工艺停机风险与服务问答')
     expect(drawer.findAll('.geo-strategy-detail-card__header').map(header => header.text())).toEqual([
-      '认知缺口策略处理中',
+      '认知缺口策略待审核',
       'Agent 建议方法',
-      '关联任务处理中',
       '策略依据',
     ])
     expect(drawer.get('.geo-strategy-evidence__platforms').text()).toContain('全部平台汇总')
     expect(drawer.get('.geo-strategy-evidence__platforms').text()).toContain('ChatGPT')
     expect(drawer.find('.geo-strategy-status').exists()).toBe(false)
-    expect(drawer.find('.geo-strategy-drawer__status').text()).toBe('处理中')
+    expect(drawer.find('.geo-strategy-drawer__status').text()).toBe('待审核')
     expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('策略类型官网内容')
     expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('目标人设汽车工艺、车间主管')
     expect(drawer.get('.geo-strategy-detail-grid').text()).toContain('买家关注点停机风险')
@@ -138,7 +139,7 @@ describe('geoWorkbenchLayout icon migration', () => {
   })
 })
 
-it('separates product versions from roles and keeps changes scoped to the two review modules', async () => {
+it('keeps customer changes scoped to the review modules without product or role switches', async () => {
   localStorage.clear()
   let workbench!: GeoWorkbenchRouteContext
   const probe = defineComponent({
@@ -146,7 +147,6 @@ it('separates product versions from roles and keeps changes scoped to the two re
       const context = inject(geoWorkbenchRouteContextKey)!
       workbench = context
       return () => h('div', [
-        h('span', { 'data-test': 'mode-role' }, `${context.serviceMode.value}/${context.role.value}`),
         h('span', { 'data-test': 'selected' }, String(context.findings.find(item => item.id === 'F8-2')?.checked)),
         h('button', { 'data-test': 'choose-finding', onClick: () => context.toggleFinding('F8-2') }, '选择诊断'),
         h('button', { 'data-test': 'adopt-strategy', onClick: () => context.confirmStrategy(context.strategies.find(item => item.id === 'GS4')!) }, '采纳策略'),
@@ -163,11 +163,8 @@ it('separates product versions from roles and keeps changes scoped to the two re
     GeoWorkbenchToolbar: true,
     GeoDrawer: true, RouterLink: true,
   } } })
-  expect(wrapper.find('.geo-workbench-sidebar__role .geo-role-switch').exists()).toBe(true)
-  await wrapper.get('.geo-workbench-sidebar__product select').setValue('agent')
-  await flushPromises()
-  expect(wrapper.get('[data-test="mode-role"]').text()).toBe('agent/client')
-  expect(wrapper.find('.geo-workbench-sidebar__role').exists()).toBe(false)
+  expect(wrapper.find('.geo-workbench-sidebar__product').exists()).toBe(false)
+  expect(wrapper.find('.geo-role-switch').exists()).toBe(false)
   await wrapper.get('[data-test="choose-finding"]').trigger('click')
   expect(wrapper.get('[data-test="selected"]').text()).toBe('false')
   // Keep this fixture on the ordinary content-strategy path; verify strategies
@@ -180,11 +177,9 @@ it('separates product versions from roles and keeps changes scoped to the two re
   expect(customerState.reviews.GS4.at(-1).name).toBe('客户')
   await router.push('/overview')
   await flushPromises()
-  expect(wrapper.get('[data-test="mode-role"]').text()).toBe('managed/ops')
   expect(wrapper.get('[data-test="selected"]').text()).toBe('false')
   await router.push('/diagnosis')
   await flushPromises()
-  expect(wrapper.get('[data-test="mode-role"]').text()).toBe('agent/client')
   expect(wrapper.get('[data-test="selected"]').text()).toBe('false')
   wrapper.unmount()
   localStorage.clear()
@@ -209,7 +204,6 @@ it('lets the agent customer ignore a strategy without a reason or explanation', 
     GeoDrawer: { props: ['open', 'title', 'subtitle', 'eyebrow', 'size', 'titleFirst'], template: '<div v-if="open" class="test-drawer"><header><h2>{{ title }}</h2></header><slot /><footer><slot name="footer" /></footer></div>' },
   } } })
 
-  await wrapper.get('.geo-workbench-sidebar__product select').setValue('agent')
   await wrapper.get('[data-test="open-strategy"]').trigger('click')
   await flushPromises()
   const ignoreButton = wrapper.findAll('.test-drawer footer button').find(button => button.text() === '不处理')
@@ -230,7 +224,7 @@ it('lets the agent customer ignore a strategy without a reason or explanation', 
   localStorage.clear()
 })
 
-it.each(['client', 'managed'])('runs direct technical repairs without human approval in %s version', async (version) => {
+it('runs direct technical repairs without customer approval', async () => {
   localStorage.clear()
   vi.useFakeTimers()
   const probe = defineComponent({
@@ -241,7 +235,7 @@ it.each(['client', 'managed'])('runs direct technical repairs without human appr
     },
   })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: probe }] })
-  await router.push(`/diagnosis?version=${version}`)
+  await router.push('/diagnosis')
   const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
     GeoWorkbenchToolbar: true, RouterLink: true,
     GeoDrawer: { props: ['open'], template: '<div v-if="open" class="test-drawer"><slot /><footer><slot name="footer" /></footer></div>' },
@@ -252,19 +246,19 @@ it.each(['client', 'managed'])('runs direct technical repairs without human appr
     expect(wrapper.get('.test-drawer footer').text()).not.toContain('审核通过')
     expect(wrapper.get('.test-drawer footer').text()).not.toContain('暂不修复')
     await vi.advanceTimersByTimeAsync(10000)
-    expect(wrapper.get('.test-drawer').text()).toContain('AI建站处理中')
+    expect(wrapper.get('.test-drawer').text()).toContain('已完成处理')
     for (const id of ['F7-1', 'F7-2', 'F8-1'])
-      expect(wrapper.get(`[data-test="${id}"]`).text()).toBe('待官网运营审核')
+      expect(wrapper.get(`[data-test="${id}"]`).text()).toBe('已修复')
     await wrapper.get('[data-test="F8-3"]').trigger('click')
     expect(wrapper.get('.test-drawer').text()).toContain('已完成处理')
     const repairs = useWorkbenchTasksStore().tasks.filter(t => t.type === 'repair' && t.source.includes('F7-'))
     expect(repairs).toHaveLength(1)
-    expect(repairs[0]?.progress).toBe('site_running')
+    expect(repairs[0]?.progress).toBe('done')
   }
   finally { wrapper.unmount(); vi.useRealTimers() }
 })
 
-it('labels a direct technical repair detail as a solution in the client version', async () => {
+it('labels a direct technical repair detail as a solution', async () => {
   localStorage.clear()
   const probe = defineComponent({
     setup() {
@@ -274,7 +268,7 @@ it('labels a direct technical repair detail as a solution in the client version'
     },
   })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: probe }] })
-  await router.push('/diagnosis?version=client')
+  await router.push('/diagnosis')
   const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
     GeoWorkbenchToolbar: true, RouterLink: true,
     GeoDrawer: { props: ['open'], template: '<div v-if="open" class="test-drawer"><slot /><footer><slot name="footer" /></footer></div>' },
@@ -290,14 +284,14 @@ it('labels a direct technical repair detail as a solution in the client version'
   }
 })
 
-it.each(['client', 'managed'])('persists reviewer priority changes including P3 in %s version', async (version) => {
+it('persists customer priority changes including P3', async () => {
   localStorage.clear()
   const probe = defineComponent({ setup() {
     const context = inject(geoWorkbenchRouteContextKey)!
     return () => h('button', { 'data-test': 'review-priority', onClick: () => context.openStrategy(context.strategies.find(item => item.id === 'GS4')!) }, '审核')
   } })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: probe }] })
-  await router.push(`/diagnosis?version=${version}`)
+  await router.push('/diagnosis')
   const mountLayout = () => mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
     GeoWorkbenchToolbar: true, RouterLink: true,
     GeoDrawer: { props: ['open'], template: '<div v-if="open"><slot /><slot name="footer" /></div>' },
@@ -307,38 +301,30 @@ it.each(['client', 'managed'])('persists reviewer priority changes including P3 
     await wrapper.get('[data-test="review-priority"]').trigger('click')
     wrapper.getComponent(PrioritySelect).vm.$emit('update:modelValue', 'P3')
     await flushPromises()
-    const key = `geo-workbench:${version === 'client' ? 'agent' : 'managed'}`
-    const state = JSON.parse(localStorage.getItem(key)!)
+    const state = JSON.parse(localStorage.getItem('geo-workbench:agent')!)
     expect(state.strategies.find((item: { id: string }) => item.id === 'GS4').priority).toBe('P3')
     expect(state.reviews.GS4.at(-1).text).toContain('→ P3')
     wrapper.unmount()
     wrapper = mountLayout()
-    await router.push(`/diagnosis?version=${version}`)
+    await router.push('/diagnosis')
     await flushPromises()
     await wrapper.get('[data-test="review-priority"]').trigger('click')
     expect(wrapper.getComponent(PrioritySelect).props('modelValue')).toBe('P3')
-    if (version === 'managed') {
-      const clientButton = wrapper.findAll('.geo-role-switch button').find(button => button.text() === '客户')
-      expect(clientButton).toBeTruthy()
-      await clientButton!.trigger('click')
-      await flushPromises()
-      expect(wrapper.findComponent(PrioritySelect).exists()).toBe(false)
-    }
   }
   finally { wrapper.unmount(); localStorage.clear() }
 })
 
-it.each(['managed', 'agent'] as const)('restores advice into %s without putting it into pending work or allowing approval', async (mode) => {
+it('restores advice without putting it into pending work or allowing approval', async () => {
   localStorage.clear()
   // An existing browser snapshot predates the new advice category.
-  localStorage.setItem(`geo-workbench:${mode}`, JSON.stringify({ findings: auditFindings.filter(item => item.route !== 'advice'), strategies, tasks: [], reviews: {} }))
+  localStorage.setItem('geo-workbench:agent', JSON.stringify({ findings: auditFindings.filter(item => item.route !== 'advice'), strategies, tasks: [], reviews: {} }))
   let context: import('../composables/workbench-route-context').GeoWorkbenchRouteContext | undefined
   const Probe = defineComponent({ setup() {
     context = inject(geoWorkbenchRouteContextKey)!
     return () => h('div')
   } })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: Probe }] })
-  await router.push(`/diagnosis?version=${mode === 'agent' ? 'client' : 'managed'}`)
+  await router.push('/diagnosis')
   const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
     GeoWorkbenchToolbar: true, RouterLink: { template: '<a><slot /></a>' },
     GeoDrawer: { props: ['open'], template: '<div v-if="open" class="test-drawer"><slot /><footer><slot name="footer" /></footer></div>' },
@@ -346,7 +332,7 @@ it.each(['managed', 'agent'] as const)('restores advice into %s without putting 
   try {
     await flushPromises()
     const items = context!.findings.filter(item => item.route === 'advice')
-    expect(items).toHaveLength(mode === 'agent' ? 1 : 2)
+    expect(items).toHaveLength(1)
     const taskCount = context!.tasks.length
     const strategyCount = context!.strategies.length
     context!.selectAllFindings(items.map(item => item.id))
@@ -372,12 +358,121 @@ it.each(['managed', 'agent'] as const)('restores advice into %s without putting 
 })
 
 
+it('restores canonical review findings missing from an older snapshot', async () => {
+  localStorage.clear()
+  // Older snapshots can omit findings that were added later, including the
+  // code-content review item F9. Loading the workbench must bring them back.
+  localStorage.setItem('geo-workbench:agent', JSON.stringify({
+    contentReviewReset: 1,
+    findings: auditFindings.filter(item => !['F7-1', 'F8-2', 'F9'].includes(item.id)),
+    strategies,
+    tasks: [],
+    reviews: {},
+  }))
+  let context: GeoWorkbenchRouteContext | undefined
+  const Probe = defineComponent({ setup() {
+    context = inject(geoWorkbenchRouteContextKey)!
+    return () => h('div')
+  } })
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: Probe }] })
+  await router.push('/diagnosis')
+  const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
+    GeoWorkbenchToolbar: true,
+    RouterLink: true,
+  } } })
+  try {
+    await flushPromises()
+    expect(context!.findings.find(item => item.id === 'F7-1')).toBeTruthy()
+    expect(context!.findings.find(item => item.id === 'F8-2')).toBeTruthy()
+    expect(context!.findings.find(item => item.id === 'F9')).toMatchObject({
+      route: 'strategy',
+      treatment: 'website-content-review',
+      category: '官网内容',
+    })
+    const findingIds = context!.findings.map(item => item.id)
+    expect(findingIds.indexOf('F9')).toBeLessThan(findingIds.indexOf('FC-01'))
+  }
+  finally {
+    wrapper.unmount()
+    localStorage.clear()
+  }
+})
+
+it('shows four code-review findings ready for confirmation', async () => {
+  localStorage.clear()
+  let context: GeoWorkbenchRouteContext | undefined
+  const Probe = defineComponent({ setup() {
+    context = inject(geoWorkbenchRouteContextKey)!
+    return () => h('div')
+  } })
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: Probe }] })
+  await router.push('/diagnosis')
+  const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
+    GeoWorkbenchToolbar: true,
+    RouterLink: true,
+  } } })
+  try {
+    await flushPromises()
+    const exampleIds = new Set(['T-2601', 'T-2602', 'T-2603', 'T-2604'])
+    expect(context!.tasks.filter(task => exampleIds.has(task.id))).toHaveLength(0)
+    const queue = context!.findings.filter(finding => finding.id.startsWith('CR-'))
+    expect(queue.map(finding => finding.id)).toEqual(['CR-01', 'CR-02', 'CR-03', 'CR-04'])
+    expect(queue.map(finding => finding.title)).toEqual(['任务名称1', '任务名称2', '任务名称3', '任务名称4'])
+    expect(queue.every(finding => finding.contentFormat === 'code')).toBe(true)
+    expect(queue.every(finding => finding.status === '待处理')).toBe(true)
+  }
+  finally {
+    wrapper.unmount()
+    localStorage.clear()
+  }
+})
+
+it('reopens code-review examples that an older snapshot had already processed', async () => {
+  localStorage.clear()
+  const legacyTasks = codeReviewDemoTasksFor().map(task => ({ ...task, origin: 'geo-audit' as const }))
+  const legacyFindings = [...codeReviewTestFindings, ...auditFindings].map(finding => ({
+    ...finding,
+    status: finding.contentFormat === 'code' ? '已生成策略' as const : finding.status,
+  }))
+  localStorage.setItem('geo-workbench:agent', JSON.stringify({
+    contentReviewReset: 1,
+    findings: legacyFindings,
+    strategies,
+    tasks: legacyTasks,
+    reviews: {},
+  }))
+  let context: GeoWorkbenchRouteContext | undefined
+  const Probe = defineComponent({ setup() {
+    context = inject(geoWorkbenchRouteContextKey)!
+    return () => h('div')
+  } })
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: Probe }] })
+  await router.push('/diagnosis')
+  const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
+    GeoWorkbenchToolbar: true,
+    RouterLink: true,
+  } } })
+  try {
+    await flushPromises()
+    expect(context!.tasks.filter(task => /^CR-0[1-4]$/.test(task.source)).map(task => task.id)).toEqual([])
+    const queue = context!.findings.filter(finding => finding.id.startsWith('CR-'))
+    expect(queue.every(finding => finding.status === '待处理')).toBe(true)
+    const saved = JSON.parse(localStorage.getItem('geo-workbench:agent')!)
+    expect(saved.codeReviewReset).toBe(2)
+    expect(saved.tasks.filter((task: { source: string }) => /^CR-0[1-4]$/.test(task.source))).toEqual([])
+  }
+  finally {
+    wrapper.unmount()
+    localStorage.clear()
+  }
+})
+
 it('records cause verification in the strategy drawer without creating an optimisation task', async () => {
   localStorage.clear()
   let context!: GeoWorkbenchRouteContext
   const Probe = defineComponent({ setup() { context = inject(geoWorkbenchRouteContextKey)!; return () => h('div') } })
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/diagnosis', name: 'diagnosis', component: Probe }] })
-  await router.push('/diagnosis?version=client')
+  await router.push('/diagnosis')
   await router.isReady()
   const wrapper = mount(GeoWorkbenchLayout, { global: { plugins: [createPinia(), router], stubs: {
     GeoWorkbenchToolbar: true,

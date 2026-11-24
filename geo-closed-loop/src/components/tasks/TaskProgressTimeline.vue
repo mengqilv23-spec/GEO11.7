@@ -16,7 +16,6 @@ defineProps<{ steps: TaskFlowStep[], title?: string }>()
       <li v-for="(step, index) in steps" :key="step.title" :class="step.state" :aria-current="step.state === 'current' ? 'step' : undefined">
         <span aria-hidden="true"><AppIcon v-if="step.state === 'done'" name="check" :size="14" /><template v-else>{{ index + 1 }}</template></span>
         <strong>{{ step.title }}</strong>
-        <small>{{ step.detail }}</small>
       </li>
     </ol>
   </Card>

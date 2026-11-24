@@ -32,8 +32,6 @@ const props = defineProps<{
   allStrategies?: Strategy[]
   tasks?: GeoTask[]
   strategyLayer: StrategyLayer
-  serviceMode: 'managed' | 'agent'
-  role: 'ops' | 'client'
   highlightedStrategy?: string
 }>()
 
@@ -112,7 +110,6 @@ const auditFilter = shallowRef('all')
 const treatmentFilter = shallowRef('all')
 const statusFilter = shallowRef('all')
 const allStrategies = computed(() => props.allStrategies ?? props.strategies)
-const canReview = computed(() => props.role === (props.serviceMode === 'agent' ? 'client' : 'ops'))
 function strategyGaps(strategy: Strategy) {
   if (strategy.origin === 'geo-audit') return []
   return strategyCoverageGapRefs(strategy, props.personas).flatMap((ref) => {
@@ -153,10 +150,10 @@ function strategyFromRow(item: unknown) {
   return item as Strategy
 }
 function findingActionLabel(finding: AuditFinding) {
-  if (findingHasTask(finding, allStrategies.value, props.tasks ?? [], props.serviceMode === 'agent' || finding.id === 'F9')) return '查看详情'
+  if (findingHasTask(finding, allStrategies.value, props.tasks ?? [])) return '查看详情'
   if (isKnowledgeFinding(finding)) return '查看补充要求'
   if (isAdviceFinding(finding)) return '查看建议'
-  return canReview.value && !isDirectRepairFinding(finding) && ['待处理', '待官网运营审核', '待专家审核', '已生成策略'].includes(finding.status) ? props.serviceMode === 'agent' ? '确认处理' : '审核' : '查看详情'
+  return !isDirectRepairFinding(finding) && ['待处理', '待客户审核', '已生成策略'].includes(finding.status) ? '确认处理' : '查看详情'
 }
 function findingStatusLabel(finding: AuditFinding) {
   return diagnosisFindingStatus(finding, allStrategies.value, props.tasks ?? [])
@@ -191,16 +188,15 @@ function strategyTaskLabel(strategy: Strategy) {
   return task ? strategyTaskActionLabel(task) : ''
 }
 function strategyReviewActionLabel(strategy: Strategy) {
-  if (props.serviceMode === 'agent' && clientStrategyPlan(strategy).kind === 'verify') return '核查原因'
-  return props.serviceMode === 'agent' ? '确认策略' : '审核'
+  return clientStrategyPlan(strategy).kind === 'verify' ? '核查原因' : '确认处理'
 }
 function strategyNeedsReview(strategy: Strategy) {
   return !strategy.verification && !strategy.businessGapRecorded && !strategy.ignored && !strategy.confirmed && !taskFor(strategy)
 }
 function canReviewStrategy(strategy: Strategy) {
-  return strategyNeedsReview(strategy) && (props.serviceMode === 'agent' ? props.role === 'client' : props.role === 'ops')
+  return strategyNeedsReview(strategy)
 }
-function resultForCheck(check: AuditCheck) { return props.serviceMode === 'agent' ? clientCheckResult(check, props.findings, props.tasks ?? []) : { state: check.passed ? '通过' : '异常', errors: check.passed ? 0 : 1, unknown: 0 } }
+function resultForCheck(check: AuditCheck) { return clientCheckResult(check, props.findings, props.tasks ?? []) }
 const abnormalFindings = computed(() => props.findings.filter(finding => !isReadOnlyFinding(finding)))
 function countDiagnosisStatuses(statuses: DiagnosisStatus[]) {
   const counts: Record<DiagnosisStatus, number> = { '待审核': 0, '处理中': 0, '已完成': 0 }
@@ -209,7 +205,7 @@ function countDiagnosisStatuses(statuses: DiagnosisStatus[]) {
 }
 const auditStatusCounts = computed(() => countDiagnosisStatuses(props.findings.map(findingStatusLabel)))
 const strategyStatusCounts = computed(() => countDiagnosisStatuses(allStrategies.value.map(strategy => strategyCollaborationLabel(strategy))))
-const showPassedOnly = computed(() => props.serviceMode === 'agent' && activeAuditCheck.value && resultForCheck(activeAuditCheck.value).state === '通过')
+const showPassedOnly = computed(() => activeAuditCheck.value && resultForCheck(activeAuditCheck.value).state === '通过')
 
 watch(() => props.strategyLayer, () => queuePage.value = 1)
 watch(() => props.activePersona, () => {
@@ -231,7 +227,7 @@ watch(queuePages, pages => queuePage.value = Math.min(queuePage.value, pages))
 watch([treatmentFilter, statusFilter], () => auditPage.value = 1)
 watch(auditPages, pages => auditPage.value = Math.min(auditPage.value, pages))
 function openCheck(check: AuditCheck) {
-  auditFilter.value = props.serviceMode === 'agent' && auditFilter.value === check.id ? 'all' : check.id
+  auditFilter.value = auditFilter.value === check.id ? 'all' : check.id
   auditPage.value = 1
 }
 function clearAuditFilter() {
@@ -324,7 +320,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
       </header>
       <div class="geo-check-grid" role="tablist" aria-label="官网 GEO 检查项">
         <button v-for="(check, index) in auditChecks" :key="check.id" type="button" role="tab" class="geo-check" :class="{ 'is-alert': resultForCheck(check).state === '异常', 'is-active': auditFilter === check.id }" :aria-selected="auditFilter === check.id" @click="openCheck(check)">
-          <span class="geo-check-no">{{ ['①', '②', '③', '④', '⑤', '⑥', '⑦'][index] }}</span><span class="geo-check-name">{{ check.label }}</span><strong aria-hidden="true"><AppIcon :name="resultForCheck(check).state === '通过' ? 'check' : 'warning'" :size="16" /></strong><span class="geo-check-tooltip"><b>{{ resultForCheck(check).state }} · {{ check.label }}</b><small>{{ serviceMode === 'agent' ? resultForCheck(check).state === '通过' ? `本轮${check.label}检查通过，未发现需要处理的问题。` : `已确认问题 ${resultForCheck(check).errors} 项，待核对 ${resultForCheck(check).unknown} 项。` : check.note }}</small></span>
+          <span class="geo-check-no">{{ ['①', '②', '③', '④', '⑤', '⑥', '⑦'][index] }}</span><span class="geo-check-name">{{ check.label }}</span><strong aria-hidden="true"><AppIcon :name="resultForCheck(check).state === '通过' ? 'check' : 'warning'" :size="16" /></strong><span class="geo-check-tooltip"><b>{{ resultForCheck(check).state }} · {{ check.label }}</b><small>{{ resultForCheck(check).state === '通过' ? `本轮${check.label}检查通过，未发现需要处理的问题。` : `已确认问题 ${resultForCheck(check).errors} 项，待核对 ${resultForCheck(check).unknown} 项。` }}</small></span>
         </button>
       </div>
       <div v-if="showPassedOnly" class="geo-check-pass-result"><Tooltip :content="`本轮${activeAuditCheck?.label}检查通过，未发现需要处理的问题。`"><span tabindex="0">通过</span></Tooltip></div>
@@ -369,7 +365,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
               <div class="geo-finding-copy"><Tooltip :content="findingFromRow(finding).title" :overflow-only="true"><strong>{{ findingFromRow(finding).title }}</strong></Tooltip></div>
             </template>
             <template #cell-route="{ item: finding }">
-              <span class="geo-chip geo-route-badge" :class="findingFromRow(finding).route">{{ findingRouteLabel(findingFromRow(finding), serviceMode === 'agent') }}</span>
+              <span class="geo-chip geo-route-badge" :class="findingFromRow(finding).route">{{ findingRouteLabel(findingFromRow(finding)) }}</span>
             </template>
             <template #cell-check="{ item: finding }">
               <span class="geo-chip">{{ findingCheckLabel(findingFromRow(finding)) }}</span>
@@ -437,7 +433,7 @@ function summaryText({ total, page, pages }: { total: number, page: number, page
           <h2 id="strategy-title">
             <span class="geo-section-heading__number" aria-hidden="true">3</span>
             <span>品牌表现优化策略</span>
-            <Tooltip :content="serviceMode === 'agent' ? '候选策略依据人设认知 GAP、回答证据与原因核查结果提出。客户审核通过后生成任务；不处理时请填写原因。' : '候选策略依据人设认知 GAP、回答证据与原因核查结果提出。专家审核通过后生成任务；客户可查看处理结果。'" placement="right">
+            <Tooltip content="候选策略依据人设认知 GAP、回答证据与原因核查结果提出。客户审核通过后生成任务；不处理时请填写原因。" placement="right">
               <button type="button" class="geo-help" aria-label="候选策略说明">?</button>
             </Tooltip>
           </h2>

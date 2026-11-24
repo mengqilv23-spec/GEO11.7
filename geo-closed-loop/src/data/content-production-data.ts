@@ -11,8 +11,6 @@ import { referenceMonitoringResults } from './reference-monitoring-results'
 export type ContentProductionStage
   = | 'draft'
     | 'ai_checked'
-    | 'pending_client'
-    | 'client_rejected'
     | 'ready_to_publish'
     | 'questions_pending'
     | 'questions_confirmed'
@@ -80,6 +78,7 @@ export interface ContentProductionItem {
   updatedAt: string
   publishedAt?: string
   url?: string
+  publishError?: string
   revision: number
   aiCheck?: AiCheckResult
   clientConfirmation?: ClientConfirmation
@@ -123,9 +122,7 @@ const enabledPlatforms = referenceMonitoringResults.platforms.filter(platform =>
 
 const stageLabels: Record<ContentProductionStage, string> = {
   draft: '草稿',
-  ai_checked: 'AI 检查完成',
-  pending_client: '待客户确认',
-  client_rejected: '客户已驳回',
+  ai_checked: '待确认',
   ready_to_publish: '待发布',
   questions_pending: '待确认问题',
   questions_confirmed: '待核验',
@@ -134,12 +131,10 @@ const stageLabels: Record<ContentProductionStage, string> = {
 }
 
 const stageDescriptions: Record<ContentProductionStage, string> = {
-  draft: 'AI 初稿已生成，等待运营编辑和检查。',
-  ai_checked: 'AI 检查已完成，可提交客户确认。',
-  pending_client: '内容已提交客户，等待客户确认或驳回。',
-  client_rejected: '客户已驳回，修改后可重新提交。',
-  ready_to_publish: '客户已确认，可以发布到官网 Blog。',
-  questions_pending: '内容已发布，等待运营选择核验问题。',
+  draft: 'AI 初稿已生成，保存修改并通过 AI 检查后可确认内容。',
+  ai_checked: 'AI 检查已完成，确认内容后可发布到官网 Blog。',
+  ready_to_publish: '内容已确认，可以发布到官网 Blog；发布前修改需重新检查并确认。',
+  questions_pending: '内容已发布，等待选择核验问题。',
   questions_confirmed: '问题已确认，内容发布满 48 小时后可以开始核验。',
   verifying: '正在调用 AI 平台执行核验。',
   verified: '核验已完成，可以查看 AI 回答与官网引用。',
@@ -162,18 +157,6 @@ export function canVerifyContent(item: Pick<ContentProductionItem, 'publishedAt'
   return Boolean(availableAt && now >= availableAt)
 }
 
-const clientStageDescriptions: Record<ContentProductionStage, string> = {
-  draft: '专家正在准备内容，提交后会请您确认。',
-  ai_checked: '专家正在准备内容，提交后会请您确认。',
-  pending_client: '内容已提交，请确认内容与发布范围。',
-  client_rejected: '您已驳回，专家修改后会重新提交。',
-  ready_to_publish: '您已确认，等待专家发布到官网 Blog。',
-  questions_pending: '内容已发布，专家正在选择核验问题。',
-  questions_confirmed: '核验问题已确认，内容生效后由专家执行核验。',
-  verifying: '专家正在执行核验。',
-  verified: '核验已完成，可查看 AI 回答与官网引用。',
-}
-
 export function stageLabel(stage: ContentProductionStage) {
   return stageLabels[stage]
 }
@@ -182,24 +165,17 @@ export function stageDescription(stage: ContentProductionStage) {
   return stageDescriptions[stage]
 }
 
-/** Customer-facing copy: no internal production actions are implied. */
-export function clientStageDescription(stage: ContentProductionStage) {
-  return clientStageDescriptions[stage]
-}
-
 export function sourceLabel(source: ContentProductionSource) {
   return source === 'ai' ? 'AI 写稿' : source === 'upload' ? '客户上传' : '已发布导入'
 }
 
 /** Table status and filter tabs share these four workflow groups. */
-export type ContentProductionGroup = 'active' | 'client' | 'verify' | 'verified'
+export type ContentProductionGroup = 'active' | 'confirm' | 'verify' | 'verified'
 
 const stageGroups: Record<ContentProductionStage, ContentProductionGroup> = {
   draft: 'active',
-  ai_checked: 'active',
-  client_rejected: 'active',
+  ai_checked: 'confirm',
   ready_to_publish: 'active',
-  pending_client: 'client',
   questions_pending: 'verify',
   questions_confirmed: 'verify',
   verifying: 'verify',
@@ -208,7 +184,7 @@ const stageGroups: Record<ContentProductionStage, ContentProductionGroup> = {
 
 const groupLabels: Record<ContentProductionGroup, string> = {
   active: '进行中',
-  client: '待客户确认',
+  confirm: '待确认',
   verify: '待核验',
   verified: '已核验',
 }
@@ -294,7 +270,7 @@ export function runAiCheckFor(item: Pick<ContentProductionItem, 'title' | 'body'
 }
 
 /**
- * 一篇已发布文章只核验一个问题。AI 先给出 5 个候选，运营从中选 1 个，
+ * 一篇已发布文章只核验一个问题。AI 先给出 5 个候选，再选用 1 个，
  * 或直接写自己的问题。
  */
 export function generateQuestionCandidates(source: Pick<ContentProductionItem, 'title' | 'keyFacts' | 'brief'>): string[] {
@@ -330,7 +306,7 @@ export function verifyQuestion(
   item: Pick<ContentProductionItem, 'title' | 'url' | 'summary' | 'keyFacts' | 'brief'>,
   question: ProductionQuestion,
 ): ProductionQuestion {
-  const answers = item.url ? buildMockVerificationAnswers(item, question) : []
+  const answers = buildMockVerificationAnswers(item, question)
   const primaryCitationCount = answers.reduce((count, answer) => count + answer.citations.filter(citation => citation.isPrimary).length, 0)
   const citationCount = answers.reduce((count, answer) => count + answer.citations.length, 0)
   return {
@@ -346,28 +322,26 @@ export function buildMockVerificationAnswers(
   item: Pick<ContentProductionItem, 'title' | 'url' | 'summary' | 'keyFacts' | 'brief'>,
   question: ProductionQuestion,
 ): PlatformVerificationAnswer[] {
-  const url = item.url
-  if (!url)
-    return []
+  const url = item.url?.trim()
   const platforms = enabledPlatforms.length ? enabledPlatforms.slice(0, 2) : ['chatgpt' as MonitoringPlatformId]
   const facts = item.keyFacts.length ? item.keyFacts.join('、') : item.brief.theme
   return platforms.map((platform, index) => {
     const citation: ContentVerificationCitation = {
-      key: `${url}-${platform}-${question.id}`,
+      key: `${item.title}-${platform}-${question.id}`,
       title: item.title,
-      url,
-      domain: domainOf(url),
+      url: url ?? '',
+      domain: url ? domainOf(url) : 'apw.com',
       excerpt: index === 0 ? item.summary : `${item.title} 说明了${facts}以及相关服务边界。`,
       isPrimary: true,
     }
     const platformLabel = platformLabels.get(platform) ?? platform
-    const answer = `${item.title} 提到，${brand} 在${item.brief.theme}场景下覆盖${facts}。官网 Blog 提供了相关说明：${url}`
+    const answer = `${item.title} 提到，${brand} 在${item.brief.theme}场景下覆盖${facts}。${url ? `官网 Blog 提供了相关说明：${url}` : '官网 Blog 提供了相关说明。'}`
     return {
       platform,
       platformLabel,
       state: 'cited',
       answer,
-      htmlSnapshot: `<!DOCTYPE html><html><head><title>${platformLabel} · ${question.question}</title></head><body><p>${answer}</p><p><a href="${url}">${url}</a></p></body></html>`,
+      htmlSnapshot: `<!DOCTYPE html><html><head><title>${platformLabel} · ${question.question}</title></head><body><p>${answer}</p>${url ? `<p><a href="${url}">${url}</a></p>` : ''}</body></html>`,
       citations: [citation],
     }
   })
@@ -427,7 +401,7 @@ export function createSeedProductionItems(now = new Date()): ContentProductionIt
     body: pendingDraft.body,
     keyFacts: pendingFacts,
     brief: pendingBrief,
-    stage: 'pending_client',
+    stage: 'ai_checked',
     source: 'ai',
     createdAt: daysAgo(now, 3),
     updatedAt: daysAgo(now, 1),
@@ -438,7 +412,6 @@ export function createSeedProductionItems(now = new Date()): ContentProductionIt
       keyFacts: pendingFacts,
       brief: pendingBrief,
     }),
-    clientConfirmation: { status: 'pending' },
     questions: [],
   }
 

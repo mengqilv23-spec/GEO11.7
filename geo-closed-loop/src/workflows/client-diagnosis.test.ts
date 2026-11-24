@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { codeReviewTestFindings } from '../data/code-review-demo-tasks'
 import { auditChecks, auditFindings, clientContentReviewFindings, personas } from '../data/geo-data'
 import { clientCheckResult, createClientFindingTask, normalizeClientFindings, personaEvidence, platformGapBreakdown, resolveGap, topicMetrics } from './client-diagnosis'
 
@@ -40,6 +41,19 @@ describe('unified client diagnosis', () => {
     expect(tasks).toHaveLength(1)
     expect(first).toMatchObject({ type: 'web', progress: 'brief', strategy: '', relatedStrategies: [] })
   })
+  it('turns a pending code-review finding into a named, read-only code task', () => {
+    const tasks: Parameters<typeof createClientFindingTask>[0] = []
+    const finding = codeReviewTestFindings[0]!
+    const task = createClientFindingTask(tasks, finding)
+    expect(task).toMatchObject({
+      name: '任务名称1',
+      source: 'CR-01',
+      progress: 'brief',
+      contentFormat: 'code',
+      origin: 'geo-audit',
+    })
+    expect(tasks).toHaveLength(1)
+  })
   it('routes the six causes without equating a positive GAP with a content fix', () => {
     const facts = { verified: true, capability: true, contentExists: true, clear: true, readable: true, thirdParty: false }
     expect(resolveGap({ ...facts, verified: false })).toBe('verify')
@@ -57,10 +71,10 @@ it('does not auto-generate content or submit a website for an investigation task
   const { ensureWorkflow, applyAction, advanceAutomatic } = await import('./task-workflow')
   const task = createVerificationTask([], { ...strategies[0]! })
   ensureWorkflow(task)
-  const result = applyAction(task, 'client', 'agent', 'confirm_brief')
+  const result = applyAction(task, 'confirm_brief')
   expect(result).toBeNull()
   expect(task.progress).toBe('human')
-  expect(advanceAutomatic(task, 'agent')).toBe(false)
+  expect(advanceAutomatic(task)).toBe(false)
   expect(task.workflow?.output.body).toBe('')
 })
 

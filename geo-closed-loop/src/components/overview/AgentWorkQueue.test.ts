@@ -6,7 +6,7 @@ import AgentWorkQueue from './AgentWorkQueue.vue'
 
 const items: OverviewQueueItem[] = [
   { id: 'F-1', kind: 'finding', title: 'Product Schema 缺失', summary: '待修复结构化数据。', priority: 'P0', source: '结构化数据', status: '待处理', nextAction: '查看诊断详情' },
-  { id: 'GS-1', kind: 'strategy', title: '补齐专家档案', summary: '资料待运营审核。', priority: 'P1', source: '品牌实体', status: '待运营审核', nextAction: '查看并确认策略' },
+  { id: 'GS-1', kind: 'strategy', title: '补齐专家档案', summary: '资料待客户确认。', priority: 'P1', source: '品牌实体', status: '待客户确认', nextAction: '查看并确认策略' },
   { id: 'T-1', kind: 'task', title: '航空采购 FAQ', summary: '进入任务当前阶段。', priority: 'P1', source: '官网内容', status: 'Brief 待确认', nextAction: '确认任务 Brief' },
 ]
 

@@ -34,9 +34,9 @@ describe('diagnosis status', () => {
     expect(diagnosisFindingStatus(finding, strategies, [withProgress(task, 'done')])).toBe('已完成')
   })
 
-  it('settles advice and keeps missing knowledge pending a review', () => {
+  it('settles advice and missing-knowledge reminders as completed', () => {
     expect(diagnosisFindingStatus(findingById('F7-3'), strategies, [])).toBe('已完成')
-    expect(diagnosisFindingStatus(findingById('F8-5'), strategies, [])).toBe('待审核')
+    expect(diagnosisFindingStatus(findingById('F8-5'), strategies, [])).toBe('已完成')
   })
 
   it('derives a strategy status from its optimisation task', () => {

@@ -48,6 +48,34 @@ describe('content production store storage migration', () => {
     expect(publishedPending.questionCandidates).toHaveLength(5)
   })
 
+  it('migrates the removed customer handoff stages into the single-account flow', async () => {
+    const { createSeedProductionItems } = await import('../data/content-production-data')
+    const seed = createSeedProductionItems()
+    const pending = seed.find(item => item.id === 'CV-2601')!
+    const legacyItems = [
+      { ...pending, stage: 'pending_client', clientConfirmation: { status: 'pending' } },
+      {
+        ...pending,
+        id: 'CV-2599',
+        slug: 'legacy-rejected',
+        stage: 'client_rejected',
+        clientConfirmation: { status: 'rejected', at: new Date().toISOString(), comment: '请补充服务范围。' },
+      },
+    ]
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, items: legacyItems }))
+    vi.resetModules()
+
+    const { useContentProductionStore } = await import('./content-production')
+    const items = useContentProductionStore().state.items
+    const migratedPending = items.find(item => item.id === 'CV-2601')!
+    const migratedRejected = items.find(item => item.id === 'CV-2599')!
+
+    expect(migratedPending.stage).toBe('ai_checked')
+    expect(migratedPending.clientConfirmation).toBeUndefined()
+    expect(migratedRejected.stage).toBe('draft')
+    expect(migratedRejected.clientConfirmation).toBeUndefined()
+  })
+
   it('adds a detection round that is missing from persisted data', async () => {
     const { createPublishedVerificationItems } = await import('../data/content-production-data')
     const firstRound = createPublishedVerificationItems().filter(item => item.roundId === 'r1')

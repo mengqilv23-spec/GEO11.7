@@ -32,7 +32,7 @@ export function taskForFinding(finding: AuditFinding, strategies: readonly Strat
 }
 
 /** One display status shared by the diagnosis table and finding detail. */
-export function findingStatusLabel(finding: AuditFinding, strategies: readonly Strategy[], tasks: readonly GeoTask[], clientMode = false) {
+export function findingStatusLabel(finding: AuditFinding, strategies: readonly Strategy[], tasks: readonly GeoTask[]) {
   const treatment = findingTreatment(finding)
   if (finding.status === '暂不修复') return '暂不修复'
   if (treatment === 'website-tech-advice' || treatment === 'website-content-advice') return '无需处理'
@@ -44,10 +44,10 @@ export function findingStatusLabel(finding: AuditFinding, strategies: readonly S
   }
   if (task) return task.completionOutcome === 'expired-unexecuted' ? '任务已关闭' : task.progress === 'done' ? '已完成处理' : `已生成任务 · ${taskStageLabel(task)}`
   if (finding.status === '已修复') return '已完成处理'
-  return clientMode ? '待确认' : '待专家审核'
+  return '待确认'
 }
 
-export function findingRouteLabel(finding: AuditFinding, _clientMode = false) {
+export function findingRouteLabel(finding: AuditFinding) {
   const labels = {
     'website-tech-direct': '官网技术与结构 · 直接处理',
     'website-tech-advice': '官网技术与结构 · 仅提供建议',

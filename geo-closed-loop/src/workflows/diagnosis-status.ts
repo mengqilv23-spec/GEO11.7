@@ -25,12 +25,10 @@ export function diagnosisFindingStatus(finding: AuditFinding, strategies: readon
     return taskStatus
   if (finding.status === '已修复' || finding.status === '暂不修复')
     return '已完成'
-  // Advice is already settled; missing knowledge still needs a person before
-  // the finding can be reviewed.
-  if (isAdviceFinding(finding))
+  // Advice and missing-knowledge reminders are informational, so both settle
+  // as completed; opening them still shows the suggestion or the requirement.
+  if (isAdviceFinding(finding) || isKnowledgeFinding(finding))
     return '已完成'
-  if (isKnowledgeFinding(finding))
-    return '待审核'
   if (isDirectRepairFinding(finding) || finding.status === '已生成策略')
     return '处理中'
   return '待审核'

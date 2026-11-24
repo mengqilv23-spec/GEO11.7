@@ -51,7 +51,7 @@ export function clientCheckResult(check: AuditCheck, findings: AuditFinding[], t
 }
 export function createClientFindingTask(tasks: GeoTask[], finding: AuditFinding): GeoTask {
   const existing = tasks.find(task => task.type === 'web' && task.source === finding.id && !task.strategy)
-  const contentFormat = finding.id === 'F9' ? 'code' as const : undefined
+  const contentFormat = finding.contentFormat ?? (finding.id === 'F9' ? 'code' as const : undefined)
   if (existing) {
     const snapshot = officialContentSnapshot(finding)
     if (snapshot) {

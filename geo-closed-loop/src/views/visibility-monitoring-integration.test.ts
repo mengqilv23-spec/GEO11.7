@@ -212,7 +212,7 @@ describe('visibility monitoring integration', () => {
     await flushPromises()
     expect(wrapper.get('.vm-round-summary__status').text()).toBe('未配置')
     expect(wrapper.findAll('.vm-round-summary__metrics dt').map(item => item.text())).toEqual([
-      '监测日期',
+      '监测时间 / 轮次',
       '市场 / 语言',
       '买家人设',
       '意图',

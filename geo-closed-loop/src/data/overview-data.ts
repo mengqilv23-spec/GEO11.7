@@ -71,7 +71,7 @@ const taskStatus: Record<GeoTask['progress'], { status: string, nextAction: stri
   todo: { status: '待执行', nextAction: '查看任务' },
   running: { status: '执行中', nextAction: '查看进度' },
   client_content_review: { status: '待确认文案', nextAction: '确认文案结果' },
-  human: { status: '待专家审核', nextAction: '审核执行结果' },
+  human: { status: '待客户确认', nextAction: '确认处理结果' },
   client_review: { status: '待确认', nextAction: '确认业务事实' },
   publish: { status: '待发布', nextAction: '确认发布' },
   site_submit: { status: '待提交 AI 建站', nextAction: '提交执行' },
@@ -91,7 +91,7 @@ export function buildOverviewQueue(
   tasks: readonly GeoTask[],
 ): OverviewQueueItem[] {
   const findingItems = findings
-    .filter(finding => !isReadOnlyFinding(finding) && ['待处理', '待官网运营审核', '待专家审核'].includes(finding.status))
+    .filter(finding => !isReadOnlyFinding(finding) && ['待处理', '待客户审核'].includes(finding.status))
     .map(finding => ({
       id: finding.id,
       kind: 'finding' as const,
@@ -99,8 +99,8 @@ export function buildOverviewQueue(
       summary: finding.detail,
       priority: finding.priority,
       source: finding.check,
-      status: finding.status === '待官网运营审核' ? '待专家审核' : finding.status,
-      nextAction: ['待官网运营审核', '待专家审核'].includes(finding.status) ? '查看专家审核' : '查看诊断详情',
+      status: finding.status === '待客户审核' ? '待客户确认' : finding.status,
+      nextAction: finding.status === '待客户审核' ? '查看并确认' : '查看诊断详情',
     }))
 
   const strategyItems = strategies
@@ -112,7 +112,7 @@ export function buildOverviewQueue(
       summary: strategy.evidence,
       priority: strategy.priority,
       source: strategy.source,
-    status: '待专家审核',
+    status: '待确认',
     nextAction: '查看并确认策略',
     }))
 
@@ -125,8 +125,8 @@ export function buildOverviewQueue(
       summary: '进入任务处理当前阶段。',
       priority: 'P1' as const,
       source: task.source,
-      status: taskStatus[task.progress].status,
-      nextAction: taskStatus[task.progress].nextAction,
+      status: task.progress === 'site_submit' && task.type === 'external' ? '待完成内容交付' : taskStatus[task.progress].status,
+      nextAction: task.progress === 'site_submit' && task.type === 'external' ? '完成交付' : taskStatus[task.progress].nextAction,
     }))
 
   return [...findingItems, ...strategyItems, ...taskItems]

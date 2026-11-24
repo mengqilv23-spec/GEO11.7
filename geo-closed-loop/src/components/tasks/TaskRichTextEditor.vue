@@ -197,7 +197,7 @@ function generatePreview() {
   if (!props.editable || !props.aiOptimize)
     return
   if (props.aiCallsRemaining <= 0) {
-    aiError.value = '本篇内容在当前角色下的 AI 优化次数已用完。'
+    aiError.value = '本篇内容的 AI 优化次数已用完。'
     aiPreviewOpen.value = false
     return
   }

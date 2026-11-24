@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   canVerifyContent,
   contentProductionSummary,
+  contentStageGroupLabel,
   createSeedProductionItems,
   monthlyContentLimitForPlan,
   runAiCheckFor,
+  stageLabel,
   verificationAvailableAt,
 } from './content-production-data'
 
@@ -36,6 +38,16 @@ describe('content production data', () => {
     const passed = runAiCheckFor({ title: 'APW 钛合金切割', body: '<p>APW Waterjet 提供钛合金切割支持。</p>', keyFacts: [], brief })
     expect(passed.items.map(item => item.label)).toEqual(['品牌口径', '承诺边界'])
     expect(passed.passed).toBe(true)
+  })
+
+  it('uses confirmation as a single-account step instead of a customer handoff', () => {
+    expect(stageLabel('ai_checked')).toBe('待确认')
+    expect(stageLabel('ready_to_publish')).toBe('待发布')
+    expect(contentStageGroupLabel('draft')).toBe('进行中')
+    expect(contentStageGroupLabel('ai_checked')).toBe('待确认')
+    expect(contentStageGroupLabel('ready_to_publish')).toBe('进行中')
+    expect(contentStageGroupLabel('questions_pending')).toBe('待核验')
+    expect(contentStageGroupLabel('verified')).toBe('已核验')
   })
 
   it('counts published, remaining, and verified content against the total allowance', () => {

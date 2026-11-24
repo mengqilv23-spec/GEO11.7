@@ -13,8 +13,6 @@ describe('diagnosisContent icons', () => {
         activePersona: personas[0]!.id,
         strategies,
         strategyLayer: '全部',
-        serviceMode: 'managed',
-        role: 'ops',
       },
       global: {
         plugins: [createPinia()],
@@ -37,8 +35,7 @@ describe('diagnosisContent icons', () => {
     expect(wrapper.get('#audit-title .geo-section-heading__number').text()).toBe('1')
     expect(wrapper.get('#persona-title .geo-section-heading__number').text()).toBe('2')
     expect(wrapper.get('#persona-title').text()).toContain('买家关注点与品牌表现')
-    expect(wrapper.find('.geo-persona-panel__subtitle').exists()).toBe(false)
-    expect(wrapper.get('#persona-title .geo-help').attributes('aria-label')).toBe('认知 GAP 说明')
+    expect(wrapper.get('.geo-persona-panel__subtitle').text()).toContain('基于买家人设下的 AI 回答')
     expect(wrapper.get('#strategy-title .geo-section-heading__number').text()).toBe('3')
     expect(wrapper.get('#strategy-title .geo-help').text()).toBe('?')
     expect(wrapper.find('.geo-page-description').exists()).toBe(false)
@@ -54,8 +51,6 @@ describe('diagnosisContent icons', () => {
         activePersona: personas[0]!.id,
         strategies: strategies.map(item => ({ ...item })),
         strategyLayer: '全部',
-        serviceMode: 'managed',
-        role: 'ops',
       },
       global: {
         plugins: [createPinia()],
@@ -64,6 +59,7 @@ describe('diagnosisContent icons', () => {
     })
 
     expect(wrapper.findAll('.geo-finding-actions button').map(button => button.text())).not.toContain('生成候选策略')
+    expect(wrapper.find('.geo-finding-actions').exists()).toBe(false)
     expect(wrapper.findAll('.geo-strategy-context button')).toHaveLength(0)
     expect(wrapper.get('.geo-finding-table thead .geo-finding-action-column').text()).toBe('操作')
     expect(wrapper.get('.geo-finding-table thead .geo-finding-id').text()).toBe('序号')
@@ -79,17 +75,17 @@ describe('diagnosisContent icons', () => {
     await findingDetails.trigger('click')
     expect(wrapper.emitted('openAudit')).toHaveLength(1)
 
-    const strategyDetails = wrapper.findAll('.geo-strategy-table tbody tr button').find(button => button.text() === '审核')
-    expect(strategyDetails).toBeDefined()
-    expect(strategyDetails!.attributes('data-variant')).toBe('secondary')
-    expect(strategyDetails!.attributes('data-size')).toBe('md')
-    expect(strategyDetails!.classes()).toContain('geo-table-detail-button')
+    const strategyReview = wrapper.get('.geo-strategy-table tbody .geo-review-button')
+    expect(strategyReview.text()).toBe('确认处理')
+    expect(strategyReview.attributes('data-variant')).toBe('secondary')
+    expect(strategyReview.attributes('data-size')).toBe('md')
+    expect(strategyReview.classes()).toContain('geo-table-detail-button')
     expect(wrapper.find('.geo-strategy-table tbody button[data-variant="primary"]').exists()).toBe(false)
-    await strategyDetails!.trigger('click')
+    await strategyReview.trigger('click')
     expect(wrapper.emitted('openStrategy')).toHaveLength(1)
   })
 
-  it('shows a count-free bulk approval action for selected findings', async () => {
+  it('shows one confirmation action per finding without a bulk approval action', async () => {
     const wrapper = mount(DiagnosisContent, {
       props: {
         findings: auditFindings.filter(item => item.route === 'strategy' || item.id === 'F9').slice(0, 2).map(item => ({ ...item, checked: true })),
@@ -97,8 +93,6 @@ describe('diagnosisContent icons', () => {
         activePersona: personas[0]!.id,
         strategies,
         strategyLayer: '全部',
-        serviceMode: 'managed',
-        role: 'ops',
       },
       global: {
         plugins: [createPinia()],
@@ -106,21 +100,18 @@ describe('diagnosisContent icons', () => {
       },
     })
 
-    const approval = wrapper.findAll('.geo-finding-actions button').find(button => button.text() === '审核通过并生成任务')
-    expect(approval).toBeDefined()
-    expect(approval!.attributes('data-variant')).toBe('secondary')
-    expect(approval!.attributes('data-size')).toBe('md')
-    expect(approval!.classes()).toContain('geo-finding-approve-button')
-    expect(approval!.classes()).toContain('geo-table-detail-button')
-    expect(wrapper.find('.geo-finding-head').text()).not.toContain('条异常')
-    expect(wrapper.get('.geo-finding-selection-count').text()).toBe('已选 2')
-    expect(wrapper.findAll('.geo-finding-actions button').map(button => button.text())).not.toContain('直接处理')
-    await approval!.trigger('click')
-    expect(wrapper.emitted('approveSelectedFindings')).toHaveLength(1)
+    expect(wrapper.find('.geo-finding-actions').exists()).toBe(false)
+    expect(wrapper.find('.geo-finding-approve-button').exists()).toBe(false)
+    expect(wrapper.find('.geo-finding-selection-count').exists()).toBe(false)
+    const rows = wrapper.findAll('.geo-finding-table tbody tr')
+    expect(rows).toHaveLength(2)
+    for (const row of rows) expect(row.get('button').text()).toBe('确认处理')
+    await rows[0]!.get('button').trigger('click')
+    expect(wrapper.emitted('openAudit')).toHaveLength(1)
     wrapper.unmount()
   })
 
-  it.each(['agent', 'managed'] as const)('shows linked tasks as processing even with a legacy unconfirmed flag in %s', (mode) => {
+  it('shows linked tasks as processing even with a legacy unconfirmed flag', () => {
     const wrapper = mount(DiagnosisContent, {
       props: {
         findings: auditFindings,
@@ -129,8 +120,6 @@ describe('diagnosisContent icons', () => {
         strategies: strategies.filter(strategy => strategy.id === 'GS11').map(strategy => ({ ...strategy, confirmed: false })),
         tasks: prototypeTasks,
         strategyLayer: '全部',
-        serviceMode: mode,
-        role: mode === 'agent' ? 'client' : 'ops',
       },
       global: {
         plugins: [createPinia()],
@@ -141,7 +130,7 @@ describe('diagnosisContent icons', () => {
     const linkedTask = wrapper.findAll('.geo-strategy-table tbody button').find(button => button.text() === '查看任务')
     expect(wrapper.get('.geo-strategy-table tbody').text()).toContain('处理中')
     expect(wrapper.get('.geo-strategy-table tbody').text()).not.toContain('待客户审核')
-    expect(wrapper.findAll('.geo-strategy-table tbody button').some(button => button.text() === '审核')).toBe(false)
+    expect(wrapper.find('.geo-strategy-table tbody .geo-review-button').exists()).toBe(false)
     expect(wrapper.get('.geo-strategy-table tbody .ce-tag').attributes('data-tone')).toBe('blue')
     expect(linkedTask).toBeDefined()
     expect(linkedTask!.attributes('data-variant')).toBe('secondary')
@@ -153,7 +142,7 @@ describe('diagnosisContent icons', () => {
 describe('buyer stage filter', () => {
   it('filters buyer personas by stage and selects the first visible persona', async () => {
     const wrapper = mount(DiagnosisContent, {
-      props: { findings: [], personas, activePersona: 'engineering', strategies, strategyLayer: '全部', serviceMode: 'agent', role: 'client' },
+      props: { findings: [], personas, activePersona: 'engineering', strategies, strategyLayer: '全部' },
       global: { plugins: [createPinia()], stubs: { DeferredGeoRadarChart: true, Tooltip: { template: '<span><slot /></span>' } } },
     })
 
@@ -182,14 +171,12 @@ describe('buyer stage filter', () => {
   })
 })
 
-describe('advice-only findings in both products', () => {
-  it.each([
-    ['managed', 'ops'], ['managed', 'client'], ['agent', 'client'],
-  ] as const)('shows read-only advice in %s / %s', async (serviceMode, role) => {
+describe('advice-only findings', () => {
+  it('shows read-only advice without an approval action', async () => {
     const wrapper = mount(DiagnosisContent, {
       props: {
         findings: auditFindings.map(item => ({ ...item })), personas, activePersona: personas[0]!.id,
-        strategies, strategyLayer: '全部', serviceMode, role,
+        strategies, strategyLayer: '全部',
       },
       global: { plugins: [createPinia()], stubs: { DeferredGeoRadarChart: true, Tooltip: { template: '<span><slot /></span>' } } },
     })
@@ -202,8 +189,7 @@ describe('advice-only findings in both products', () => {
     for (const row of rows) {
       expect(row.get('.geo-finding-status').text()).toBe('已完成')
       expect(row.get('button').text()).toBe('查看建议')
-      const checkbox = row.find('input[type="checkbox"]')
-      if (checkbox.exists()) expect(checkbox.attributes('disabled')).toBeDefined()
+      expect(row.find('input').exists()).toBe(false)
     }
     expect(wrapper.find('.geo-finding-approve-button').exists()).toBe(false)
     await rows[1]!.get('button').trigger('click')
@@ -214,7 +200,7 @@ describe('advice-only findings in both products', () => {
 
 it('shows knowledge supplementation as a reminder without an approval action', async () => {
   const wrapper = mount(DiagnosisContent, {
-    props: { findings: auditFindings.map(item => ({ ...item })), personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部', serviceMode: 'agent', role: 'client' },
+    props: { findings: auditFindings.map(item => ({ ...item })), personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部' },
     global: { plugins: [createPinia()], stubs: { DeferredGeoRadarChart: true, Tooltip: { template: '<span><slot /></span>' } } },
   })
   await wrapper.get('[aria-label="处理方式筛选"]').setValue('knowledge')
@@ -222,7 +208,7 @@ it('shows knowledge supplementation as a reminder without an approval action', a
   expect(rows).toHaveLength(1)
   expect(rows[0]!.text()).toContain('待补充知识')
   expect(rows[0]!.get('button').text()).toBe('查看补充要求')
-  expect(rows[0]!.get('input').attributes('disabled')).toBeDefined()
+  expect(rows[0]!.find('input').exists()).toBe(false)
   await rows[0]!.get('button').trigger('click')
   expect(wrapper.emitted('openAudit')?.[0]?.[0]).toMatchObject({ route: 'knowledge' })
   wrapper.unmount()
@@ -231,20 +217,20 @@ it('shows knowledge supplementation as a reminder without an approval action', a
 it('shows details instead of review when an existing strategy already has a Brief task', async () => {
   const finding = { ...auditFindings.find(item => item.id === 'F8-2')!, checked: true }
   const wrapper = mount(DiagnosisContent, {
-    props: { findings: [finding], personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部', serviceMode: 'agent', role: 'client', tasks: [{ id: 'T-sync', name: finding.title, type: 'web', source: finding.id, strategy: 'GS14', persona: '', factor: '', methods: [], destination: '官网内容', progress: 'brief', relatedStrategies: ['GS14'] }] },
+    props: { findings: [finding], personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部', tasks: [{ id: 'T-sync', name: finding.title, type: 'web', source: finding.id, strategy: 'GS14', persona: '', factor: '', methods: [], destination: '官网内容', progress: 'brief', relatedStrategies: ['GS14'] }] },
     global: { plugins: [createPinia()], stubs: { DeferredGeoRadarChart: true, Tooltip: { template: '<span><slot /></span>' } } },
   })
   const row = wrapper.get('.geo-finding-table tbody tr')
   expect(row.get('button').text()).toBe('查看详情')
   expect(row.text()).toContain('处理中')
-  expect(row.get('input').attributes('disabled')).toBeDefined()
+  expect(row.find('input').exists()).toBe(false)
   expect(wrapper.find('.geo-finding-approve-button').exists()).toBe(false)
   wrapper.unmount()
 })
 
 it('shows only a pass result rather than an empty problem table for a healthy client check', async () => {
   const wrapper = mount(DiagnosisContent, {
-    props: { findings: [], personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部', serviceMode: 'agent', role: 'client' },
+    props: { findings: [], personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部' },
     global: { plugins: [createPinia()], stubs: { DeferredGeoRadarChart: true, Tooltip: { template: '<span><slot /></span>' } } },
   })
   await wrapper.findAll('.geo-check')[0]!.trigger('click')
@@ -257,7 +243,7 @@ it('shows only a pass result rather than an empty problem table for a healthy cl
 
 it('focuses a topic and filters its strategies without opening a separate answer drawer', async () => {
   const wrapper = mount(DiagnosisContent, {
-    props: { findings: [], personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部', serviceMode: 'agent', role: 'client' },
+    props: { findings: [], personas, activePersona: personas[0]!.id, strategies, strategyLayer: '全部' },
     global: { plugins: [createPinia()], stubs: {
       DeferredGeoRadarChart: true,
       Tooltip: { template: '<span><slot /></span>' },
@@ -281,7 +267,7 @@ it('focuses a topic and filters its strategies without opening a separate answer
   expect(wrapper.get('[aria-label="按 AI 平台筛选主题差距"]').element).toHaveProperty('value', 'ChatGPT')
   const platformRadarFactors = wrapper.findComponent({ name: 'DeferredGeoRadarChart' }).props('factors') as Array<{ name: string, coverage: number, competitor: number }>
   expect(platformRadarFactors).toHaveLength(radarFactors.length)
-  expect(platformRadarFactors.find(factor => factor.name === '切割精度')?.coverage).toBeCloseTo(88.24, 2)
+  expect(platformRadarFactors.find(factor => factor.name === '切割精度')?.coverage).toBe(88)
   expect(wrapper.findAll('.client-gap-row').length).toBeGreaterThan(0)
   expect(wrapper.get('.geo-strategy-context').text()).not.toContain('聚焦：')
   expect(wrapper.find('.geo-strategy-table tbody .geo-gap-link').text()).toBe(strategyGapBefore)

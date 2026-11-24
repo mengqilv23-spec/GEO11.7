@@ -22,8 +22,6 @@ const knowledgeOptions = knowledgeLibrary.map(item => ({
 
 const aiForm = reactive({
   theme: '',
-  targetQuestion: '',
-  market: '德国',
 })
 
 const selectedKnowledgeIds = ref<string[]>(knowledgeOptions.map(item => item.id))
@@ -75,9 +73,9 @@ function createAiDraft() {
   const item = store.createFromBrief({
     brief: {
       theme: aiForm.theme.trim(),
-      targetQuestion: aiForm.targetQuestion.trim(),
+      targetQuestion: '',
       audience: '航空复材加工技术主管',
-      market: aiForm.market.trim(),
+      market: '德国',
       notes: `具体参数、交期与服务范围以知识库「${knowledge.map(item => item.title).join('、')}」为准。`,
     },
     keyFacts: factsFromTheme(aiForm.theme),
@@ -91,7 +89,6 @@ function createAiDraft() {
 function resetForm() {
   error.value = ''
   aiForm.theme = ''
-  aiForm.targetQuestion = ''
   selectedKnowledgeIds.value = knowledgeOptions.map(item => item.id)
   knowledgeOpen.value = false
 }
@@ -102,7 +99,7 @@ function resetForm() {
     :open="open"
     title="AI 写核验文章"
     eyebrow="品牌内容核验"
-    subtitle="生成初稿后经 AI 检查、客户确认并发布到官网 Blog"
+    subtitle="生成初稿后经 AI 检查、内容确认并发布到官网 Blog"
     :size="720"
     @close="close"
   >
@@ -119,16 +116,6 @@ function resetForm() {
           <span>文章主题</span>
           <input v-model="aiForm.theme" data-test="create-theme" placeholder="例如：五轴水刀 · CFRP 分层控制指南">
         </label>
-        <div class="cp-form__row">
-          <label class="cp-field">
-            <span>目标核验问题</span>
-            <input v-model="aiForm.targetQuestion" placeholder="例如：APW 如何控制 CFRP 切割分层？">
-          </label>
-          <label class="cp-field">
-            <span>目标市场</span>
-            <input v-model="aiForm.market">
-          </label>
-        </div>
         <fieldset ref="knowledgeRoot" class="cp-knowledge">
           <legend>知识库内容</legend>
           <button
@@ -187,7 +174,6 @@ function resetForm() {
 .cp-channel strong { color: var(--text-primary); font-weight: 600; }
 .cp-channel small { color: var(--text-muted); }
 .cp-form { display: grid; gap: 14px; }
-.cp-form__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .cp-field { display: grid; gap: 6px; min-width: 0; color: var(--text-secondary); font-size: 12px; line-height: 18px; }
 .cp-field > span { color: var(--text-primary); font-weight: 500; }
 .cp-field input { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid var(--border-default); border-radius: 8px; color: var(--text-primary); background: var(--background-primary); font: inherit; font-size: 13px; line-height: 20px; }
@@ -211,5 +197,4 @@ function resetForm() {
 .cp-knowledge__copy em { color: var(--text-secondary); font-size: 12px; font-style: normal; line-height: 18px; }
 .cp-form__actions { display: flex; justify-content: flex-end; padding-top: 4px; }
 .cp-error { margin: 0; color: var(--status-error-foreground, #b91c1c); font-size: 12px; line-height: 18px; }
-@media (max-width: 560px) { .cp-form__row { grid-template-columns: 1fr; } }
 </style>

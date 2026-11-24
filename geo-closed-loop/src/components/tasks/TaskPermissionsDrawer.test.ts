@@ -18,12 +18,13 @@ describe('task permissions drawer', () => {
     })
 
     expect(wrapper.get('[role="dialog"] h2').text()).toBe('诊断与策略 / 优化中心权限边界')
-    expect(wrapper.text()).toContain('Agent 负责分析与自动执行')
-    expect(wrapper.findAll('tbody tr')).toHaveLength(11)
+    expect(wrapper.text()).toContain('AI 负责生成、质检与执行；客户负责审核和确认。')
+    expect(wrapper.findAll('tbody tr')).toHaveLength(6)
     expect(wrapper.get('.tp-table-scroll').attributes('tabindex')).toBe('0')
     expect(wrapper.get('.tp-table-scroll').attributes('aria-label')).toContain('可横向滚动')
-    expect(wrapper.text()).toContain('官网发布')
-    expect(wrapper.text()).toContain('外部平台发布')
+    expect(wrapper.text()).toContain('官网执行')
+    expect(wrapper.text()).toContain('外部信源')
+    expect(wrapper.text()).toContain('确认后自行发布')
   })
 
   it('emits close from both the header close button and the acknowledgement button', async () => {

@@ -21,7 +21,7 @@ describe('optimization content task table', () => {
       strategyWindow: index === 0 ? '09/14–09/20' : '09/21–09/27',
     }))
     const wrapper = mount(OptimizationContent, {
-      props: { tasks: [tasks[0]!], allTasks: tasks, filter: 'all', role: 'ops' },
+      props: { tasks: [tasks[0]!], allTasks: tasks, filter: 'all' },
     })
 
     expect(wrapper.find('.geo-optimization-period').exists()).toBe(false)
@@ -38,7 +38,7 @@ describe('optimization content task table', () => {
   it('shows the unified page help icon with the requested explanation', () => {
     const tasks = makeTasks()
     const wrapper = mount(OptimizationContent, {
-      props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
+      props: { tasks, allTasks: tasks, filter: 'all' },
     })
 
     expect(wrapper.get('.geo-page-intro h1 .overview-info-icon').attributes('aria-label')).toBe('优化中心说明')
@@ -49,7 +49,7 @@ describe('optimization content task table', () => {
   it('uses the prototype columns and shows a compact pagination summary', () => {
     const tasks = makeTasks()
     const wrapper = mount(OptimizationContent, {
-      props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
+      props: { tasks, allTasks: tasks, filter: 'all' },
     })
 
     expect(wrapper.findAll('thead th').map(header => header.text())).toEqual([
@@ -81,7 +81,7 @@ describe('optimization content task table', () => {
   it('offers only the three task statuses', () => {
     const tasks = makeTasks()
     const wrapper = mount(OptimizationContent, {
-      props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
+      props: { tasks, allTasks: tasks, filter: 'all' },
     })
 
     const statusRow = wrapper.findAll('.geo-task-filter-row')[1]!
@@ -110,7 +110,7 @@ describe('optimization content task table', () => {
     const deferred = { ...initialTasks[0]!, id: 'STATUS-DEFERRED', name: '已暂不处理任务', progress: 'human' as const }
     ensureWorkflow(deferred).deferredTask = {
       stage: 'human',
-      stageLabel: '运营专业审核',
+      stageLabel: '客户审核',
       reason: '资料待补充',
       explanation: '等待客户补充材料。',
       actor: '专家',
@@ -118,7 +118,7 @@ describe('optimization content task table', () => {
     }
     tasks.push(ignored, deferred)
     const wrapper = mount(OptimizationContent, {
-      props: { tasks, allTasks: tasks, filter: 'all', role: 'client' },
+      props: { tasks, allTasks: tasks, filter: 'all' },
     })
 
     expect(wrapper.findAll('tbody .geo-progress').map(status => status.text())).toEqual([
@@ -145,13 +145,13 @@ describe('optimization content task table', () => {
       { ...initialTasks[0]!, id: 'STAT-6', name: '修复中任务', type: 'repair', workflow: undefined, progress: 'site_running' },
     ]
     const wrapper = mount(OptimizationContent, {
-      props: { tasks, allTasks: tasks, filter: 'all', role: 'ops' },
+      props: { tasks, allTasks: tasks, filter: 'all' },
     })
 
     expect(wrapper.get('.geo-optimization-status-stats h2').text()).toBe('任务状态')
     expect(wrapper.findAll('.geo-status-stat').map(stat => stat.text().replace(/\s/g, ''))).toEqual([
-      '待我处理2项',
-      '处理中3项',
+      '待我处理3项',
+      '处理中2项',
       '已完成1项',
     ])
     expect(wrapper.get('.geo-optimization-status-stats .ce-tag').text()).toBe('共 6 项')

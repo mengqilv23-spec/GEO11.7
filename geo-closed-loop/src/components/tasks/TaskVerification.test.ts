@@ -23,7 +23,7 @@ it.each(['add-content', 'edit-content', 'external', 'technical', 'business-gap']
   ensureWorkflow(task)
   task.progress = 'human'
   const context = reactive({ strategies: [parent], tasks, findings: [], openFlow: vi.fn(), navigate: vi.fn(), openTask: vi.fn(), openStrategy: vi.fn() }) as unknown as GeoWorkbenchRouteContext
-  const wrapper = mount(TaskWorkspace, { props: { task, role: 'client', serviceMode: 'agent', clientPreview: false }, global: { provide: { [geoWorkbenchRouteContextKey as symbol]: context }, stubs: { Drawer: true } } })
+  const wrapper = mount(TaskWorkspace, { props: { task }, global: { provide: { [geoWorkbenchRouteContextKey as symbol]: context }, stubs: { Drawer: true } } })
   expect(wrapper.find('.task-rich-editor').exists()).toBe(false)
   expect(wrapper.find('.tw-actionbar').exists()).toBe(false)
   await wrapper.get('.tw-content-panel select').setValue(outcome)
