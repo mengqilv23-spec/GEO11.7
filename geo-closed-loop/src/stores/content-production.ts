@@ -11,6 +11,7 @@ import {
   buildBlogDraft,
   canVerifyContent,
   createPublishedVerificationItems,
+  createReadyVerificationDemoItem,
   createSeedProductionItems,
   createVerificationQuestion,
   generateQuestionCandidates,
@@ -52,12 +53,17 @@ function loadItems(): ContentProductionItem[] {
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null || !('items' in parsed) || !Array.isArray(parsed.items))
       return createSeedProductionItems()
-    const stored = (parsed.items as ContentProductionItem[]).map(normalizeItem)
+    // Drop the earlier expired demo fixture so only the ready-to-verify demo remains.
+    const stored = (parsed.items as ContentProductionItem[])
+      .filter(item => item.id !== 'CV-DEMO-EXPIRED')
+      .map(normalizeItem)
     // Persisted data may predate a seeded detection round. Add only the
     // published articles that are missing so every round keeps its own set.
     const storedTaskIds = new Set(stored.map(item => item.taskId).filter(Boolean))
     const missing = createPublishedVerificationItems().filter(item => !storedTaskIds.has(item.taskId))
-    return [...missing, ...stored]
+    const demo = createReadyVerificationDemoItem()
+    const demoMissing = !stored.some(item => item.id === demo.id)
+    return [...missing, ...(demoMissing ? [demo] : []), ...stored]
   }
   catch {
     return createSeedProductionItems()

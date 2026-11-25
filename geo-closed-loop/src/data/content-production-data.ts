@@ -453,7 +453,49 @@ export function createSeedProductionItems(now = new Date()): ContentProductionIt
     }),
   }
 
-  return [pendingItem, publishedItem, ...existing]
+  return [pendingItem, publishedItem, createReadyVerificationDemoItem(now), ...existing]
+}
+
+/**
+ * Demo fixture: a published article that has passed the 48-hour cooldown and
+ * is ready to start verification, used to review the success return state.
+ */
+export function createReadyVerificationDemoItem(now = new Date()): ContentProductionItem {
+  const question = '这条核验问题已经可以开始核验了吗？'
+  return {
+    id: 'CV-DEMO-READY',
+    title: '过了核验时间的问题',
+    slug: 'ready-verification-question',
+    summary: '演示数据：已发布满 48 小时、可以开始核验的内容。',
+    body: '<p>这是一条用于查看核验成功返回状态的演示内容。APW Waterjet 已发布该页面，发布已满 48 小时，可以开始核验。</p>',
+    keyFacts: ['核验时间', '演示数据'],
+    brief: {
+      theme: '过了核验时间的问题',
+      targetQuestion: question,
+      audience: '官网访客与运营团队',
+      market: '德国',
+      notes: '演示数据：只用于查看开始核验及核验成功后的返回状态。',
+    },
+    stage: 'questions_confirmed',
+    source: 'ai',
+    createdAt: daysAgo(now, 10),
+    updatedAt: now.toISOString(),
+    publishedAt: daysAgo(now, 5),
+    url: 'https://apw.com/blog/ready-verification-question',
+    revision: 1,
+    aiCheck: passedAiCheck(daysAgo(now, 6)),
+    clientConfirmation: { status: 'confirmed', at: daysAgo(now, 6), comment: '演示数据。' },
+    questions: [{
+      id: 'CV-DEMO-READY-Q1',
+      question,
+      intent: '核验成功返回状态演示',
+      state: 'pending',
+      answers: [],
+      citationCount: 0,
+      primaryCitationCount: 0,
+      confirmed: true,
+    }],
+  }
 }
 
 function passedAiCheck(at: string): AiCheckResult {

@@ -55,7 +55,9 @@ function stepDone(value: ContentProductionItem, id: DetailTab): boolean {
   if (id === 'publish')
     return Boolean(value.publishedAt)
   if (id === 'questions')
-    return Boolean(value.questions[0]?.confirmed)
+    // Selecting a question is not enough to complete this step; it still has
+    // to pass the 48-hour cooldown and start verification.
+    return ['verifying', 'verified'].includes(value.stage)
   return value.stage === 'verified'
 }
 
@@ -69,13 +71,22 @@ const workflowSteps = computed<WorkflowStep[]>(() => {
     { id: 'questions', label: '核验问题' },
     { id: 'results', label: '核验结果' },
   ]
-  const firstPending = order.find(entry => !stepDone(value, entry.id))?.id
+  // The step being viewed always wins over its completion state. Going back
+  // to a finished step therefore selects it again instead of leaving a check
+  // mark on the current page; the check appears after moving away.
   return order.map(entry => ({
     ...entry,
-    state: stepDone(value, entry.id) ? 'done' : entry.id === firstPending ? 'current' : 'pending',
+    state: entry.id === tab.value
+      ? 'current'
+      : stepDone(value, entry.id) ? 'done' : 'pending',
   }))
 })
 
+const verificationSucceeded = computed(() => Boolean(
+  item.value
+  && item.value.stage === 'verified'
+  && item.value.questions.some(question => question.primaryCitationCount > 0),
+))
 const description = computed(() => item.value ? stageDescription(item.value.stage) : '')
 
 const canEdit = computed(() => Boolean(item.value && !props.historical && ['draft', 'ai_checked', 'ready_to_publish'].includes(item.value.stage)))
@@ -88,6 +99,10 @@ const verifying = computed(() => item.value?.stage === 'verifying')
 const selectedQuestion = computed(() => item.value?.questions[0] ?? null)
 const candidateQuestions = computed(() => item.value?.questionCandidates ?? [])
 const hasSelectedQuestion = computed(() => Boolean(selectedQuestion.value?.confirmed))
+// A custom question typed but not yet committed still counts as usable, so the
+// operator can start verification without clicking a second time.
+const hasUsableQuestion = computed(() => hasSelectedQuestion.value
+  || (customActive.value && customQuestion.value.trim().length > 0))
 const verificationReady = computed(() => Boolean(item.value && canVerifyContent(item.value)))
 const verificationWindowStart = computed(() => verificationAvailableAt(item.value?.publishedAt))
 const verificationWaitLabel = computed(() => {
@@ -230,15 +245,26 @@ function selectCustomQuestion() {
 function commitCustomQuestion() {
   if (!item.value)
     return
-  store.selectQuestion(item.value.id, customQuestion.value)
+  const value = customQuestion.value.trim()
+  if (!value)
+    return
+  store.selectQuestion(item.value.id, value)
 }
 
 async function startVerification() {
-  if (!item.value || verifying.value || !hasSelectedQuestion.value)
+  if (!item.value || verifying.value || !verificationReady.value)
     return
-  await store.startVerification(item.value.id)
+  // Commit the custom question only when verification starts, not on each
+  // keystroke, so the question step does not keep changing while typing.
+  if (customActive.value)
+    commitCustomQuestion()
+  if (!hasSelectedQuestion.value)
+    return
+  // Show the result step before waiting for the answer, so the page and the
+  // highlighted step stay on the same view during verification.
   tab.value = 'results'
-  emit('notify', '核验完成，已记录 AI 回答与官网引用。')
+  await store.startVerification(item.value.id)
+  emit('notify', verificationSucceeded.value ? '核验成功，已记录 AI 回答与官网引用。' : '核验完成，未命中官网引用。')
 }
 
 function snapshotHref(answer: PlatformVerificationAnswer) {
@@ -446,13 +472,14 @@ function questionStateLabel(question: ProductionQuestion) {
             class="cpd-question__input"
             placeholder="输入要核验的问题"
             aria-label="自定义核验问题"
-            @input="commitCustomQuestion"
+            @blur="commitCustomQuestion"
+            @keydown.enter.prevent="commitCustomQuestion"
           >
           <div class="cpd-actions">
             <Button
               type="button"
               variant="primary"
-              :disabled="!hasSelectedQuestion || !verificationReady || verifying"
+              :disabled="!hasUsableQuestion || !verificationReady || verifying"
               :loading="verifying"
               data-test="start-verification"
               @click="startVerification"
@@ -463,7 +490,7 @@ function questionStateLabel(question: ProductionQuestion) {
           <p v-if="!verificationReady" class="cpd-note">
             内容发布后需等待 {{ VERIFICATION_COOLDOWN_HOURS }} 小时生效，预计 {{ verificationWindowStart ? formatDateTime(verificationWindowStart) : '48 小时后' }} 后可开始核验<span v-if="verificationWaitLabel">（还需{{ verificationWaitLabel }}）</span>。
           </p>
-          <p v-else-if="!hasSelectedQuestion" class="cpd-note">
+          <p v-else-if="!hasUsableQuestion" class="cpd-note">
             选择 1 个 AI 生成的问题，或自己写一个。
           </p>
         </template>
@@ -491,6 +518,15 @@ function questionStateLabel(question: ProductionQuestion) {
       </section>
 
       <section v-else class="cpd__panel">
+        <div
+          v-if="item.stage === 'verified'"
+          class="cpd-return"
+          :class="verificationSucceeded ? 'is-success' : 'is-neutral'"
+          data-test="verification-return-status"
+        >
+          <strong>{{ verificationSucceeded ? '核验成功' : '核验完成' }}</strong>
+          <span>{{ verificationSucceeded ? '已获取 AI 回答，并命中官网引用。' : '已获取 AI 回答，但未命中官网引用。' }}</span>
+        </div>
         <div v-if="!hasResults" class="cpd-empty">
           <p>选择核验问题并开始核验后，结果会显示在这里。</p>
           <p v-if="item.publishedAt && !verificationReady" class="cpd-note">
@@ -589,6 +625,10 @@ function questionStateLabel(question: ProductionQuestion) {
 .cpd-note { margin: 0; color: var(--text-muted); font-size: 12px; line-height: 19px; }
 .cpd-empty { display: grid; justify-items: start; gap: 10px; padding: 24px; border: 1px dashed var(--border-default); border-radius: 10px; color: var(--text-muted); font-size: 12px; line-height: 19px; }
 .cpd-empty p { margin: 0; }
+.cpd-return { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: 10px; font-size: 12px; line-height: 19px; }
+.cpd-return strong { font-size: 13px; line-height: 20px; }
+.cpd-return.is-success { border-color: color-mix(in srgb, var(--status-success-foreground) 28%, var(--border-default)); color: var(--status-success-foreground); background: var(--status-success-background); }
+.cpd-return.is-neutral { color: var(--text-secondary); background: var(--background-subtle); }
 .cpd-channel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; border: 1px solid var(--border-default); border-radius: 10px; color: var(--text-secondary); background: var(--background-subtle); font-size: 12px; line-height: 19px; }
 .cpd-channel strong { color: var(--text-primary); font-weight: 600; }
 .cpd-channel small { color: var(--text-muted); }

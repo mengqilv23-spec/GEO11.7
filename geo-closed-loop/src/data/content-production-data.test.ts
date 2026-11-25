@@ -4,6 +4,7 @@ import {
   canVerifyContent,
   contentProductionSummary,
   contentStageGroupLabel,
+  createReadyVerificationDemoItem,
   createSeedProductionItems,
   monthlyContentLimitForPlan,
   runAiCheckFor,
@@ -71,13 +72,23 @@ describe('content production data', () => {
     const items = createSeedProductionItems(new Date('2026-11-17T08:00:00.000Z'))
     const summary = contentProductionSummary(items, 20)
 
-    expect(summary.published).toBe(7)
+    expect(summary.published).toBe(8)
     expect(summary.pendingQuestions).toBe(1)
-    expect(summary.inProgress).toBe(2)
+    expect(summary.inProgress).toBe(3)
     expect(summary.verified).toBe(6)
-    expect(summary.remaining).toBe(13)
+    expect(summary.remaining).toBe(12)
     expect(summary.exhausted).toBe(false)
-    expect(contentProductionSummary(items, 7).remaining).toBe(0)
-    expect(contentProductionSummary(items, 7).exhausted).toBe(true)
+    expect(contentProductionSummary(items, 8).remaining).toBe(0)
+    expect(contentProductionSummary(items, 8).exhausted).toBe(true)
+  })
+
+  it('seeds a demo that has passed the cooldown and is ready to verify', () => {
+    const now = new Date('2026-11-17T08:00:00.000Z')
+    const demo = createReadyVerificationDemoItem(now)
+
+    expect(demo.title).toBe('过了核验时间的问题')
+    expect(demo.stage).toBe('questions_confirmed')
+    expect(demo.questions[0]?.confirmed).toBe(true)
+    expect(canVerifyContent(demo, now)).toBe(true)
   })
 })

@@ -42,14 +42,14 @@ describe('content verification view', () => {
     expect(wrapper.find('[data-test="create-content"]').exists()).toBe(true)
     expect(wrapper.find('.cv-quota').exists()).toBe(true)
     expect(wrapper.get('.cv-quota__copy > span').text()).toBe('已发布的内容')
-    expect(wrapper.get('.cv-quota__copy strong').text()).toContain('7')
+    expect(wrapper.get('.cv-quota__copy strong').text()).toContain('8')
     expect(wrapper.get('.cv-quota__copy strong').text()).toContain('20')
     expect(wrapper.text()).toContain('专业版 · 共 20 篇')
     expect(wrapper.findAll('.cv-stat > span').map(item => item.text())).toEqual(['剩余可发布', '已核验的内容'])
-    expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['13', '6'])
+    expect(wrapper.findAll('.cv-stat strong').map(item => item.text())).toEqual(['12', '6'])
     expect(wrapper.findAll('.cv-filter button').map(button => button.text())).toEqual(['全部', '进行中', '待确认', '待核验', '已核验'])
     expect(wrapper.findAll('thead th').map(item => item.text())).toEqual(['序号', '任务序号', '内容', '状态', '核验问题', '发布状态', '操作'])
-    expect(wrapper.findAll('tbody tr')).toHaveLength(8)
+    expect(wrapper.findAll('tbody tr')).toHaveLength(9)
 
     expect(wrapper.get('[data-content-id="CV-2601"]').text()).toContain('待确认')
     expect(wrapper.get('[data-content-id="CV-2601"] .cv-link').text()).toBe('内容确认')
@@ -79,7 +79,7 @@ describe('content verification view', () => {
     expect(wrapper.findAll('tbody tr').map(row => row.attributes('data-content-id'))).toEqual(['CV-2601'])
 
     await filterButton('待核验').trigger('click')
-    expect(statusTexts()).toEqual(['待核验'])
+    expect(statusTexts()).toEqual(['待核验', '待核验'])
 
     await filterButton('已核验').trigger('click')
     expect(wrapper.findAll('tbody tr')).toHaveLength(6)
@@ -88,7 +88,7 @@ describe('content verification view', () => {
     expect(wrapper.findAll('tbody tr')).toHaveLength(0)
 
     await filterButton('全部').trigger('click')
-    expect(wrapper.findAll('tbody tr')).toHaveLength(8)
+    expect(wrapper.findAll('tbody tr')).toHaveLength(9)
     wrapper.unmount()
   })
 
@@ -107,7 +107,7 @@ describe('content verification view', () => {
 
     await drawer.findAll('button').find(button => button.text() === '关闭')!.trigger('click')
     await wrapper.get('.cv-round-select select').setValue('all')
-    expect(wrapper.findAll('tbody tr')).toHaveLength(8)
+    expect(wrapper.findAll('tbody tr')).toHaveLength(9)
     expect(wrapper.find('.cv-filter').exists()).toBe(true)
     wrapper.unmount()
   })
@@ -151,11 +151,102 @@ describe('content verification view', () => {
     expect(drawer.get('[data-test="publish-error"]').text()).toContain(item.publishError!)
     expect(drawer.get('[data-test="detail-title"]').element).toHaveProperty('value', item.title)
     expect(wrapper.get('[data-content-id="CV-2601"]').text()).toContain('发布失败')
+    // The failed publish sends the operator back to content; the publish step
+    // must not stay highlighted while the content page is open.
+    expect(drawer.get('[data-test="step-content"]').element.closest('li')!.className).toContain('is-active')
+    expect(drawer.get('[data-test="step-publish"]').element.closest('li')!.className).not.toContain('is-current')
 
     await drawer.get('[data-test="step-publish"]').trigger('click')
     await drawer.get('[data-test="publish-blog"]').trigger('click')
     expect(store.findItem('CV-2601')?.stage).toBe('questions_pending')
     expect(store.findItem('CV-2601')?.publishError).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('stays on the content step when a saved check moves the data stage forward', async () => {
+    const wrapper = mountView()
+    const store = useContentProductionStore()
+
+    await wrapper.get('[data-content-id="CV-2601"] .cv-link').trigger('click')
+    const drawer = wrapper.get('[data-test="drawer"]')
+    await drawer.get('[data-test="step-content"]').trigger('click')
+    await drawer.get('.cpd-form').trigger('submit')
+
+    expect(store.findItem('CV-2601')?.stage).toBe('ai_checked')
+    const contentStep = drawer.get('[data-test="step-content"]').element.closest('li')!
+    const publishStep = drawer.get('[data-test="step-publish"]').element.closest('li')!
+    // The page being viewed is selected even though its data stage is complete.
+    expect(contentStep.className).toContain('is-current')
+    expect(contentStep.className).not.toContain('is-done')
+    expect(publishStep.className).not.toContain('is-current')
+
+    await drawer.get('[data-test="next-step"]').trigger('click')
+    expect(publishStep.className).toContain('is-current')
+    expect(contentStep.className).not.toContain('is-active')
+    expect(contentStep.className).toContain('is-done')
+    wrapper.unmount()
+  })
+
+  it('selects a completed step when the operator navigates back to it', async () => {
+    const wrapper = mountView()
+
+    await wrapper.get('[data-content-id="CV-2601"] .cv-link').trigger('click')
+    const drawer = wrapper.get('[data-test="drawer"]')
+    const contentStep = drawer.get('[data-test="step-content"]').element.closest('li')!
+    const publishStep = drawer.get('[data-test="step-publish"]').element.closest('li')!
+    // The drawer opens on the next pending step, so the completed content step
+    // is checked. Going back to it makes it the selected step again.
+    expect(contentStep.className).toContain('is-done')
+    expect(publishStep.className).toContain('is-current')
+
+    await drawer.get('[data-test="step-content"]').trigger('click')
+    expect(contentStep.className).toContain('is-current')
+    expect(contentStep.className).not.toContain('is-done')
+    expect(publishStep.className).not.toContain('is-current')
+    wrapper.unmount()
+  })
+
+  it('does not advance to the result step when a verification question is selected', async () => {
+    const wrapper = mountView()
+    const store = useContentProductionStore()
+
+    await wrapper.get('[data-content-id="CV-2602"] .cv-link').trigger('click')
+    const drawer = wrapper.get('[data-test="drawer"]')
+    const questionStep = drawer.get('[data-test="step-questions"]').element.closest('li')!
+    const resultStep = drawer.get('[data-test="step-results"]').element.closest('li')!
+    expect(questionStep.className).toContain('is-current')
+
+    await drawer.findAll('.cpd-question-option input')[0]!.setValue(true)
+
+    expect(store.findItem('CV-2602')?.questions[0]?.confirmed).toBe(true)
+    // Choosing a question does not complete the question step; verification
+    // still has to start, so the step stays selected instead of checked.
+    expect(questionStep.className).toContain('is-current')
+    expect(questionStep.className).not.toContain('is-done')
+    expect(resultStep.className).not.toContain('is-current')
+    wrapper.unmount()
+  })
+
+  it('commits a custom verification question on blur instead of every keystroke', async () => {
+    const wrapper = mountView()
+    const store = useContentProductionStore()
+
+    await wrapper.get('[data-content-id="CV-2602"] .cv-link').trigger('click')
+    const drawer = wrapper.get('[data-test="drawer"]')
+    const customOption = drawer.findAll('.cpd-question-option input').at(-1)!
+    await customOption.setValue(true)
+    const input = drawer.get('.cpd-question__input')
+
+    await input.setValue('自定义核验问题')
+    expect(store.findItem('CV-2602')?.questions).toHaveLength(0)
+    expect(drawer.get('[data-test="step-questions"]').element.closest('li')!.className).toContain('is-current')
+    expect(drawer.get('[data-test="step-results"]').element.closest('li')!.className).not.toContain('is-current')
+
+    await input.trigger('blur')
+    expect(store.findItem('CV-2602')?.questions[0]?.question).toBe('自定义核验问题')
+    expect(drawer.get('[data-test="step-questions"]').element.closest('li')!.className).toContain('is-current')
+    expect(drawer.get('[data-test="step-questions"]').element.closest('li')!.className).not.toContain('is-done')
+    expect(drawer.get('[data-test="step-results"]').element.closest('li')!.className).not.toContain('is-current')
     wrapper.unmount()
   })
 
@@ -199,7 +290,7 @@ describe('content verification view', () => {
 
     const item = store.state.items.find(entry => entry.title.includes('CFRP 分层控制指南'))!
     expect(item.stage).toBe('draft')
-    expect(store.state.items).toHaveLength(9)
+    expect(store.state.items).toHaveLength(10)
 
     const detail = wrapper.get('[data-test="drawer"]')
     expect(detail.get('[data-test="detail-title"]').element).toHaveProperty('value', item.title)
@@ -214,6 +305,7 @@ describe('content verification view', () => {
     const drawer = wrapper.get('[data-test="drawer"]')
     expect(drawer.findAll('.cpd-step__label').map(step => step.text())).toEqual(['内容', '确认内容并发布', '核验问题', '核验结果'])
     expect(drawer.findAll('.cv-result')).toHaveLength(1)
+    expect(drawer.get('[data-test="verification-return-status"]').text()).toContain('核验成功')
     expect(drawer.get('.cv-result__question').text()).toBe('APW 是不是做钛合金切割？')
     expect(drawer.text()).toContain('围绕钛合金零件加工的行业回答')
     expect(drawer.findAll('.cv-platform__name').map(item => item.text())).toEqual(['ChatGPT', 'Google AI'])
@@ -225,6 +317,34 @@ describe('content verification view', () => {
 
     await drawer.findAll('button').find(button => button.text() === '关闭')!.trigger('click')
     expect(wrapper.find('[data-test="drawer"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('starts verification from the ready demo and returns the success state', async () => {
+    const wrapper = mountView()
+    const store = useContentProductionStore()
+    const row = wrapper.get('[data-content-id="CV-DEMO-READY"]')
+
+    expect(row.text()).toContain('过了核验时间的问题')
+    expect(row.text()).toContain('待核验')
+    expect(row.get('.cv-link').text()).toBe('开始核验')
+
+    await row.get('.cv-title').trigger('click')
+    const drawer = wrapper.get('[data-test="drawer"]')
+    const start = drawer.findAll('button').find(button => button.text() === '开始核验')
+    expect(start).toBeTruthy()
+
+    await start!.trigger('click')
+    // The question step is only complete once verification starts, and the
+    // result step becomes active before the request returns.
+    expect(drawer.get('[data-test="step-questions"]').element.closest('li')!.className).toContain('is-done')
+    expect(drawer.get('[data-test="step-results"]').element.closest('li')!.className).toContain('is-current')
+    expect(drawer.text()).toContain('核验中...')
+    await flushPromises()
+
+    expect(store.findItem('CV-DEMO-READY')?.stage).toBe('verified')
+    expect(drawer.get('[data-test="verification-return-status"]').text()).toContain('核验成功')
+    expect(drawer.findAll('.cv-result')).toHaveLength(1)
     wrapper.unmount()
   })
 
