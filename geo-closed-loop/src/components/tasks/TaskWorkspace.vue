@@ -7,9 +7,10 @@ import { computed, reactive, shallowRef, watch } from 'vue'
 import { useGeoWorkbenchRouteContext } from '../../composables/workbench-route-context'
 import { auditFindings, officialContentSnapshot } from '../../data/geo-data'
 import { isCodeContentTask } from '../../workflows/content-format'
+import { stripLeadingTitleHeading } from '../../workflows/content-title'
 import { directRepairStatus, isDirectRepairTask } from '../../workflows/direct-repair'
 import { taskFlowFor } from '../../workflows/task-flow'
-import { advanceAutomatic, applyAction, briefGate, canIgnoreCurrentStep as canIgnoreStep, canPrepareBrief, deferredTaskFor, ensureWorkflow, hasAutomaticStep, ignoredTaskFor, isTaskIgnored, knowledgeLibrary, taskStageLabel } from '../../workflows/task-workflow'
+import { advanceAutomatic, applyAction, briefGate, canIgnoreCurrentStep as canIgnoreStep, canPrepareBrief, deferredTaskFor, ensureWorkflow, hasAutomaticStep, ignoredTaskFor, isTaskIgnored, knowledgeLibrary, replaceLegacyGeneratedIntro, taskStageLabel } from '../../workflows/task-workflow'
 import Button from '../ui/ce/button/Button.vue'
 import Drawer from '../ui/ce/drawer/Drawer.vue'
 import DropdownSelect from '../ui/ce/dropdown-select/DropdownSelect.vue'
@@ -169,7 +170,13 @@ watch(() => props.task, (task) => {
     directInstruction.value = savedDraft.contentInstruction ?? directInstruction.value
     webSupplement.value = savedDraft.webSupplement ?? webSupplement.value
     draft.title = savedDraft.title ?? draft.title
-    draft.body = (savedDraft.body ?? draft.body).replaceAll('演示资料：', '')
+    // Local drafts may predate the separate title field and still carry the
+    // title as their first heading. Remove only that duplicated heading.
+    draft.body = stripLeadingTitleHeading(
+      (savedDraft.body ?? draft.body).replaceAll('演示资料：', ''),
+      [draft.title, task.workflow?.output.title, task.name],
+    )
+    draft.body = replaceLegacyGeneratedIntro(draft.body, [draft.title, task.workflow?.brief.goal, task.workflow?.output.title, task.name])
   }
 }, { immediate: true })
 watch([directInstruction, webSupplement, () => draft.title, () => draft.body], persistLocalDraft, { flush: 'post' })
@@ -352,7 +359,7 @@ const waitingFor = computed(() => {
   if (props.task.progress === 'brief')
     return '客户确认 Brief 后才启动执行；可查看任务目标与执行范围。'
   if (props.task.progress === 'client_content_review')
-    return codeContentTask.value ? CODE_REVIEW_NOTICE : '请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。'
+    return codeContentTask.value ? CODE_REVIEW_NOTICE : '请确认文案结果；需要修改时可直接编辑标题和正文，保存后再确认。'
   if (['human', 'client_review'].includes(props.task.progress))
     return codeContentTask.value ? CODE_REVIEW_NOTICE : '等待客户确认产物、业务事实与交付范围。'
   if (props.task.progress === 'recheck')
@@ -386,10 +393,10 @@ const actionbarDescription = computed(() => {
   if (customerFinalReview.value) {
     if (codeContentTask.value)
       return CODE_REVIEW_NOTICE
-    return '请确认文案结果；需要修改时可直接编辑正文。'
+    return '请确认文案结果；需要修改时可直接编辑标题和正文。'
   }
   if (props.task.progress === 'client_content_review')
-    return codeContentTask.value ? CODE_REVIEW_NOTICE : '请确认文案结果；需要修改时直接点击正文编辑，保存后再确认。'
+    return codeContentTask.value ? CODE_REVIEW_NOTICE : '请确认文案结果；需要修改时可直接编辑标题和正文，保存后再确认。'
   if (props.task.progress === 'site_failed')
     return '发布失败。请修改内容后重新提交；如不再处理，可选择忽略。'
   if (props.task.progress === 'site_submit')
@@ -819,7 +826,11 @@ function versionDiff(index: number) {
                     <p v-if="contentReviewLocked" class="tw-ai-guard" role="status">
                       生成内容为只读，当前只能选择通过或忽略。
                     </p>
-                    <TaskRichTextEditor v-model="draft.body" :editable="outputEditable" :ai-optimize="aiWritingAvailable" :ai-calls-remaining="aiCallsRemaining" :external-claims="flow.output.externalClaims || []" :can-confirm-external-claims="true" :full-width="true" :heading="flow.output.title" label="生成内容正文编辑器" @ai-call="consumeAiCall" @confirm-external-claim="confirmExternalClaim">
+                    <label class="tw-field tw-output-title-field">
+                      <span>标题</span>
+                      <input v-model="draft.title" :readonly="!outputEditable" data-test="inline-output-title">
+                    </label>
+                    <TaskRichTextEditor v-model="draft.body" :editable="outputEditable" :ai-optimize="aiWritingAvailable" :ai-calls-remaining="aiCallsRemaining" :external-claims="flow.output.externalClaims || []" :can-confirm-external-claims="true" :full-width="true" label="生成内容正文编辑器" @ai-call="consumeAiCall" @confirm-external-claim="confirmExternalClaim">
                       <template v-if="finalQualityVisible" #ai-dock-below>
                         <TaskReviewInsights v-bind="qualityInput" />
                       </template>
@@ -884,7 +895,7 @@ function versionDiff(index: number) {
           </template>
           <template v-if="reviewing">
             <Button v-if="outputEditable" variant="secondary" data-test="save-inline-output" @click="saveInlineOutputFromButton">
-              保存正文
+              保存修改
             </Button>
             <Button v-if="contentReviewLocked" class="tw-ignore-action" variant="secondary" data-test="ignore-task" @click="drawer = 'ignore'">
               忽略
@@ -961,7 +972,7 @@ function versionDiff(index: number) {
           </div>
         </template>
         <template v-else-if="drawer === 'output'">
-          <label class="tw-field">产物标题<input v-model="draft.title"></label><label class="tw-field">产物正文<TaskRichTextEditor v-model="draft.body" label="编辑产物正文" /></label>
+          <label class="tw-field">标题<input v-model="draft.title"></label><label class="tw-field">正文<TaskRichTextEditor v-model="draft.body" label="编辑正文" /></label>
         </template>
         <template v-else>
           <label class="tw-field">补充要求与修正说明<textarea v-model="note" rows="8" placeholder="请具体说明需要调整的段落、事实依据、表达方式或范围" /></label>

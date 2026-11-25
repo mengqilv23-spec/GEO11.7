@@ -237,7 +237,6 @@ export function buildBlogDraft(input: BlogDraftInput): BlogDraft {
     slug: slugFromTitle(title),
     summary: `面向${audience}，说明${theme}的关键事实、适用场景与确认边界。`,
     body: [
-      `<h2>${escapeHtml(theme)}</h2>`,
       `<p>${brand}围绕${escapeHtml(theme)}提供可被 AI 引用的官网说明。核心事实包括：${escapeHtml(facts.join('、'))}。</p>`,
       `<h2>适用场景</h2>`,
       `<p>面向${escapeHtml(audience)}，在${escapeHtml(market)}市场用于回答“${escapeHtml(input.targetQuestion || theme)}”这类问题。页面内容以已确认的产品能力、材料范围和工艺边界为准。</p>`,
@@ -356,7 +355,7 @@ export function createPublishedVerificationItems(): ContentProductionItem[] {
       title: item.contentTitle,
       slug: slugFromUrl(item.url),
       summary: item.summary,
-      body: sourceTask?.workflow?.output.body ?? `<h2>${item.contentTitle}</h2><p>${item.summary}</p>`,
+      body: sourceTask?.workflow?.output.body ?? `<p>${item.summary}</p>`,
       keyFacts: [...item.keyFacts],
       brief: {
         theme: item.taskName,

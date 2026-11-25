@@ -48,6 +48,22 @@ describe('content production store storage migration', () => {
     expect(publishedPending.questionCandidates).toHaveLength(5)
   })
 
+  it('removes a duplicated title heading from saved article bodies', async () => {
+    const { createSeedProductionItems } = await import('../data/content-production-data')
+    const seed = createSeedProductionItems()
+    const pending = seed.find(item => item.id === 'CV-2601')!
+    const legacyItems = [{ ...pending, body: `<h2>${pending.title}</h2>${pending.body}` }]
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, items: legacyItems }))
+    vi.resetModules()
+
+    const { useContentProductionStore } = await import('./content-production')
+    const migrated = useContentProductionStore().state.items.find(item => item.id === 'CV-2601')!
+
+    expect(migrated.title).toBe(pending.title)
+    expect(migrated.body).toBe(pending.body)
+    expect(migrated.body.startsWith('<h2>')).toBe(false)
+  })
+
   it('migrates the removed customer handoff stages into the single-account flow', async () => {
     const { createSeedProductionItems } = await import('../data/content-production-data')
     const seed = createSeedProductionItems()

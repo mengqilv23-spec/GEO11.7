@@ -166,6 +166,7 @@ describe('content verification view', () => {
     await wrapper.get('[data-content-id="CV-2601"] .cv-link').trigger('click')
     const drawer = wrapper.get('[data-test="drawer"]')
     await drawer.get('[data-test="edit-content"]').trigger('click')
+    expect(drawer.findAll('.cpd-form .cpd-field > span').map(label => label.text())).toEqual(['标题', '正文'])
     await drawer.get('[data-test="detail-title"]').setValue('APW CFRP 分层控制（修订）')
     await drawer.get('.cpd-form').trigger('submit')
 

@@ -18,6 +18,7 @@ import {
   verifyQuestion,
 } from '../data/content-production-data'
 import { contentVerificationItems, contentVerificationRounds } from '../data/content-verification-data'
+import { stripLeadingTitleHeading } from '../workflows/content-title'
 
 const STORAGE_KEY = 'geo-content-production:v1'
 const verificationDelay = import.meta.env.MODE === 'test' ? 0 : 650
@@ -82,6 +83,9 @@ function normalizeAiCheck(check: ContentProductionItem['aiCheck']) {
 }
 
 function normalizeItem(item: ContentProductionItem): ContentProductionItem {
+  // Older generated drafts repeated the title as the body's first heading.
+  // The title now has its own field, so remove only that duplicated heading.
+  const body = stripLeadingTitleHeading(item.body, [item.title, item.brief?.theme])
   // Older data modelled confirmation as a handoff to a separate customer
   // account. The single account now confirms in place, so pending and rejected
   // handoffs return to the same production steps.
@@ -104,6 +108,7 @@ function normalizeItem(item: ContentProductionItem): ContentProductionItem {
   if (canonical && stage === 'verified') {
     return {
       ...item,
+      body,
       stage,
       roundId: canonical.roundId,
       keyFacts: item.keyFacts ?? [...canonical.keyFacts],
@@ -149,6 +154,7 @@ function normalizeItem(item: ContentProductionItem): ContentProductionItem {
     : stage
   return {
     ...item,
+    body,
     stage: finalStage,
     roundId,
     keyFacts: item.keyFacts ?? [],

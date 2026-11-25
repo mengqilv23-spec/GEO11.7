@@ -1,6 +1,7 @@
 import type { GeoTask, TaskProgress } from '../data/geo-data'
 
 import { isCodeContentTask } from './content-format'
+import { stripLeadingTitleHeading } from './content-title'
 import { directRepairStatus, isDirectRepairTask } from './direct-repair'
 
 export interface TaskBrief {
@@ -136,6 +137,20 @@ function buildCodeBody(task: GeoTask, flow: TaskWorkflow) {
  * Build an editable draft from the confirmed Brief and selected knowledge.
  * It deliberately avoids inventing facts that are not in the task inputs.
  */
+const generatedIntro = '<p>本稿依据已确认的 Brief 与已选知识资料整理，围绕执行目标说明服务范围、事实依据与适用边界；涉及参数、认证、交期和服务承诺的内容发布前需要逐项核对。</p>'
+export function replaceLegacyGeneratedIntro(body: string, candidates: Array<string | undefined>) {
+  // Earlier drafts echoed the task name as the first sentence of the body.
+  // The title now lives in its own field, so replace only that generated
+  // sentence and leave any later manual edits untouched.
+  const legacySuffix = '。本稿依据已确认的 Brief 与已选知识资料整理，涉及参数、认证、交期和服务承诺的内容发布前需要逐项核对。</p>'
+  for (const candidate of candidates) {
+    const title = candidate?.trim()
+    const legacyIntro = title ? `<p>${escapeHtml(title)}${legacySuffix}` : ''
+    if (legacyIntro && body.startsWith(legacyIntro))
+      return generatedIntro + body.slice(legacyIntro.length)
+  }
+  return body
+}
 function buildDraftBody(task: GeoTask, flow: TaskWorkflow) {
   if (isCodeContentTask(task))
     return buildCodeBody(task, flow)
@@ -147,8 +162,7 @@ function buildDraftBody(task: GeoTask, flow: TaskWorkflow) {
     : '<li>尚未匹配到知识库资料，发布前需要补充可核实的依据。</li>'
   const note = flow.brief.contentInstruction?.trim() || flow.feedback?.trim() || '请在发布前补充适用范围、可公开的事实依据和需要客户确认的业务信息。'
   return [
-    `<h2>${escapeHtml(task.name)}</h2>`,
-    `<p>${escapeHtml(flow.brief.goal)}。本稿依据已确认的 Brief 与已选知识资料整理，涉及参数、认证、交期和服务承诺的内容发布前需要逐项核对。</p>`,
+    generatedIntro,
     `<h2>执行范围</h2><p>${escapeHtml(flow.brief.executionTarget)}</p>`,
     `<h2>内容要点</h2><ul>${methods}</ul>`,
     `<h2>可引用依据</h2><ul>${knowledge}</ul>`,
@@ -223,6 +237,10 @@ export function ensureWorkflow(task: GeoTask): TaskWorkflow {
     if (task.workflow.output.body === legacySeedOutput || task.workflow.output.body.startsWith('演示产物：') || task.workflow.output.body.startsWith('【本地模拟产物')) {
       task.workflow.output.body = buildDraftBody(task, task.workflow)
     }
+    // Older generated bodies began with the title heading; the title now lives
+    // in its own field, so migrate the saved body without touching other sections.
+    task.workflow.output.body = stripLeadingTitleHeading(task.workflow.output.body, [task.workflow.output.title, task.name])
+    task.workflow.output.body = replaceLegacyGeneratedIntro(task.workflow.output.body, [task.workflow.output.title, task.workflow.brief.goal, task.name])
     if (isCodeContentTask(task)) {
       task.contentFormat = 'code'
       const body = task.workflow.output.body

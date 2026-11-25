@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildBlogDraft,
   canVerifyContent,
   contentProductionSummary,
   contentStageGroupLabel,
@@ -27,6 +28,22 @@ describe('content production data', () => {
     expect(canVerifyContent({ publishedAt }, new Date('2026-11-19T07:59:59.000Z'))).toBe(false)
     expect(canVerifyContent({ publishedAt }, new Date('2026-11-19T08:00:00.000Z'))).toBe(true)
     expect(canVerifyContent({}, new Date('2026-11-19T08:00:00.000Z'))).toBe(false)
+  })
+
+  it('keeps the article title out of the generated body', () => {
+    const draft = buildBlogDraft({
+      theme: '钛合金切割',
+      targetQuestion: 'APW 如何切割钛合金？',
+      audience: '航空部件采购经理',
+      market: '德国',
+      notes: '',
+      keyFacts: ['冷切割'],
+    })
+
+    expect(draft.title).toBe('APW 钛合金切割')
+    expect(draft.body.startsWith('<h2>')).toBe(false)
+    expect(draft.body).not.toContain(draft.title)
+    expect(draft.body).toContain('<h2>适用场景</h2>')
   })
 
   it('checks only brand wording and claim boundaries', () => {

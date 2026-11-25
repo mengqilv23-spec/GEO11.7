@@ -434,23 +434,25 @@ describe('task workspace content review', () => {
     task.progress = 'human'
     const flow = ensureWorkflow(task)
     flow.brief.webSupplement = true
-    flow.output.body = `<h2>${task.name}</h2><p>${'航空采购 FAQ 的交付稳定性说明。'.repeat(12)}</p>`
+    flow.output.body = `<h2>执行范围</h2><p>${'航空采购 FAQ 的交付稳定性说明。'.repeat(12)}</p>`
     const wrapper = mountWorkspace(task)
     await new Promise(resolve => setTimeout(resolve, 0))
 
     expect(wrapper.find('.ProseMirror').exists()).toBe(true)
     expect(wrapper.get('.ProseMirror').attributes('contenteditable')).toBe('true')
+    expect(wrapper.get('[data-test="inline-output-title"]').element).toHaveProperty('value', task.name)
+    expect(wrapper.find('.task-rich-editor__page h1').exists()).toBe(false)
     expect(wrapper.find('.task-rich-editor__toolbar').exists()).toBe(true)
     expect(wrapper.find('button[aria-label="加粗"]').exists()).toBe(true)
     expect(wrapper.get('.tw-actionbar').text()).toContain('等待客户确认产物、业务事实与交付范围。')
     expect(wrapper.get('[data-test="approve-output"]').text()).toBe('确认最终稿')
     expect(wrapper.get('.tw-actionbar strong').text()).toBe('待客户审核')
     expect(wrapper.find('.tw-actionbar [data-test="ignore-task"]').exists()).toBe(true)
-    expect(wrapper.get('[data-test="save-inline-output"]').text()).toBe('保存正文')
+    expect(wrapper.get('[data-test="save-inline-output"]').text()).toBe('保存修改')
     expect((wrapper.get('[data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(false)
     expect(wrapper.findAll('.tw-actionbar button').map(button => button.text())).toEqual([
       '忽略',
-      '保存正文',
+      '保存修改',
       '确认最终稿',
     ])
     expect(wrapper.find('[data-test="save-output"]').exists()).toBe(false)
@@ -492,6 +494,23 @@ describe('task workspace content review', () => {
     expect(task.progress).toBe('human')
     expect((wrapper.get('[data-test="save-inline-output"]').element as HTMLButtonElement).disabled).toBe(false)
     expect(wrapper.get('.tw-actionbar .tw-success').text()).toContain('保存产物修改')
+    wrapper.unmount()
+  })
+
+  it('edits the title separately from the body and saves both', async () => {
+    const task = makeTask()
+    task.progress = 'human'
+    const wrapper = mountWorkspace(task)
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    await wrapper.get('[data-test="inline-output-title"]').setValue('航空采购 FAQ 与产能表')
+    const proseMirror = wrapper.get('.ProseMirror')
+    proseMirror.element.textContent = '标题和正文分开保存'
+    await proseMirror.trigger('input')
+    await wrapper.get('[data-test="save-inline-output"]').trigger('click')
+
+    expect(task.workflow?.output.title).toBe('航空采购 FAQ 与产能表')
+    expect(task.workflow?.output.body).toContain('标题和正文分开保存')
     wrapper.unmount()
   })
 

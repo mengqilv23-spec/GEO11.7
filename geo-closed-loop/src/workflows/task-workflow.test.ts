@@ -191,6 +191,40 @@ describe('customer content review and publishing', () => {
     expect(task.progress).toBe('client_review')
   })
 
+  it('keeps the generated title out of the body', () => {
+    const task = makeTask('web', 'running')
+    const flow = ensureWorkflow(task)
+
+    expect(advanceAutomatic(task)).toBe(true)
+    expect(task.progress).toBe('client_review')
+    expect(flow.output.title).toBe('任务')
+    expect(flow.output.body.startsWith('<h2>任务</h2>')).toBe(false)
+    expect(flow.output.body.startsWith('<p>任务')).toBe(false)
+    expect(flow.output.body).toContain('<h2>执行范围</h2>')
+  })
+
+  it('removes only a legacy duplicated title heading from saved output', () => {
+    const task = makeTask('web', 'client_review')
+    const flow = ensureWorkflow(task)
+    flow.output.body = '<h2>任务</h2><p>正文</p><h2>执行范围</h2><p>范围</p>'
+
+    ensureWorkflow(task)
+
+    expect(flow.output.body).toBe('<p>正文</p><h2>执行范围</h2><p>范围</p>')
+  })
+
+  it('removes the legacy title echo from a saved generated body', () => {
+    const task = makeTask('web', 'client_review')
+    const flow = ensureWorkflow(task)
+    flow.output.body = '<p>任务。本稿依据已确认的 Brief 与已选知识资料整理，涉及参数、认证、交期和服务承诺的内容发布前需要逐项核对。</p><h2>执行范围</h2><p>范围</p>'
+
+    ensureWorkflow(task)
+
+    expect(flow.output.body.startsWith('<p>本稿依据已确认的 Brief')).toBe(true)
+    expect(flow.output.body).not.toContain('<p>任务。')
+    expect(flow.output.body).toContain('<h2>执行范围</h2><p>范围</p>')
+  })
+
   it('lets the customer adjust web supplementation during content preparation and review', () => {
     const preparing = makeTask('web', 'todo')
     const preparingFlow = ensureWorkflow(preparing)

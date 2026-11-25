@@ -309,7 +309,7 @@ function questionStateLabel(question: ProductionQuestion) {
         </div>
         <form v-if="canEdit" class="cpd-form" @submit.prevent="saveAndCheck">
           <label class="cpd-field">
-            <span>Blog 标题</span>
+            <span>标题</span>
             <input v-model="draftTitle" data-test="detail-title">
           </label>
           <div class="cpd-field">
